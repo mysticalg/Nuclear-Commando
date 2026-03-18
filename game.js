@@ -20,9 +20,13 @@
   const PLAYER_ROLL_COOLDOWN = 0.68;
   const PLAYER_CLIMB_SPEED = 185;
   const PLAYER_DROP_THROUGH = 0.22;
+  const PLAYER_VISUAL_SCALE = 1.86;
   const CAMERA_LERP = 6.4;
   const CAMERA_LEAD_LERP = 8.2;
   const FACE_LERP = 10.5;
+  const BLOOD_GRAVITY = 1180;
+  const MAX_CORPSES = 40;
+  const MAX_BLOOD_PARTICLES = 320;
 
   const keys = Object.create(null);
   const sprites = new Map();
@@ -55,6 +59,7 @@
       trooper: { frames: 6, fps: 12 },
       trooper_fire: { frames: 6, fps: 12 },
       trooper_up: { frames: 6, fps: 12 },
+      trooper_death: { frames: 7, fps: 16 },
       drone: { frames: 4, fps: 12 },
       turret: { frames: 3, fps: 5 },
       mech: { frames: 6, fps: 8 },
@@ -272,6 +277,8 @@
     enemyBullets: [],
     pickups: [],
     explosions: [],
+    corpses: [],
+    bloodParticles: [],
     acc: 0,
   };
 
@@ -280,6 +287,13 @@
   const rand = (a, b) => Math.random() * (b - a) + a;
   const damp = (current, target, rate, dt) => lerp(current, target, 1 - Math.exp(-rate * dt));
   const TROOPER_VARIANTS = ["", "olive", "crimson", "navy"];
+  const ENEMY_SCALE = {
+    trooper: 1.66,
+    drone: 1.6,
+    turret: 1.4,
+    mech: 1.5,
+    boss: 2.1,
+  };
   const normalizeVec = (x, y) => {
     const d = Math.hypot(x, y) || 1;
     return { x: x / d, y: y / d };
@@ -305,16 +319,101 @@
     return normalizeVec(rawX, rawY);
   }
 
+  function getPlayerPoseKey(p) {
+    const aimMode = getPlayerAimMode(p);
+    return p.climbing
+      ? "player_climb"
+      : p.rollT > 0
+      ? "player_roll"
+      : (p.crouching && p.onGround
+        ? "player_crouch"
+        : (!p.onGround
+          ? (aimMode === "up"
+            ? "player_air_up"
+            : aimMode === "diag"
+              ? "player_air_diag"
+              : (p.muzzleFlashT > 0 ? "player_air_forward" : "player_jump"))
+          : (Math.abs(p.vx) > 20
+            ? (aimMode === "up" ? "player_run_up" : aimMode === "diag" ? "player_run_diag" : "player_run")
+            : (aimMode === "up" ? "player_idle_up" : aimMode === "diag" ? "player_idle_diag" : "player_idle"))));
+  }
+
+  function getPlayerRenderState(p) {
+    const sw = p.w * PLAYER_VISUAL_SCALE;
+    const sh = p.h * PLAYER_VISUAL_SCALE;
+    return {
+      scale: PLAYER_VISUAL_SCALE,
+      sw,
+      sh,
+      sx: p.x - (sw - p.w) * 0.5,
+      sy: p.y - (sh - p.h),
+      key: getPlayerPoseKey(p),
+      aimMode: getPlayerAimMode(p),
+      flipScale: typeof p.visualFace === "number" ? p.visualFace : p.face,
+    };
+  }
+
   function getPlayerMuzzlePoint(p) {
     const aim = getPlayerAimVector(p);
-    const shoulderX = p.x + p.w * 0.5 + p.face * 8;
-    const shoulderY = p.y + (p.crouching ? 24 : (!p.onGround ? 18 : 18));
+    const render = getPlayerRenderState(p);
+    const pose = render.key;
+    const anchor = pose === "player_crouch"
+      ? { x: 0.8, y: 0.6 }
+      : pose === "player_air_up" || pose === "player_idle_up" || pose === "player_run_up"
+        ? { x: 0.56, y: 0.12 }
+        : pose === "player_air_diag" || pose === "player_idle_diag" || pose === "player_run_diag"
+          ? { x: 0.76, y: 0.23 }
+          : pose === "player_air_forward"
+            ? { x: 0.87, y: 0.42 }
+            : pose === "player_climb"
+              ? (render.aimMode === "up" ? { x: 0.58, y: 0.14 } : { x: 0.73, y: 0.36 })
+              : { x: 0.87, y: 0.45 };
+    const mirroredX = p.face < 0 ? 1 - anchor.x : anchor.x;
+    const shoulderX = render.sx + render.sw * mirroredX;
+    const shoulderY = render.sy + render.sh * anchor.y;
     return {
-      x: shoulderX + aim.x * 20,
-      y: shoulderY + aim.y * 20,
+      x: shoulderX + aim.x * 7,
+      y: shoulderY + aim.y * 7,
       dirX: aim.x,
       dirY: aim.y,
     };
+  }
+
+  function getEnemyFacingFlip(e) {
+    return state.player.x >= e.x;
+  }
+
+  function getEnemyRenderState(e) {
+    const scale = ENEMY_SCALE[e.kind] || 1.5;
+    const sw = e.w * scale;
+    const sh = e.h * scale;
+    return {
+      scale,
+      sw,
+      sh,
+      sx: e.x - (sw - e.w) * 0.5,
+      sy: e.y - (sh - e.h),
+      flip: getEnemyFacingFlip(e),
+    };
+  }
+
+  function getEnemyMuzzlePoint(e) {
+    const render = getEnemyRenderState(e);
+    const facingRight = render.flip;
+    let anchor;
+    if (e.kind === "trooper") {
+      const base = resolveTrooperSpriteBase(e);
+      anchor = base.includes("_up") ? { x: 0.42, y: 0.16 } : { x: 0.16, y: 0.4 };
+    } else if (e.kind === "turret") {
+      anchor = { x: 0.22, y: 0.28 };
+    } else if (e.kind === "mech" || e.kind === "boss") {
+      anchor = { x: 0.24, y: 0.36 };
+    } else {
+      anchor = { x: 0.24, y: 0.5 };
+    }
+    const x = render.sx + render.sw * (facingRight ? 1 - anchor.x : anchor.x);
+    const y = render.sy + render.sh * anchor.y;
+    return { x, y };
   }
 
   function say(text, s = 2.2) {
