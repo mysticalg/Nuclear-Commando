@@ -1,0 +1,136 @@
+{
+  "createdAt": "2026-03-18T05:25:09.729Z",
+  "endpoint": "http://127.0.0.1:7860/sdapi/v1/txt2img",
+  "model": "sd_turbo.safetensors",
+  "width": 1024,
+  "height": 1024,
+  "steps": 6,
+  "cfg": 1.8,
+  "sampler": "Euler a",
+  "expandFrames": false,
+  "dryRun": false,
+  "generated": [
+    {
+      "key": "player_idle_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\player_idle_hd.png",
+      "seed": 1773811509728,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\player_run_hd.png",
+      "seed": 1773811509729,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_jump_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\player_jump_hd.png",
+      "seed": 1773811509730,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_trooper_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\enemy_trooper_hd.png",
+      "seed": 1773811509731,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_drone_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\enemy_drone_hd.png",
+      "seed": 1773811509732,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_turret_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\enemy_turret_hd.png",
+      "seed": 1773811509733,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_mech_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\enemy_mech_hd.png",
+      "seed": 1773811509734,
+      "width": 768,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "objective_centrifuge_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\objective_centrifuge_hd.png",
+      "seed": 1773811509735,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_factory_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\objective_factory_hd.png",
+      "seed": 1773811509736,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_reactor_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\objective_reactor_hd.png",
+      "seed": 1773811509737,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_radar_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\objective_radar_hd.png",
+      "seed": 1773811509738,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "pickup_med_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\pickup_med_hd.png",
+      "seed": 1773811509739,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_spread_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\pickup_spread_hd.png",
+      "seed": 1773811509740,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_laser_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\pickup_laser_hd.png",
+      "seed": 1773811509741,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_flame_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-selected\\pickup_flame_hd.png",
+      "seed": 1773811509742,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    }
+  ],
+  "skipped": [],
+  "failed": []
+}

@@ -1,0 +1,112 @@
+{
+  "createdAt": "2026-03-18T05:06:35.001Z",
+  "endpoint": "http://127.0.0.1:7860/sdapi/v1/txt2img",
+  "model": "sd_turbo.safetensors",
+  "width": 1024,
+  "height": 1024,
+  "steps": 6,
+  "cfg": 1.8,
+  "sampler": "Euler a",
+  "expandFrames": true,
+  "dryRun": false,
+  "generated": [
+    {
+      "key": "player_idle_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_idle_0_hd.png",
+      "seed": 1773810395000,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_idle_1_hd.png",
+      "seed": 1773810395001,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_idle_2_hd.png",
+      "seed": 1773810395002,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_3_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_idle_3_hd.png",
+      "seed": 1773810395003,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_4_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_idle_4_hd.png",
+      "seed": 1773810395004,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_5_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_idle_5_hd.png",
+      "seed": 1773810395005,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_idle_hd.png",
+      "seed": 1773810395006,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_run_0_hd.png",
+      "seed": 1773810395007,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_run_1_hd.png",
+      "seed": 1773810395008,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_run_2_hd.png",
+      "seed": 1773810395009,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_3_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_run_3_hd.png",
+      "seed": 1773810395010,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_4_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_sample\\player_run_4_hd.png",
+      "seed": 1773810395011,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    }
+  ],
+  "skipped": [],
+  "failed": []
+}

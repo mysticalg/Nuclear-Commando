@@ -1,0 +1,48 @@
+{
+  "createdAt": "2026-03-18T05:27:52.480Z",
+  "endpoint": "http://127.0.0.1:7860/sdapi/v1/txt2img",
+  "model": "sd_turbo.safetensors",
+  "width": 1024,
+  "height": 1024,
+  "steps": 20,
+  "cfg": 4.5,
+  "sampler": "DPM++ 2M SDE",
+  "expandFrames": false,
+  "dryRun": false,
+  "generated": [
+    {
+      "key": "player_idle_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-refined\\player_idle_hd.png",
+      "seed": 1773811672479,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_trooper_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-refined\\enemy_trooper_hd.png",
+      "seed": 1773811672480,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_mech_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-refined\\enemy_mech_hd.png",
+      "seed": 1773811672481,
+      "width": 768,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "objective_reactor_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\output\\imagegen\\forge-refined\\objective_reactor_hd.png",
+      "seed": 1773811672482,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    }
+  ],
+  "skipped": [],
+  "failed": []
+}

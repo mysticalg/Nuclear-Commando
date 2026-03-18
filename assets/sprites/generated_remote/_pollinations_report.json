@@ -1,0 +1,18 @@
+{
+  "createdAt": "2026-03-17T15:13:48.581Z",
+  "host": "https://image.pollinations.ai/prompt",
+  "model": "sana",
+  "width": 1024,
+  "height": 1024,
+  "limit": 1,
+  "dryRun": true,
+  "generated": [
+    {
+      "key": "player_idle_hd",
+      "url": "https://image.pollinations.ai/prompt/high%20detail%202D%20side-scroller%20action%20game%20sprite%2C%20clean%20silhouette%2C%20front%2Fside%20readable%2C%20cel-shaded%2C%20transparent%20background%2C%20no%20text%2C%20no%20logo%2C%20elite%20commando%20in%20tactical%20suit%20with%20red%20headband%20and%20compact%20rifle%2C%20idle%20combat%20stance%2C%20full%20body%20visible?model=sana&width=1024&height=1024",
+      "dryRun": true
+    }
+  ],
+  "skipped": [],
+  "failed": []
+}

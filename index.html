@@ -1,0 +1,37 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nuclear Commando</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main id="app">
+    <canvas id="game" width="960" height="540" aria-label="Nuclear Commando Game Canvas"></canvas>
+    <section id="splash" class="panel visible" role="dialog" aria-modal="true" aria-labelledby="title">
+      <h1 id="title">Nuclear Commando</h1>
+      <p class="tagline">Retro assault. Tactical objectives. No room for hesitation.</p>
+      <p class="story">
+        A rogue military network called the Ashen Guard has activated hidden enrichment and missile production sites.
+        Strike hard, disable their war machine, and extract before the countdown expires.
+      </p>
+      <ul>
+        <li>Move: Arrow Keys</li>
+        <li>Jump: Up Arrow (hold to jump higher)</li>
+        <li>Crouch: Down Arrow</li>
+        <li>Roll: R (or Down + Move + Shoot)</li>
+        <li>Shoot: Space</li>
+        <li>Cycle Weapons: A / B</li>
+        <li>Pause: P</li>
+        <li>Fullscreen: F</li>
+      </ul>
+      <button id="start-btn" type="button">Start Operation</button>
+      <p class="hint">Press Enter or click Start Operation</p>
+    </section>
+    <section id="banner" class="panel" aria-live="polite"></section>
+  </main>
+  <script src="./assets/sprites/manifest.js"></script>
+  <script src="./game.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+{
+  "basePrompt": "single isolated SNES 16-bit side-scroller sprite frame, exactly one subject only, centered, full silhouette visible, readable limbs, thick clean outline, compact cel shading, plain flat off white studio backdrop, no floor line, no cast shadow, no text, no logo",
+  "negativePrompt": "multiple characters, duplicate subject, lineup, turnaround sheet, contact sheet, collage, sprite atlas, thumbnails, front and back views, side by side poses, extra props, environment scene, cave background, room background, jungle, trees, houses, buildings, windows, village, landscape, platform, gradient background, floor, pedestal, cast shadow, watermark, logo, text, blurry, lowres, jpeg artifacts, malformed anatomy, extra limbs, extra weapon, cropped body, cut off feet, cut off head",
+  "sprites": [
+    {
+      "key": "player_idle_hd",
+      "prompt": "elite commando operative, athletic human proportions, blue tactical armor, red headband, black boots, compact rifle held forward, readable knees elbows and chest rig, idle combat stance, full body sprite"
+    },
+    {
+      "key": "player_run_hd",
+      "prompt": "elite commando operative, athletic human proportions, blue tactical armor, red headband, black boots, compact rifle held forward, readable knees elbows and chest rig, running action pose, full body sprite"
+    },
+    {
+      "key": "player_jump_hd",
+      "prompt": "elite commando operative, athletic human proportions, blue tactical armor, red headband, black boots, compact rifle held forward, readable knees elbows and chest rig, airborne jump pose, full body sprite"
+    },
+    {
+      "key": "enemy_trooper_hd",
+      "prompt": "enemy base trooper, red tactical armor with dark undersuit, combat rifle raised, readable helmet, readable knees elbows and shoulder armor, full body sprite"
+    },
+    {
+      "key": "enemy_drone_hd",
+      "prompt": "armed reconnaissance drone, compact military body, glowing sensor, small weapon mount, readable side silhouette, isolated sprite"
+    },
+    {
+      "key": "enemy_turret_hd",
+      "prompt": "industrial automated defense turret, heavy metal casing, muzzle opening, warning bolts and armor seams, readable side silhouette, isolated sprite"
+    },
+    {
+      "key": "enemy_mech_hd",
+      "prompt": "heavy biped combat mech, armored legs, jointed knees, chest weapon module, readable industrial plating and vents, side view full body sprite"
+    },
+    {
+      "key": "objective_centrifuge_hd",
+      "prompt": "industrial centrifuge module, reinforced housing, warning lights, vents, panel seams, destructible objective sprite"
+    },
+    {
+      "key": "objective_factory_hd",
+      "prompt": "missile assembly machine block, vents, hazard stripes, mechanical paneling, compact industrial silhouette, destructible objective sprite"
+    },
+    {
+      "key": "objective_reactor_hd",
+      "prompt": "large reactor core unit, cooling shell, glowing seams, armored casing, readable industrial silhouette, destructible objective sprite"
+    },
+    {
+      "key": "objective_radar_hd",
+      "prompt": "guidance radar array, armored dish, control housing, warning panels, readable industrial silhouette, destructible objective sprite"
+    },
+    {
+      "key": "pickup_med_hd",
+      "prompt": "futuristic medkit pickup icon, green glow, cross emblem, compact readable game pickup"
+    },
+    {
+      "key": "pickup_spread_hd",
+      "prompt": "weapon pickup crate icon, spread shot symbol, yellow accent, compact readable game pickup"
+    },
+    {
+      "key": "pickup_laser_hd",
+      "prompt": "weapon pickup crate icon, laser beam symbol, cyan accent, compact readable game pickup"
+    },
+    {
+      "key": "pickup_flame_hd",
+      "prompt": "weapon pickup crate icon, flame symbol, orange accent, compact readable game pickup"
+    }
+  ]
+}

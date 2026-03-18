@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" shape-rendering="crispEdges">
+<circle cx="128" cy="128" r="84" fill="#eb8355" opacity="0.52" />
+<circle cx="128" cy="128" r="58" fill="#ffd474" opacity="0.6" />
+<circle cx="86" cy="94" r="20" fill="#5b4339" opacity="0.54" />
+<circle cx="170" cy="102" r="16" fill="#5b4339" opacity="0.48" />
+<circle cx="98" cy="168" r="22" fill="#5b4339" opacity="0.5" />
+<circle cx="160" cy="170" r="18" fill="#5b4339" opacity="0.45" />
+<polygon points="128,72 142,106 178,108 148,130 158,164 128,144 98,164 108,130 78,108 114,106" fill="#fff4cc" opacity="0.86" />
+<circle cx="128" cy="128" r="30" fill="#fff8d2" opacity="0.92" />
+</svg>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" shape-rendering="crispEdges">
+<circle cx="128" cy="128" r="30" fill="#ffe782" opacity="0.5" />
+<polygon points="128,70 142,104 184,106 150,128 164,170 128,146 92,170 106,128 72,106 114,104" fill="#ffe782" />
+<circle cx="128" cy="128" r="14" fill="#fff7de" />
+</svg>

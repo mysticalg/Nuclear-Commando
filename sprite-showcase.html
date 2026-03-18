@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nuclear Commando SNES16 Sprite Showcase</title>
+  <style>
+    :root {
+      --bg: #0a111b;
+      --card: #111c2a;
+      --ink: #eaf3ff;
+      --line: #2e4861;
+      --accent: #ffe16b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      background:
+        radial-gradient(900px 500px at 20% 0%, rgba(83, 140, 196, 0.25), transparent 60%),
+        linear-gradient(180deg, #0f1a2a, var(--bg));
+      color: var(--ink);
+    }
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      letter-spacing: 0.06em;
+    }
+    p { margin: 0 0 18px; color: #aac6e2; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(22, 35, 50, 0.9), rgba(13, 23, 34, 0.9));
+      padding: 14px;
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      color: var(--accent);
+    }
+    .strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .strip img {
+      width: 120px;
+      height: 120px;
+      image-rendering: pixelated;
+      border: 1px solid rgba(121, 169, 214, 0.35);
+      background: rgba(8, 15, 24, 0.7);
+    }
+    .anim {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      border: 1px solid rgba(121, 169, 214, 0.35);
+      background: rgba(8, 15, 24, 0.8);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .anim img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      opacity: 0;
+      transition: opacity 80ms linear;
+    }
+    .anim img.active { opacity: 1; }
+    @media (max-width: 1250px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 1000px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>NUCLEAR COMMANDO: SNES16 Animated Sprite Set</h1>
+    <p>Generated locally. Multi-frame animation keys are wired into gameplay.</p>
+    <div class="grid">
+      <section class="card">
+        <h2>Player Run (8 frames)</h2>
+        <div class="anim" data-base="player_run" data-frames="8" data-fps="14"></div>
+        <div class="strip"></div>
+      </section>
+      <section class="card">
+        <h2>Player Roll (4 frames)</h2>
+        <div class="anim" data-base="player_roll" data-frames="4" data-fps="12"></div>
+        <div class="strip"></div>
+      </section>
+      <section class="card">
+        <h2>Trooper Walk (6 frames)</h2>
+        <div class="anim" data-base="enemy_trooper" data-frames="6" data-fps="12"></div>
+        <div class="strip"></div>
+      </section>
+      <section class="card">
+        <h2>Explosion (6 frames)</h2>
+        <div class="anim" data-base="fx_explosion" data-frames="6" data-fps="14"></div>
+        <div class="strip"></div>
+      </section>
+      <section class="card">
+        <h2>Mech Walk (6 frames)</h2>
+        <div class="anim" data-base="enemy_mech" data-frames="6" data-fps="8"></div>
+        <div class="strip"></div>
+      </section>
+      <section class="card">
+        <h2>Reactor Pulse (3 frames)</h2>
+        <div class="anim" data-base="objective_reactor" data-frames="3" data-fps="6"></div>
+        <div class="strip"></div>
+      </section>
+      <section class="card">
+        <h2>Laser Pickup (3 frames)</h2>
+        <div class="anim" data-base="pickup_laser" data-frames="3" data-fps="7"></div>
+        <div class="strip"></div>
+      </section>
+    </div>
+  </main>
+  <script src="./assets/sprites/manifest.js"></script>
+  <script>
+    const FALLBACK_PREFIXES = [
+      "./assets/sprites/generated",
+      "./assets/sprites/png16_frames",
+      "./assets/sprites/local_svg",
+    ];
+
+    function spritePath(manifest, key) {
+      if (manifest && manifest[key]) return `./assets/sprites/${manifest[key]}`;
+      for (const prefix of FALLBACK_PREFIXES) {
+        const ext = prefix.endsWith("local_svg") ? "svg" : "png";
+        return `${prefix}/${key}.${ext}`;
+      }
+      return "";
+    }
+
+    function buildSpriteImage(src, alt) {
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = alt;
+      return img;
+    }
+
+    async function initShowcase() {
+      let manifest = window.NUCLEAR_COMMANDO_SPRITE_MANIFEST || null;
+      if (!manifest) {
+        try {
+          const res = await fetch("./assets/sprites/manifest.json", { cache: "no-store" });
+          if (res.ok) manifest = await res.json();
+        } catch {
+          manifest = null;
+        }
+      }
+
+      const players = [];
+      document.querySelectorAll(".card").forEach((card) => {
+        const slot = card.querySelector(".anim");
+        const strip = card.querySelector(".strip");
+        const base = slot.dataset.base;
+        const frames = Number(slot.dataset.frames || "1");
+        const fps = Number(slot.dataset.fps || "8");
+        const imgs = [];
+        for (let i = 0; i < frames; i += 1) {
+          const key = `${base}_${i}_hd`;
+          const src = spritePath(manifest, key);
+          const main = buildSpriteImage(src, `${base} ${i}`);
+          if (i === 0) main.classList.add("active");
+          slot.appendChild(main);
+          imgs.push(main);
+          strip.appendChild(buildSpriteImage(src, `${base} ${i}`));
+        }
+        if (imgs.length > 0 && Number.isFinite(frames) && frames > 0 && Number.isFinite(fps) && fps > 0) {
+          players.push({ imgs, frames, fps, t: 0, idx: 0 });
+        }
+      });
+
+      let last = performance.now();
+      function tick(now) {
+        const dt = (now - last) / 1000;
+        last = now;
+        for (const p of players) {
+          p.t += dt;
+          const idx = Math.floor(p.t * p.fps) % p.frames;
+          if (idx !== p.idx) {
+            const prev = p.imgs[p.idx];
+            const next = p.imgs[idx];
+            if (prev) prev.classList.remove("active");
+            if (next) next.classList.add("active");
+            p.idx = idx;
+          }
+        }
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    initShowcase();
+  </script>
+</body>
+</html>

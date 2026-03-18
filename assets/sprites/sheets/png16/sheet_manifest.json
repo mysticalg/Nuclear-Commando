@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "format": "png-sheet-strip",
+  "frame_size": [
+    160,
+    160
+  ],
+  "sheets": [
+    {
+      "base": "player_idle",
+      "file": "player_idle_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_run",
+      "file": "player_run_sheet.png",
+      "frames": 8,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_jump",
+      "file": "player_jump_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_crouch",
+      "file": "player_crouch_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_roll",
+      "file": "player_roll_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper",
+      "file": "enemy_trooper_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_drone",
+      "file": "enemy_drone_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_turret",
+      "file": "enemy_turret_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech",
+      "file": "enemy_mech_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_centrifuge",
+      "file": "objective_centrifuge_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_factory",
+      "file": "objective_factory_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_reactor",
+      "file": "objective_reactor_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_radar",
+      "file": "objective_radar_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "pickup_med",
+      "file": "pickup_med_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "pickup_spread",
+      "file": "pickup_spread_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "pickup_laser",
+      "file": "pickup_laser_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "pickup_flame",
+      "file": "pickup_flame_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "fx_muzzle_flash",
+      "file": "fx_muzzle_flash_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "fx_explosion",
+      "file": "fx_explosion_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    }
+  ]
+}

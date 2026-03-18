@@ -1,0 +1,584 @@
+{
+  "createdAt": "2026-03-18T05:08:25.917Z",
+  "endpoint": "http://127.0.0.1:7860/sdapi/v1/txt2img",
+  "model": "sd_turbo.safetensors",
+  "width": 1024,
+  "height": 1024,
+  "steps": 6,
+  "cfg": 1.8,
+  "sampler": "Euler a",
+  "expandFrames": true,
+  "dryRun": false,
+  "generated": [
+    {
+      "key": "player_idle_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_idle_0_hd.png",
+      "seed": 1773810505916,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_idle_1_hd.png",
+      "seed": 1773810505917,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_idle_2_hd.png",
+      "seed": 1773810505918,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_3_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_idle_3_hd.png",
+      "seed": 1773810505919,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_4_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_idle_4_hd.png",
+      "seed": 1773810505920,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_5_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_idle_5_hd.png",
+      "seed": 1773810505921,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_idle_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_idle_hd.png",
+      "seed": 1773810505922,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_run_0_hd.png",
+      "seed": 1773810505923,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_run_1_hd.png",
+      "seed": 1773810505924,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_run_2_hd.png",
+      "seed": 1773810505925,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_3_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_run_3_hd.png",
+      "seed": 1773810505926,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_4_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_run_4_hd.png",
+      "seed": 1773810505927,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_5_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_run_5_hd.png",
+      "seed": 1773810505928,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_6_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_run_6_hd.png",
+      "seed": 1773810505929,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_7_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_run_7_hd.png",
+      "seed": 1773810505930,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_run_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_run_hd.png",
+      "seed": 1773810505931,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_jump_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_jump_0_hd.png",
+      "seed": 1773810505932,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_jump_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_jump_1_hd.png",
+      "seed": 1773810505933,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "player_jump_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\player_jump_hd.png",
+      "seed": 1773810505934,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_trooper_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_trooper_0_hd.png",
+      "seed": 1773810505935,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_trooper_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_trooper_1_hd.png",
+      "seed": 1773810505936,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_trooper_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_trooper_2_hd.png",
+      "seed": 1773810505937,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_trooper_3_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_trooper_3_hd.png",
+      "seed": 1773810505938,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_trooper_4_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_trooper_4_hd.png",
+      "seed": 1773810505939,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_trooper_5_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_trooper_5_hd.png",
+      "seed": 1773810505940,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_trooper_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_trooper_hd.png",
+      "seed": 1773810505941,
+      "width": 640,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_drone_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_drone_0_hd.png",
+      "seed": 1773810505942,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_drone_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_drone_1_hd.png",
+      "seed": 1773810505943,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_drone_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_drone_2_hd.png",
+      "seed": 1773810505944,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_drone_3_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_drone_3_hd.png",
+      "seed": 1773810505945,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_drone_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_drone_hd.png",
+      "seed": 1773810505946,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_turret_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_turret_0_hd.png",
+      "seed": 1773810505947,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_turret_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_turret_1_hd.png",
+      "seed": 1773810505948,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_turret_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_turret_2_hd.png",
+      "seed": 1773810505949,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_turret_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_turret_hd.png",
+      "seed": 1773810505950,
+      "width": 1024,
+      "height": 1024,
+      "guided": true
+    },
+    {
+      "key": "enemy_mech_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_mech_0_hd.png",
+      "seed": 1773810505951,
+      "width": 768,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_mech_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_mech_1_hd.png",
+      "seed": 1773810505952,
+      "width": 768,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_mech_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_mech_2_hd.png",
+      "seed": 1773810505953,
+      "width": 768,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_mech_3_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_mech_3_hd.png",
+      "seed": 1773810505954,
+      "width": 768,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_mech_4_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_mech_4_hd.png",
+      "seed": 1773810505955,
+      "width": 768,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_mech_5_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_mech_5_hd.png",
+      "seed": 1773810505956,
+      "width": 768,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "enemy_mech_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\enemy_mech_hd.png",
+      "seed": 1773810505957,
+      "width": 768,
+      "height": 896,
+      "guided": true
+    },
+    {
+      "key": "objective_centrifuge_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_centrifuge_0_hd.png",
+      "seed": 1773810505958,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_centrifuge_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_centrifuge_1_hd.png",
+      "seed": 1773810505959,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_centrifuge_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_centrifuge_hd.png",
+      "seed": 1773810505960,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_factory_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_factory_0_hd.png",
+      "seed": 1773810505961,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_factory_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_factory_1_hd.png",
+      "seed": 1773810505962,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_factory_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_factory_hd.png",
+      "seed": 1773810505963,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_reactor_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_reactor_0_hd.png",
+      "seed": 1773810505964,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_reactor_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_reactor_1_hd.png",
+      "seed": 1773810505965,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_reactor_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_reactor_2_hd.png",
+      "seed": 1773810505966,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_reactor_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_reactor_hd.png",
+      "seed": 1773810505967,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_radar_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_radar_0_hd.png",
+      "seed": 1773810505968,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_radar_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_radar_1_hd.png",
+      "seed": 1773810505969,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "objective_radar_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\objective_radar_hd.png",
+      "seed": 1773810505970,
+      "width": 896,
+      "height": 640,
+      "guided": true
+    },
+    {
+      "key": "pickup_med_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_med_0_hd.png",
+      "seed": 1773810505971,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_med_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_med_1_hd.png",
+      "seed": 1773810505972,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_med_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_med_2_hd.png",
+      "seed": 1773810505973,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_med_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_med_hd.png",
+      "seed": 1773810505974,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_spread_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_spread_0_hd.png",
+      "seed": 1773810505975,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_spread_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_spread_1_hd.png",
+      "seed": 1773810505976,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_spread_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_spread_2_hd.png",
+      "seed": 1773810505977,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_spread_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_spread_hd.png",
+      "seed": 1773810505978,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_laser_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_laser_0_hd.png",
+      "seed": 1773810505979,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_laser_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_laser_1_hd.png",
+      "seed": 1773810505980,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_laser_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_laser_2_hd.png",
+      "seed": 1773810505981,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_laser_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_laser_hd.png",
+      "seed": 1773810505982,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_flame_0_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_flame_0_hd.png",
+      "seed": 1773810505983,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_flame_1_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_flame_1_hd.png",
+      "seed": 1773810505984,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_flame_2_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_flame_2_hd.png",
+      "seed": 1773810505985,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    },
+    {
+      "key": "pickup_flame_hd",
+      "outputPath": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\generated_forge_guided_full\\pickup_flame_hd.png",
+      "seed": 1773810505986,
+      "width": 512,
+      "height": 512,
+      "guided": true
+    }
+  ],
+  "skipped": [],
+  "failed": []
+}

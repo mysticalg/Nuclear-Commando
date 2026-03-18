@@ -1,0 +1,36 @@
+{
+  "host": "http://127.0.0.1:8188",
+  "checkpoint": "dummy.safetensors",
+  "width": 1024,
+  "height": 1024,
+  "steps": 28,
+  "cfg": 6.5,
+  "sampler": "dpmpp_2m_sde",
+  "scheduler": "karras",
+  "denoise": 1,
+  "dryRun": true,
+  "generated": [
+    {
+      "key": "player_idle_hd",
+      "seed": 1773757790046,
+      "dryRun": true
+    },
+    {
+      "key": "player_run_hd",
+      "seed": 1773757790047,
+      "dryRun": true
+    },
+    {
+      "key": "player_jump_hd",
+      "seed": 1773757790048,
+      "dryRun": true
+    },
+    {
+      "key": "enemy_trooper_hd",
+      "seed": 1773757790049,
+      "dryRun": true
+    }
+  ],
+  "skipped": [],
+  "failed": []
+}
