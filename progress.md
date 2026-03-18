@@ -903,3 +903,17 @@
 - Showcase validation:
   - `output/sprite-showcase-enemy-variants-v2/shot-0.png`
 - No `errors-*.json` files in the new validation folders.
+## GitHub Pages Deployment Pass
+
+- Added GitHub Pages workflow at `.github/workflows/deploy-pages.yml`.
+- Workflow publishes the static site on pushes to `main` or `master` and on manual dispatch.
+- Deployment artifact includes:
+  - `index.html`
+  - `game.js`
+  - `styles.css`
+  - `sprite-showcase.html`
+  - `assets/`
+- Added live play link at the top of `README.md`:
+  - `https://mysticalg.github.io/Nuclear-Commando/`
+- Current branch checked: `main`
+- Note: if GitHub Pages has not already been enabled in repo settings, the repo may need a one-time Pages source selection of `GitHub Actions` after the first push.

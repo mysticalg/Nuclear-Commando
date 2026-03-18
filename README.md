@@ -1,5 +1,7 @@
 ﻿# Nuclear Commando
 
+Play now: [https://mysticalg.github.io/Nuclear-Commando/](https://mysticalg.github.io/Nuclear-Commando/)
+
 A fast-action Contra-inspired side-scrolling shooter built with plain HTML5 canvas.
 
 This build keeps the mission fictionalized (rogue "Ashen Guard" facilities) while preserving the high-speed infiltration/destruction gameplay loop.
