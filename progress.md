@@ -118,6 +118,41 @@
 ### Current Recommendation
 
 - Keep Pollinations script for opportunistic free remote runs.
+
+## Low-Angle Aim + Enemy Recoil Pass
+
+- Split the mixed Super Probotector airborne diagonal strip into two clean directions:
+  - `player_air_diag` now uses frames `56-57`
+  - new `player_air_down_diag` uses frames `52-53`
+- Added grounded lower-angle player strips from the imported sheet:
+  - `player_idle_down_diag`
+  - `player_run_down_diag`
+- Extended player aiming logic:
+  - `getPlayerAimMode()` now recognizes `down` and `downDiag`
+  - `X + Down + Left/Right` on the ground now locks into a lower-angle stance instead of forcing the old upper-diagonal pose
+  - airborne down-diagonal aiming now uses a dedicated pose instead of the previously mixed diagonal strip
+  - straight-down aiming while planted still uses crouch, but now fires from a lowered muzzle anchor
+- Added shot-direction enemy recoil snap:
+  - enemies now remember the last shot vector
+  - troopers/turrets/mechs/bosses recoil backward along that vector while their muzzle flash plays
+- Updated controls copy in `index.html` and the in-canvas splash card to mention low-angle aim.
+
+### Validation (this pass)
+
+- `node --check game.js` passed
+- `python -m py_compile tools/build_superprobotector_player_pack.py tools/import_png_sprite_sheets.py` passed
+- Rebuilt Probotector-derived player sheets with:
+  - `python tools/build_superprobotector_player_pack.py --overwrite`
+- Reimported PNG sheet frames with:
+  - `python tools/import_png_sprite_sheets.py --overwrite`
+- Playwright scenario captures passed after sprite-settle reruns:
+  - grounded low-angle pose: `output/web-game-down-right-v2/shot-0.png`
+  - airborne low-angle pose: `output/web-game-air-down-right-v2/shot-0.png`
+  - enemy recoil pose: `output/web-game-enemy-recoil-v2/shot-0.png`
+- State verification:
+  - grounded low-angle state reports `pose:"player_idle_down_diag"` and `aim.mode:"downDiag"`
+  - airborne low-angle state reports `pose:"player_air_down_diag"` and `aim.mode:"downDiag"`
+- No `errors-*.json` files in the final `v2` validation folders.
 - For guaranteed progress, use local fallback sprite generation script (`tools/generate_local_svg_sprite_pack.mjs`) or switch to a keyed provider.
 
 ## Local SVG Generator Adoption
@@ -917,3 +952,111 @@
   - `https://mysticalg.github.io/Nuclear-Commando/`
 - Current branch checked: `main`
 - Note: if GitHub Pages has not already been enabled in repo settings, the repo may need a one-time Pages source selection of `GitHub Actions` after the first push.
+
+## Muzzle + Aftermath Pass
+
+- Tightened player and enemy muzzle anchors so projectiles now spawn from weapon tips instead of lower body hitbox centers.
+- Replaced the old triangular muzzle flash with a radial bloom flash (`drawMuzzleBloom`) for the player and enemy muzzle events.
+- Added persistent combat aftermath:
+  - trooper blood bursts on hit/death
+  - persistent corpses limited by `MAX_CORPSES`
+  - expanding blood pools and blood particles limited by `MAX_BLOOD_PARTICLES`
+- Added trooper death-sheet generation from `enemy.png` row 40-46 and wired variant death strips:
+  - `enemy_trooper_death`
+  - `enemy_trooper_olive_death`
+  - `enemy_trooper_crimson_death`
+  - `enemy_trooper_navy_death`
+- Added debug scenarios for screenshot validation:
+  - `?scenario=muzzle-check`
+  - `?scenario=blood-check`
+
+### Validation (this pass)
+
+- `node --check game.js` passed after each edit pass.
+- `python -m py_compile tools/build_enemy_action_variants.py tools/import_png_sprite_sheets.py` passed.
+- Rebuilt/imported PNG sheets:
+  - `python tools/build_enemy_action_variants.py --source-dir output/slice-enemy-png --sheet-dir assets/sprites/sheets/png16 --overwrite`
+  - `python tools/import_png_sprite_sheets.py --overwrite`
+- Playwright validations passed with no `errors-*.json` files:
+  - `output/web-game-muzzle-check-v2/shot-0.png`
+  - `output/web-game-blood-check-v4/shot-0.png`
+  - `output/web-game-aftermath-smoke-v2/shot-0.png`
+
+## Aim Lock + Crouch + Enemy Hitbox Pass
+
+- Added `X` aim-lock so the player can plant in place on the ground and aim without walking.
+  - Left/right now reorient the commando while locked.
+  - Up and up+direction still drive the up/diagonal firing poses while movement stays at `0`.
+- Reduced crouch sliding by hard-stopping ground velocity while crouched.
+- Added separate combat rectangles:
+  - player crouch / roll / climb hurtboxes now shrink appropriately via `getPlayerCombatRect()`
+  - enemy bullet/contact hit tests now use render-sized combat boxes via `getEnemyCombatRect()` instead of the old tiny logic boxes
+- Increased enemy render scale so troopers read slightly larger than the player.
+- Added debug validation scenarios:
+  - `?scenario=aim-lock-check`
+  - `?scenario=crouch-check`
+- Updated controls text to show `Aim Lock: X` in both `game.js` splash card and `index.html`.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright validations passed with no `errors-*.json` files:
+  - `output/web-game-aim-lock-v1/shot-0.png`
+  - `output/web-game-crouch-check-v3/shot-0.png`
+  - `output/web-game-aimlock-smoke-v1/shot-0.png`
+- State checks confirm:
+  - aim-lock paused scene has `aimLock:true`, `vx:0`, diagonal aim active
+  - crouch paused scene has `crouching:true`
+
+## Bullet Tuning Pass
+
+- Increased player weapon fire cadence by reducing cooldowns:
+  - Rifle: `0.16/0.13/0.10 -> 0.12/0.10/0.08`
+  - Spread: `0.24/0.20/0.17 -> 0.18/0.155/0.13`
+  - Laser: `0.20/0.16/0.13 -> 0.16/0.13/0.105`
+  - Flame: `0.11/0.095/0.08 -> 0.09/0.078/0.066`
+- Reduced player projectile core sizes slightly:
+  - Rifle `3 -> 2.35`
+  - Spread `3 -> 2.4`
+  - Laser `2 -> 1.65`
+  - Flame radii reduced to `7/8.5/10`
+- Brightened player bullet presentation:
+  - stronger outer glow
+  - added inner hot-core glow
+  - brighter trail stroke
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright validation passed with no `errors-*.json` files:
+  - `output/web-game-bullet-tuning-v1/shot-0.png`
+
+## Recoil + Up-Pose Facing Pass
+
+- Added `getPlayerFlipScale()` so aim-up/diag, crouch, climb, and firing poses use crisp facing instead of smoothed flip blending.
+- Added `getPlayerSpriteState()` so static player poses can use the imported alternate frame as a recoil/fire frame:
+  - `player_idle_0/1`
+  - `player_idle_up_0/1`
+  - `player_idle_diag_0/1`
+  - `player_crouch_0/1`
+  - `player_air_forward_0/1`
+  - `player_air_up_0/1`
+- Added recoil offset in `drawPlayer()` so firing pushes the sprite slightly backward along the aim vector.
+- Removed the old player flip-phase offset in draw timing, which was contributing to the up-pose left/right mix.
+- Added debug pose scenarios:
+  - `?scenario=up-right-check`
+  - `?scenario=up-left-check`
+  - `?scenario=up-right-recoil-check`
+  - `?scenario=up-left-recoil-check`
+- Added `player.pose` to `render_game_to_text()` for animation-state verification.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright validations passed with no `errors-*.json` files:
+  - `output/web-game-up-right-recoil-v1/shot-0.png`
+  - `output/web-game-up-left-v1/shot-0.png`
+  - `output/web-game-recoil-smoke-v1/shot-0.png`
+- State checks confirm:
+  - right recoil scene: `pose:"player_idle_up"`, `muzzleFlash:true`, `facing:1`
+  - left up scene: `pose:"player_idle_up"`, `facing:-1`, `visualFacing:-1`

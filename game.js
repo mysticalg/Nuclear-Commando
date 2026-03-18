@@ -34,23 +34,26 @@
 
   const WEAPON_ORDER = ["RIFLE", "SPREAD", "LASER", "FLAME"];
   const WEAPONS = {
-    RIFLE: { label: "Rifle", dmg: [20, 28, 36], cd: [0.16, 0.13, 0.1], speed: 860, color: "#f3f8ff", ammo: Infinity, pickup: 0 },
-    SPREAD: { label: "Spread", dmg: [14, 18, 24], cd: [0.24, 0.2, 0.17], speed: 760, pellets: [3, 4, 5], cone: [0.28, 0.34, 0.42], color: "#ffd447", ammo: 70, pickup: 60 },
-    LASER: { label: "Laser", dmg: [30, 40, 52], cd: [0.2, 0.16, 0.13], speed: 1080, pierce: [2, 3, 4], color: "#46ebff", ammo: 52, pickup: 42 },
-    FLAME: { label: "Flame", dmg: [9, 13, 17], cd: [0.11, 0.095, 0.08], speed: 430, ttl: [0.32, 0.38, 0.43], radius: [8, 10, 12], color: "#ff8b2f", ammo: 110, pickup: 90 },
+    RIFLE: { label: "Rifle", dmg: [20, 28, 36], cd: [0.12, 0.1, 0.08], speed: 860, color: "#f3f8ff", ammo: Infinity, pickup: 0 },
+    SPREAD: { label: "Spread", dmg: [14, 18, 24], cd: [0.18, 0.155, 0.13], speed: 760, pellets: [3, 4, 5], cone: [0.28, 0.34, 0.42], color: "#ffd447", ammo: 70, pickup: 60 },
+    LASER: { label: "Laser", dmg: [30, 40, 52], cd: [0.16, 0.13, 0.105], speed: 1080, pierce: [2, 3, 4], color: "#46ebff", ammo: 52, pickup: 42 },
+    FLAME: { label: "Flame", dmg: [9, 13, 17], cd: [0.09, 0.078, 0.066], speed: 430, ttl: [0.32, 0.38, 0.43], radius: [7, 8.5, 10], color: "#ff8b2f", ammo: 110, pickup: 90 },
   };
   const ANIM = {
     player: {
       player_idle: { frames: 6, fps: 7 },
       player_idle_up: { frames: 6, fps: 7 },
       player_idle_diag: { frames: 6, fps: 7 },
+      player_idle_down_diag: { frames: 6, fps: 7 },
       player_run: { frames: 8, fps: 14 },
       player_run_up: { frames: 8, fps: 14 },
       player_run_diag: { frames: 8, fps: 14 },
+      player_run_down_diag: { frames: 8, fps: 14 },
       player_jump: { frames: 6, fps: 16 },
       player_air_forward: { frames: 4, fps: 10 },
       player_air_up: { frames: 4, fps: 10 },
       player_air_diag: { frames: 4, fps: 10 },
+      player_air_down_diag: { frames: 4, fps: 10 },
       player_crouch: { frames: 2, fps: 5 },
       player_roll: { frames: 4, fps: 16 },
       player_climb: { frames: 6, fps: 10 },
@@ -288,11 +291,11 @@
   const damp = (current, target, rate, dt) => lerp(current, target, 1 - Math.exp(-rate * dt));
   const TROOPER_VARIANTS = ["", "olive", "crimson", "navy"];
   const ENEMY_SCALE = {
-    trooper: 1.66,
-    drone: 1.6,
-    turret: 1.4,
-    mech: 1.5,
-    boss: 2.1,
+    trooper: 1.98,
+    drone: 1.72,
+    turret: 1.56,
+    mech: 1.72,
+    boss: 2.24,
   };
   const normalizeVec = (x, y) => {
     const d = Math.hypot(x, y) || 1;
@@ -303,9 +306,15 @@
     return TROOPER_VARIANTS[Math.abs(Math.floor(seed)) % TROOPER_VARIANTS.length];
   }
 
+  function isAimLockActive(p) {
+    return !!keys.KeyX || !!p.debugAimLock;
+  }
+
   function getPlayerAimMode(p) {
     if (p.aimY < -0.86 && Math.abs(p.aimX) < 0.26) return "up";
     if (p.aimY < -0.24) return "diag";
+    if (p.aimY > 0.86 && Math.abs(p.aimX) < 0.26) return "down";
+    if (p.aimY > 0.24) return "downDiag";
     return "forward";
   }
 
@@ -321,6 +330,8 @@
 
   function getPlayerPoseKey(p) {
     const aimMode = getPlayerAimMode(p);
+    const hasAirDownDiag = hasSpriteKey("player_air_down_diag_0");
+    const hasGroundDownDiag = hasSpriteKey("player_idle_down_diag_0");
     return p.climbing
       ? "player_climb"
       : p.rollT > 0
@@ -332,15 +343,49 @@
             ? "player_air_up"
             : aimMode === "diag"
               ? "player_air_diag"
+              : (aimMode === "down" || aimMode === "downDiag")
+                ? (hasAirDownDiag ? "player_air_down_diag" : "player_air_diag")
               : (p.muzzleFlashT > 0 ? "player_air_forward" : "player_jump"))
           : (Math.abs(p.vx) > 20
-            ? (aimMode === "up" ? "player_run_up" : aimMode === "diag" ? "player_run_diag" : "player_run")
-            : (aimMode === "up" ? "player_idle_up" : aimMode === "diag" ? "player_idle_diag" : "player_idle"))));
+            ? (aimMode === "up" ? "player_run_up" : aimMode === "diag" ? "player_run_diag" : aimMode === "downDiag" ? (hasGroundDownDiag ? "player_run_down_diag" : "player_run_diag") : "player_run")
+            : (aimMode === "up" ? "player_idle_up" : aimMode === "diag" ? "player_idle_diag" : (aimMode === "down" || aimMode === "downDiag") ? (hasGroundDownDiag ? "player_idle_down_diag" : "player_idle_diag") : "player_idle"))));
+  }
+
+  function getPlayerFlipScale(p, aimMode) {
+    const crispFacing = p.climbing || p.crouching || p.muzzleFlashT > 0.01 || aimMode !== "forward";
+    return crispFacing ? p.face : (typeof p.visualFace === "number" ? p.visualFace : p.face);
+  }
+
+  function getPlayerSpriteState(p, render) {
+    const key = render.key;
+    const firing = p.muzzleFlashT > 0.01;
+    const staticVariants = {
+      player_idle: firing ? "player_idle_1" : "player_idle_0",
+      player_idle_up: firing ? "player_idle_up_1" : "player_idle_up_0",
+      player_idle_diag: firing ? "player_idle_diag_1" : "player_idle_diag_0",
+      player_idle_down_diag: firing ? "player_idle_down_diag_1" : "player_idle_down_diag_0",
+      player_crouch: firing ? "player_crouch_1" : "player_crouch_0",
+      player_air_forward: firing ? "player_air_forward_1" : "player_air_forward_0",
+      player_air_up: firing ? "player_air_up_1" : "player_air_up_0",
+      player_air_diag: firing ? "player_air_diag_1" : "player_air_diag_0",
+      player_air_down_diag: firing ? "player_air_down_diag_1" : "player_air_down_diag_0",
+    };
+    const staticKey = staticVariants[key];
+    if (staticKey && hasSpriteKey(staticKey)) {
+      return { key: staticKey, frames: 1, fps: 0, phase: 0 };
+    }
+    return {
+      key,
+      frames: ANIM.player[key]?.frames || 1,
+      fps: ANIM.player[key]?.fps || 0,
+      phase: p.x * 0.013,
+    };
   }
 
   function getPlayerRenderState(p) {
     const sw = p.w * PLAYER_VISUAL_SCALE;
     const sh = p.h * PLAYER_VISUAL_SCALE;
+    const aimMode = getPlayerAimMode(p);
     return {
       scale: PLAYER_VISUAL_SCALE,
       sw,
@@ -348,8 +393,8 @@
       sx: p.x - (sw - p.w) * 0.5,
       sy: p.y - (sh - p.h),
       key: getPlayerPoseKey(p),
-      aimMode: getPlayerAimMode(p),
-      flipScale: typeof p.visualFace === "number" ? p.visualFace : p.face,
+      aimMode,
+      flipScale: getPlayerFlipScale(p, aimMode),
     };
   }
 
@@ -358,22 +403,25 @@
     const render = getPlayerRenderState(p);
     const pose = render.key;
     const anchor = pose === "player_crouch"
-      ? { x: 0.8, y: 0.6 }
+      ? (render.aimMode === "down" ? { x: 0.66, y: 0.69 } : { x: 0.83, y: 0.53 })
       : pose === "player_air_up" || pose === "player_idle_up" || pose === "player_run_up"
-        ? { x: 0.56, y: 0.12 }
-        : pose === "player_air_diag" || pose === "player_idle_diag" || pose === "player_run_diag"
-          ? { x: 0.76, y: 0.23 }
+        ? { x: 0.62, y: 0.07 }
+      : pose === "player_air_diag" || pose === "player_idle_diag" || pose === "player_run_diag"
+        ? { x: 0.79, y: 0.16 }
+        : pose === "player_air_down_diag" || pose === "player_idle_down_diag" || pose === "player_run_down_diag"
+          ? { x: 0.74, y: 0.56 }
           : pose === "player_air_forward"
-            ? { x: 0.87, y: 0.42 }
+            ? { x: 0.84, y: 0.38 }
             : pose === "player_climb"
-              ? (render.aimMode === "up" ? { x: 0.58, y: 0.14 } : { x: 0.73, y: 0.36 })
-              : { x: 0.87, y: 0.45 };
-    const mirroredX = p.face < 0 ? 1 - anchor.x : anchor.x;
-    const shoulderX = render.sx + render.sw * mirroredX;
-    const shoulderY = render.sy + render.sh * anchor.y;
+              ? (render.aimMode === "up" ? { x: 0.58, y: 0.12 } : { x: 0.74, y: 0.33 })
+              : { x: 0.84, y: 0.4 };
+    const facingLeft = (typeof render.flipScale === "number" ? render.flipScale : p.face) < 0;
+    const mirroredX = facingLeft ? 1 - anchor.x : anchor.x;
+    const tipX = render.sx + render.sw * mirroredX;
+    const tipY = render.sy + render.sh * anchor.y;
     return {
-      x: shoulderX + aim.x * 7,
-      y: shoulderY + aim.y * 7,
+      x: tipX + aim.x * 2,
+      y: tipY + aim.y * 2,
       dirX: aim.x,
       dirY: aim.y,
     };
@@ -397,22 +445,47 @@
     };
   }
 
-  function getEnemyMuzzlePoint(e) {
+  function getEnemyAttackWindow(e) {
+    if (e.kind === "trooper") return 0.34;
+    if (e.kind === "turret" || e.kind === "mech" || e.kind === "boss") return 0.24;
+    return 0;
+  }
+
+  function getEnemyAimVector(e) {
+    if (typeof e.shotAimX === "number" && typeof e.shotAimY === "number" && (e.attackT || 0) > 0) {
+      return normalizeVec(e.shotAimX, e.shotAimY);
+    }
+    const tx = state.player.x + state.player.w * 0.5;
+    const ty = state.player.y + state.player.h * 0.45;
+    return normalizeVec(tx - (e.x + e.w * 0.5), ty - (e.y + e.h * 0.38));
+  }
+
+  function getEnemyRecoilOffset(e) {
+    const windowT = getEnemyAttackWindow(e);
+    if (!windowT || (e.attackT || 0) <= 0) return { x: 0, y: 0, t: 0 };
+    const aim = getEnemyAimVector(e);
+    const decay = clamp((e.attackT || 0) / windowT, 0, 1);
+    const strength = e.kind === "boss" ? 5.2 : e.kind === "mech" ? 4.3 : e.kind === "turret" ? 3 : 2.4;
+    const kick = strength * decay * decay;
+    return { x: -aim.x * kick, y: -aim.y * kick, t: decay };
+  }
+
+  function getEnemyMuzzlePoint(e, offsetX = 0, offsetY = 0) {
     const render = getEnemyRenderState(e);
     const facingRight = render.flip;
     let anchor;
     if (e.kind === "trooper") {
       const base = resolveTrooperSpriteBase(e);
-      anchor = base.includes("_up") ? { x: 0.42, y: 0.16 } : { x: 0.16, y: 0.4 };
+      anchor = base.includes("_up") ? { x: 0.4, y: 0.08 } : { x: 0.1, y: 0.38 };
     } else if (e.kind === "turret") {
-      anchor = { x: 0.22, y: 0.28 };
+      anchor = { x: 0.18, y: 0.24 };
     } else if (e.kind === "mech" || e.kind === "boss") {
-      anchor = { x: 0.24, y: 0.36 };
+      anchor = { x: 0.18, y: 0.3 };
     } else {
-      anchor = { x: 0.24, y: 0.5 };
+      anchor = { x: 0.22, y: 0.46 };
     }
-    const x = render.sx + render.sw * (facingRight ? 1 - anchor.x : anchor.x);
-    const y = render.sy + render.sh * anchor.y;
+    const x = render.sx + offsetX + render.sw * (facingRight ? 1 - anchor.x : anchor.x);
+    const y = render.sy + offsetY + render.sh * anchor.y;
     return { x, y };
   }
 
@@ -539,6 +612,76 @@
     return bestY;
   }
 
+  function supportYForBody(body, includePlatforms = true) {
+    const centerX = body.x + body.w * 0.5;
+    let bestY = terrainY(centerX) - body.h;
+    for (const obstacle of levelObstacles()) {
+      if (centerX < obstacle.x || centerX > obstacle.x + obstacle.w) continue;
+      bestY = Math.min(bestY, obstacle.y - body.h);
+    }
+    if (includePlatforms) {
+      for (const platform of levelPlatforms()) {
+        if (centerX < platform.x || centerX > platform.x + platform.w) continue;
+        bestY = Math.min(bestY, platform.y - body.h);
+      }
+    }
+    return bestY;
+  }
+
+  function insetRect(rect, insetLeft, insetTop, insetRight, insetBottom) {
+    return {
+      x: rect.x + insetLeft,
+      y: rect.y + insetTop,
+      w: Math.max(6, rect.w - insetLeft - insetRight),
+      h: Math.max(6, rect.h - insetTop - insetBottom),
+    };
+  }
+
+  function getPlayerCombatRect(p) {
+    const base = { x: p.x, y: p.y, w: p.w, h: p.h };
+    if (p.rollT > 0) return insetRect(base, 4, 16, 4, 3);
+    if (p.crouching && p.onGround) return insetRect(base, 5, 18, 5, 2);
+    if (p.climbing) return insetRect(base, 8, 5, 8, 3);
+    return insetRect(base, 4, 4, 4, 2);
+  }
+
+  function getEnemyCombatRect(e) {
+    const render = getEnemyRenderState(e);
+    if (e.kind === "trooper") {
+      return {
+        x: render.sx + render.sw * 0.22,
+        y: render.sy + render.sh * 0.09,
+        w: render.sw * 0.5,
+        h: render.sh * 0.82,
+      };
+    }
+    if (e.kind === "drone") {
+      return {
+        x: render.sx + render.sw * 0.14,
+        y: render.sy + render.sh * 0.24,
+        w: render.sw * 0.72,
+        h: render.sh * 0.42,
+      };
+    }
+    if (e.kind === "turret") {
+      return {
+        x: render.sx + render.sw * 0.12,
+        y: render.sy + render.sh * 0.18,
+        w: render.sw * 0.74,
+        h: render.sh * 0.7,
+      };
+    }
+    if (e.kind === "mech" || e.kind === "boss") {
+      return {
+        x: render.sx + render.sw * 0.16,
+        y: render.sy + render.sh * 0.12,
+        w: render.sw * 0.68,
+        h: render.sh * 0.8,
+      };
+    }
+    return { x: e.x, y: e.y, w: e.w, h: e.h };
+  }
+
   function rectHit(a, b) {
     return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
   }
@@ -593,6 +736,7 @@
       aimX: prev ? prev.aimX : 1,
       aimY: prev ? prev.aimY : 0,
       visualFace: prev ? (prev.visualFace ?? prev.face) : 1,
+      debugAimLock: false,
       airT: 0,
       weapon: prev ? prev.weapon : "RIFLE",
       bag: newLoadout(prev ? prev.bag : null),
@@ -617,6 +761,8 @@
     state.bullets = [];
     state.enemyBullets = [];
     state.explosions = [];
+    state.corpses = [];
+    state.bloodParticles = [];
     state.pickups = lvl.pickups.map((p, idx) => ({ id: `p-${idx}`, ...p, w: 24, h: 24, vy: 0, bob: rand(0, Math.PI * 2) }));
 
     if (!keepPlayer || !state.player) {
@@ -643,6 +789,18 @@
           window.__nuclear_commando_debug.skipToBoss();
           window.__nuclear_commando_debug.defeatBoss();
         }
+        if (DEBUG_SCENARIO === "aim-lock-check") window.__nuclear_commando_debug.setupAimLockCheck();
+        if (DEBUG_SCENARIO === "crouch-check") window.__nuclear_commando_debug.setupCrouchCheck();
+        if (DEBUG_SCENARIO === "up-right-check") window.__nuclear_commando_debug.setupUpPoseCheck(1, false);
+        if (DEBUG_SCENARIO === "up-left-check") window.__nuclear_commando_debug.setupUpPoseCheck(-1, false);
+        if (DEBUG_SCENARIO === "up-right-recoil-check") window.__nuclear_commando_debug.setupUpPoseCheck(1, true);
+        if (DEBUG_SCENARIO === "up-left-recoil-check") window.__nuclear_commando_debug.setupUpPoseCheck(-1, true);
+        if (DEBUG_SCENARIO === "down-right-check") window.__nuclear_commando_debug.setupDownPoseCheck(1, false, false);
+        if (DEBUG_SCENARIO === "down-left-check") window.__nuclear_commando_debug.setupDownPoseCheck(-1, false, false);
+        if (DEBUG_SCENARIO === "air-down-right-check") window.__nuclear_commando_debug.setupDownPoseCheck(1, true, false);
+        if (DEBUG_SCENARIO === "enemy-recoil-check") window.__nuclear_commando_debug.setupEnemyRecoilCheck();
+        if (DEBUG_SCENARIO === "muzzle-check") window.__nuclear_commando_debug.setupMuzzleCheck();
+        if (DEBUG_SCENARIO === "blood-check") window.__nuclear_commando_debug.setupBloodCheck();
       }, 0);
     }
   }
@@ -720,6 +878,70 @@
     state.explosions.push({ x, y, size, t: 0, ttl: 0.45, color });
   }
 
+  function pushLimited(list, value, limit) {
+    list.push(value);
+    while (list.length > limit) list.shift();
+  }
+
+  function spawnBloodBurst(x, y, dirX = 1, dirY = 0, count = 8, speed = 180, spread = 1) {
+    const aim = normalizeVec(dirX, dirY);
+    for (let i = 0; i < count; i++) {
+      const angle = Math.atan2(aim.y, aim.x) + rand(-spread, spread);
+      const velocity = speed * rand(0.45, 1.15);
+      pushLimited(state.bloodParticles, {
+        x,
+        y,
+        vx: Math.cos(angle) * velocity,
+        vy: Math.sin(angle) * velocity - rand(25, 90),
+        r: rand(1.6, 3.8),
+        ttl: rand(0.45, 0.95),
+        t: 0,
+        alpha: rand(0.65, 0.95),
+        color: Math.random() < 0.35 ? "#ff5448" : Math.random() < 0.55 ? "#c71f25" : "#7d0a14",
+      }, MAX_BLOOD_PARTICLES);
+    }
+  }
+
+  function resolveTrooperDeathBase(corpse) {
+    const suffix = corpse.variant ? `_${corpse.variant}` : "";
+    const preferred = `enemy_trooper${suffix}_death`;
+    if (hasSpriteKey(`${preferred}_0`) || hasSpriteKey(preferred)) return preferred;
+    if (hasSpriteKey("enemy_trooper_death_0") || hasSpriteKey("enemy_trooper_death")) return "enemy_trooper_death";
+    return resolveTrooperSpriteBase({ kind: "trooper", variant: corpse.variant, attackT: 0, x: corpse.x, y: corpse.y, w: corpse.w, h: corpse.h });
+  }
+
+  function spawnTrooperCorpse(enemy, sourceBullet = null) {
+    const shotDir = sourceBullet ? normalizeVec(sourceBullet.vx, sourceBullet.vy) : { x: enemy.dir || 1, y: -0.15 };
+    const corpse = {
+      kind: "trooper",
+      variant: enemy.variant || "",
+      x: enemy.x,
+      y: enemy.y,
+      w: enemy.w,
+      h: enemy.h,
+      vx: shotDir.x * rand(18, 62),
+      vy: -rand(70, 160),
+      rot: shotDir.x * rand(-0.22, 0.22),
+      vr: shotDir.x * rand(-2.8, 2.8),
+      t: 0,
+      landed: false,
+      flip: getEnemyFacingFlip(enemy),
+      poolT: 0.12,
+      poolTarget: rand(0.9, 1.25),
+      poolScaleX: rand(20, 34),
+      poolScaleY: rand(10, 18),
+      splats: Array.from({ length: 8 }, () => ({
+        ox: rand(-26, 26),
+        oy: rand(-3, 6),
+        rx: rand(2.5, 8.5),
+        ry: rand(1.5, 4.8),
+        a: rand(0.22, 0.52),
+      })),
+    };
+    pushLimited(state.corpses, corpse, MAX_CORPSES);
+    spawnBloodBurst(enemy.x + enemy.w * 0.44, enemy.y + enemy.h * 0.38, shotDir.x, shotDir.y - 0.25, 24, 255, 1.35);
+  }
+
   function spawnEnemy(spawn) {
     const base = { x: spawn.x, y: spawn.y || 0, vx: 0, vy: 0, fireCd: rand(0.5, 1.3), wave: rand(0, Math.PI * 2), drop: 0.18 };
     const surfaceY = typeof spawn.surfaceY === "number" ? spawn.surfaceY : null;
@@ -769,11 +991,15 @@
   }
 
   function fireEnemy(enemy) {
+    if (enemy.kind !== "drone") enemy.attackT = Math.max(enemy.attackT || 0, getEnemyAttackWindow(enemy));
     const p = state.player;
-    const sx = enemy.x + enemy.w * 0.5, sy = enemy.y + enemy.h * 0.42;
+    const muzzle = getEnemyMuzzlePoint(enemy);
+    const sx = muzzle.x, sy = muzzle.y;
     const tx = p.x + p.w * 0.5, ty = p.y + p.h * 0.45;
     const dx = tx - sx, dy = ty - sy;
     const d = Math.hypot(dx, dy) || 1;
+    enemy.shotAimX = dx / d;
+    enemy.shotAimY = dy / d;
     if (enemy.kind === "boss") {
       const baseAngle = Math.atan2(dy, dx);
       for (const angle of [-0.24, -0.08, 0.08, 0.24]) {
@@ -782,7 +1008,6 @@
       }
       return;
     }
-    if (enemy.kind === "trooper") enemy.attackT = Math.max(enemy.attackT || 0, 0.34);
     const speed = enemy.kind === "mech" ? 440 : enemy.kind === "turret" ? 390 : 340;
     state.enemyBullets.push({ x: sx, y: sy, vx: (dx / d) * speed, vy: (dy / d) * speed, r: enemy.kind === "mech" ? 5 : 4, ttl: 2, dmg: enemy.kind === "mech" ? 18 : 10, color: enemy.kind === "turret" ? "#ff8f6a" : "#ff5969" });
   }
@@ -848,13 +1073,13 @@
       state.bullets.push({ x: mx, y: my, vx, vy: Math.sin(shotAngle) * meta.speed * speedScale, r, ttl, dmg: meta.dmg[lvl - 1] * dmgScale, color: meta.color, weapon, pierce });
     }
 
-    if (weapon === "RIFLE") add(0, 1, 1, 3, 1.2, 1);
-    if (weapon === "LASER") add(0, 1.1, 1, 2, 1.3, meta.pierce[lvl - 1]);
+    if (weapon === "RIFLE") add(0, 1, 1, 2.35, 1.2, 1);
+    if (weapon === "LASER") add(0, 1.1, 1, 1.65, 1.3, meta.pierce[lvl - 1]);
     if (weapon === "SPREAD") {
       const pellets = meta.pellets[lvl - 1], cone = meta.cone[lvl - 1];
       for (let i = 0; i < pellets; i++) {
         const t = pellets === 1 ? 0.5 : i / (pellets - 1);
-        add(lerp(-cone * 0.5, cone * 0.5, t), 1, 0.92, 3, 0.85, 1);
+        add(lerp(-cone * 0.5, cone * 0.5, t), 1, 0.92, 2.4, 0.85, 1);
       }
     }
     if (weapon === "FLAME") {
@@ -876,6 +1101,7 @@
     const downHeld = !!keys.ArrowDown;
     const jumpHeld = !!keys.Space;
     const shootHeld = !!keys.KeyZ;
+    const aimLockHeld = isAimLockActive(p);
     const wantsRoll = !!keys.KeyR || (downHeld && shootHeld && left !== right);
     const prevOnGround = p.onGround;
     const prevRect = { x: p.x, y: p.y, w: p.w, h: p.h };
@@ -980,10 +1206,13 @@
       p.rollT = Math.max(0, p.rollT - dt);
       p.vx = p.face * PLAYER_ROLL_SPEED;
       p.crouching = false;
+    } else if (aimLockHeld && p.onGround) {
+      p.crouching = downHeld && !upHeld && left === right;
+      p.vx = 0;
+      if (left !== right) desiredFace = right ? 1 : -1;
     } else if (downHeld && p.onGround && !upHeld && !wantsDrop) {
       p.crouching = true;
-      p.vx *= 0.62;
-      if (Math.abs(p.vx) < 12) p.vx = 0;
+      p.vx = 0;
       if (left !== right) desiredFace = right ? 1 : -1;
     } else {
       p.crouching = false;
@@ -1007,7 +1236,29 @@
 
     if (p.rollT <= 0) {
       if (left !== right) p.face = desiredFace;
-      if (upHeld) {
+      if (aimLockHeld && p.onGround) {
+        if (left !== right) p.face = desiredFace;
+        if (upHeld) {
+          if (left !== right) {
+            p.aimX = p.face * 0.72;
+            p.aimY = -0.72;
+          } else {
+            p.aimX = 0;
+            p.aimY = -1;
+          }
+        } else if (downHeld) {
+          if (left !== right) {
+            p.aimX = p.face * 0.72;
+            p.aimY = 0.72;
+          } else {
+            p.aimX = 0;
+            p.aimY = 1;
+          }
+        } else {
+          p.aimX = p.face;
+          p.aimY = 0;
+        }
+      } else if (upHeld) {
         if (left !== right) {
           p.face = desiredFace;
           p.aimX = p.face * 0.72;
@@ -1015,6 +1266,15 @@
         } else {
           p.aimX = 0;
           p.aimY = -1;
+        }
+      } else if (downHeld && !p.onGround) {
+        if (left !== right) {
+          p.face = desiredFace;
+          p.aimX = p.face * 0.72;
+          p.aimY = 0.72;
+        } else {
+          p.aimX = 0;
+          p.aimY = 1;
         }
       } else {
         p.aimX = p.face;
@@ -1179,11 +1439,15 @@
 
   function resolveCombat() {
     const p = state.player;
+    const playerCombatRect = getPlayerCombatRect(p);
 
     for (const b of state.bullets) {
       for (const e of state.enemies) {
         if (e.hp <= 0) continue;
-        if (!circleRect({ x: b.x, y: b.y, r: b.r }, e)) continue;
+        if (!circleRect({ x: b.x, y: b.y, r: b.r }, getEnemyCombatRect(e))) continue;
+        if (e.kind === "trooper") {
+          spawnBloodBurst(b.x, b.y, b.vx, b.vy, e.hp - b.dmg <= 0 ? 6 : 4, 145, 0.95);
+        }
         e.hp -= b.dmg;
         b.pierce -= 1;
         if (e.hp <= 0) {
@@ -1200,6 +1464,7 @@
           if (e.kind === "boss") {
             finishLevel();
           } else {
+            if (e.kind === "trooper") spawnTrooperCorpse(e, b);
             spawnDrop(e);
           }
         }
@@ -1235,20 +1500,22 @@
 
     for (const b of state.enemyBullets) {
       if (p.invuln > 0) continue;
-      if (!circleRect({ x: b.x, y: b.y, r: b.r }, p)) continue;
+      if (!circleRect({ x: b.x, y: b.y, r: b.r }, playerCombatRect)) continue;
       p.hp -= b.dmg;
       p.invuln = 0.9;
       b.ttl = 0;
+      spawnBloodBurst(b.x, b.y, b.vx, b.vy, 7, 180, 1.1);
       boom(b.x, b.y, 12, "#ff8f94");
     }
 
     for (const e of state.enemies) {
       if (p.invuln > 0) continue;
-      if (!rectHit(e, p)) continue;
+      if (!rectHit(getEnemyCombatRect(e), playerCombatRect)) continue;
       p.hp -= e.kind === "boss" ? 24 : e.kind === "mech" ? 20 : 10;
       p.invuln = 0.9;
       p.vx = e.x > p.x ? -250 : 250;
       p.vy = -280;
+      spawnBloodBurst(p.x + p.w * 0.5, p.y + p.h * 0.42, e.x - p.x, -0.3, 9, 210, 1.25);
       boom(p.x + p.w * 0.5, p.y + p.h * 0.5, 14, "#ffced1");
     }
   }
@@ -1298,6 +1565,53 @@
   function updateExplosions(dt) {
     for (const e of state.explosions) e.t += dt;
     state.explosions = state.explosions.filter((e) => e.t < e.ttl);
+  }
+
+  function updateAftermath(dt) {
+    for (const corpse of state.corpses) {
+      corpse.t += dt;
+      if (!corpse.landed) {
+        corpse.vy += BLOOD_GRAVITY * dt;
+        corpse.x += corpse.vx * dt;
+        corpse.y += corpse.vy * dt;
+        corpse.rot += corpse.vr * dt;
+        corpse.vx *= Math.exp(-2.4 * dt);
+        corpse.vr *= Math.exp(-2.2 * dt);
+        const supportY = supportYForBody(corpse);
+        if (corpse.y >= supportY) {
+          corpse.y = supportY;
+          corpse.vx *= 0.14;
+          corpse.vy = 0;
+          corpse.vr = 0;
+          corpse.rot *= 0.18;
+          corpse.landed = true;
+        }
+      }
+      corpse.poolT = Math.min(corpse.poolTarget, corpse.poolT + dt * 0.52);
+    }
+
+    for (const particle of state.bloodParticles) {
+      particle.t += dt;
+      particle.vy += BLOOD_GRAVITY * dt;
+      particle.x += particle.vx * dt;
+      particle.y += particle.vy * dt;
+      if (!particle.stuck) {
+        const supportY = supportYForBody({ x: particle.x - particle.r, y: particle.y - particle.r, w: particle.r * 2, h: particle.r * 2 }, true);
+        const floorY = supportY + particle.r;
+        if (particle.y >= floorY) {
+          particle.y = floorY;
+          particle.vx *= 0.4;
+          particle.vy *= -0.16;
+          if (Math.abs(particle.vy) < 28) {
+            particle.stuck = true;
+            particle.vx = 0;
+            particle.vy = 0;
+          }
+        }
+      }
+    }
+
+    state.bloodParticles = state.bloodParticles.filter((particle) => particle.t < particle.ttl);
   }
 
   function updateFlow(dt) {
@@ -1354,6 +1668,7 @@
     updateEnemies(dt);
     updateBullets(dt);
     resolveCombat();
+    updateAftermath(dt);
     updatePickups(dt);
     updateHazards();
     updateExplosions(dt);
@@ -1432,6 +1747,23 @@
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawMuzzleBloom(x, y, aimX, aimY, radius = 18, palette = null, intensity = 1) {
+    const glow = palette?.glow || "#ffe08c";
+    const hot = palette?.hot || "#fff6db";
+    const ember = palette?.ember || "#ff9c44";
+    drawGlowCircle(x, y, radius * 1.7, glow, 0.18 * intensity);
+    drawGlowCircle(x + aimX * radius * 0.15, y + aimY * radius * 0.15, radius, hot, 0.26 * intensity);
+    drawGlowCircle(x - aimX * radius * 0.12, y - aimY * radius * 0.12, radius * 0.66, ember, 0.2 * intensity);
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = 0.82 * intensity;
+    ctx.fillStyle = hot;
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(2.2, radius * 0.18), 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -1796,14 +2128,106 @@
     }
   }
 
+  function drawAftermath() {
+    for (const corpse of state.corpses) {
+      const poolX = corpse.x + corpse.w * 0.48 - state.cameraX;
+      const poolY = corpse.y + corpse.h - 2;
+      const poolProgress = Math.min(1, corpse.poolT / Math.max(0.001, corpse.poolTarget));
+      drawGlowCircle(poolX, poolY - 1, corpse.poolScaleX * (0.8 + poolProgress * 0.6), "#7d0a14", 0.08 * poolProgress);
+      ctx.save();
+      ctx.fillStyle = `rgba(78, 0, 8, ${0.26 + poolProgress * 0.22})`;
+      ctx.beginPath();
+      ctx.ellipse(poolX, poolY, corpse.poolScaleX * poolProgress, corpse.poolScaleY * poolProgress, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(184, 22, 32, ${0.14 + poolProgress * 0.12})`;
+      ctx.beginPath();
+      ctx.ellipse(poolX + corpse.poolScaleX * 0.14, poolY - 1, corpse.poolScaleX * 0.42 * poolProgress, corpse.poolScaleY * 0.33 * poolProgress, 0.06, 0, Math.PI * 2);
+      ctx.fill();
+      for (const splat of corpse.splats) {
+        ctx.globalAlpha = splat.a * poolProgress;
+        ctx.beginPath();
+        ctx.ellipse(poolX + splat.ox, poolY + splat.oy, splat.rx * poolProgress, splat.ry * poolProgress, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    for (const corpse of state.corpses) {
+      const render = getEnemyRenderState(corpse);
+      const sx = render.sx - state.cameraX;
+      const sy = render.sy;
+      if (sx < -render.sw - 80 || sx > W + 80) continue;
+      drawEntityShadow(sx, sy, render.sw, render.sh, 0.18);
+      const deathBase = resolveTrooperDeathBase(corpse);
+      const hasDeathStrip = deathBase.includes("_death");
+      const frame = hasDeathStrip
+        ? Math.min(ANIM.enemy.trooper_death.frames - 1, Math.floor(Math.min(corpse.t * ANIM.enemy.trooper_death.fps, ANIM.enemy.trooper_death.frames - 1)))
+        : 0;
+      if (!corpse.landed) {
+        drawSprite(hasDeathStrip ? `${deathBase}_${frame}` : deathBase, sx, sy, render.sw, render.sh, corpse.flip, () => {
+          ctx.save();
+          ctx.translate(sx + render.sw * 0.5, sy + render.sh * 0.72);
+          ctx.rotate(corpse.rot);
+          ctx.fillStyle = "#7a3a34";
+          ctx.fillRect(-render.sw * 0.36, -render.sh * 0.16, render.sw * 0.72, render.sh * 0.24);
+          ctx.restore();
+        });
+      } else {
+        const palette = corpse.variant === "olive"
+          ? { body: "#5a7242", accent: "#b0d170", metal: "#96ab91" }
+          : corpse.variant === "crimson"
+            ? { body: "#8d4b4f", accent: "#ff9a86", metal: "#bda6ad" }
+            : corpse.variant === "navy"
+              ? { body: "#4f628e", accent: "#a9d5ff", metal: "#a9b5c9" }
+              : { body: "#7b5448", accent: "#ffb562", metal: "#c7c2b8" };
+        const dir = corpse.flip ? -1 : 1;
+        ctx.save();
+        ctx.translate(sx + render.sw * 0.48, sy + render.sh * 0.68);
+        if (dir < 0) ctx.scale(-1, 1);
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = "rgba(36, 23, 22, 0.65)";
+        ctx.beginPath();
+        ctx.ellipse(0, render.sh * 0.01, render.sw * 0.22, render.sh * 0.06, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = palette.body;
+        ctx.fillRect(-render.sw * 0.18, -render.sh * 0.045, render.sw * 0.27, render.sh * 0.085);
+        ctx.fillRect(render.sw * 0.02, -render.sh * 0.055, render.sw * 0.13, render.sh * 0.045);
+        ctx.fillRect(-render.sw * 0.04, render.sh * 0.02, render.sw * 0.12, render.sh * 0.03);
+        ctx.fillRect(render.sw * 0.08, render.sh * 0.005, render.sw * 0.14, render.sh * 0.026);
+        ctx.fillStyle = palette.metal;
+        ctx.fillRect(-render.sw * 0.24, -render.sh * 0.022, render.sw * 0.22, render.sh * 0.022);
+        ctx.fillStyle = palette.accent;
+        ctx.beginPath();
+        ctx.arc(render.sw * 0.13, -render.sh * 0.028, render.sh * 0.04, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(-render.sw * 0.03, -render.sh * 0.05, render.sw * 0.06, render.sh * 0.012);
+        ctx.restore();
+      }
+    }
+
+    for (const particle of state.bloodParticles) {
+      const alpha = Math.max(0, 1 - particle.t / particle.ttl) * particle.alpha;
+      const x = particle.x - state.cameraX;
+      if (x < -32 || x > W + 32) continue;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = particle.color;
+      ctx.beginPath();
+      ctx.arc(x, particle.y, particle.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
   function drawEnemies() {
     for (const e of state.enemies) {
-      const x = e.x - state.cameraX, y = e.y, flip = state.player.x >= e.x;
-      const scale = e.kind === "boss" ? 2.1 : e.kind === "trooper" ? 1.66 : e.kind === "drone" ? 1.6 : e.kind === "turret" ? 1.4 : 1.5;
-      const sw = e.w * scale;
-      const sh = e.h * scale;
-      const sx = x - (sw - e.w) * 0.5;
-      const sy = y - (sh - e.h);
+      const render = getEnemyRenderState(e);
+      const recoil = getEnemyRecoilOffset(e);
+      const flip = render.flip;
+      const sw = render.sw;
+      const sh = render.sh;
+      const sx = render.sx - state.cameraX + recoil.x;
+      const sy = render.sy + recoil.y;
       if (e.kind === "drone") {
         const gy = terrainY(e.x + e.w * 0.5);
         drawShadowBlob(sx + sw * 0.5, gy - 1, sw * 0.5, 6, 0.22);
@@ -1832,6 +2256,15 @@
         ctx.fillStyle = "#ffd98a";
         ctx.font = "bold 14px Trebuchet MS";
         ctx.fillText(e.bossName, sx + 6, sy - 16);
+      }
+      if ((e.kind === "trooper" || e.kind === "turret" || e.kind === "mech" || e.kind === "boss") && (e.attackT || 0) > 0.18) {
+        const muzzle = getEnemyMuzzlePoint(e, recoil.x, recoil.y);
+        const aim = getEnemyAimVector(e);
+        drawMuzzleBloom(muzzle.x - state.cameraX, muzzle.y, aim.x, aim.y, e.kind === "boss" ? 24 : e.kind === "mech" ? 20 : 15, {
+          glow: e.kind === "turret" ? "#ffbb96" : "#ffdf8f",
+          hot: "#fff6de",
+          ember: e.kind === "turret" ? "#ff8446" : "#ffaf4f",
+        }, 0.92);
       }
     }
   }
@@ -1870,20 +2303,30 @@
       const x = b.x - state.cameraX;
       const tx = x - b.vx * 0.018;
       const ty = b.y - b.vy * 0.018;
+      const outerGlow = b.weapon === "LASER" ? "#8ff7ff" : b.weapon === "FLAME" ? "#ffb15b" : b.weapon === "SPREAD" ? "#ffe772" : "#d8ebff";
+      const coreGlow = b.weapon === "LASER" ? "#ebffff" : b.weapon === "FLAME" ? "#ffe0ac" : "#ffffff";
       ctx.save();
-      ctx.globalAlpha = 0.5;
-      ctx.strokeStyle = b.color;
-      ctx.lineWidth = Math.max(1.2, b.r * 1.1);
+      ctx.globalAlpha = 0.7;
+      ctx.strokeStyle = outerGlow;
+      ctx.lineWidth = Math.max(1.05, b.r * 0.95);
       ctx.beginPath();
       ctx.moveTo(tx, ty);
       ctx.lineTo(x, b.y);
       ctx.stroke();
       ctx.restore();
-      drawGlowCircle(x, b.y, b.r * 4.2, b.color, 0.24);
+      drawGlowCircle(x, b.y, b.r * 5.4, outerGlow, 0.34);
+      drawGlowCircle(x, b.y, b.r * 2.5, coreGlow, 0.22);
       ctx.fillStyle = b.color;
       ctx.beginPath();
       ctx.arc(x, b.y, b.r, 0, Math.PI * 2);
       ctx.fill();
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = coreGlow;
+      ctx.beginPath();
+      ctx.arc(x, b.y, Math.max(0.8, b.r * 0.45), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
     for (const b of state.enemyBullets) {
       const x = b.x - state.cameraX;
@@ -1908,34 +2351,22 @@
 
   function drawPlayer() {
     const p = state.player;
-    const x = p.x - state.cameraX, y = p.y;
-    const scale = 1.86;
-    const sw = p.w * scale;
-    const sh = p.h * scale;
-    const sx = x - (sw - p.w) * 0.5;
-    const sy = y - (sh - p.h);
+    const render = getPlayerRenderState(p);
+    const sprite = getPlayerSpriteState(p, render);
+    const aim = getPlayerAimVector(p);
+    const recoilT = clamp(p.muzzleFlashT / (p.weapon === "FLAME" ? 0.11 : 0.08), 0, 1);
+    const recoilStrength = p.muzzleFlashT > 0 ? (p.onGround ? 3.2 : 2.1) : 0;
+    const recoilX = -aim.x * recoilStrength * recoilT;
+    const recoilY = -aim.y * recoilStrength * recoilT;
+    const sw = render.sw;
+    const sh = render.sh;
+    const sx = render.sx - state.cameraX + recoilX;
+    const sy = render.sy + recoilY;
     drawEntityShadow(sx, sy, sw, sh, 0.26);
-    const aimMode = getPlayerAimMode(p);
-    const flipScale = typeof p.visualFace === "number" ? p.visualFace : p.face;
-    const key = p.climbing
-      ? "player_climb"
-      : p.rollT > 0
-      ? "player_roll"
-      : (p.crouching && p.onGround
-        ? "player_crouch"
-        : (!p.onGround
-          ? (aimMode === "up"
-            ? "player_air_up"
-            : aimMode === "diag"
-              ? "player_air_diag"
-              : (p.muzzleFlashT > 0 ? "player_air_forward" : "player_jump"))
-          : (Math.abs(p.vx) > 20
-            ? (aimMode === "up" ? "player_run_up" : aimMode === "diag" ? "player_run_diag" : "player_run")
-            : (aimMode === "up" ? "player_idle_up" : aimMode === "diag" ? "player_idle_diag" : "player_idle"))));
-    const anim = ANIM.player[key] || { frames: 1, fps: 0 };
-    drawAnimSprite(key, anim.frames, anim.fps, p.x * 0.013 + (flipScale < 0 ? 0.5 : 0), sx, sy, sw, sh, flipScale, () => {
+    const flipScale = render.flipScale;
+    drawAnimSprite(sprite.key, sprite.frames, sprite.fps, sprite.phase, sx, sy, sw, sh, flipScale, () => {
       ctx.fillStyle = p.invuln > 0 && Math.floor(state.levelClock * 18) % 2 === 0 ? "#ffd8d8" : "#f1f8ff";
-      if (key === "player_roll") {
+      if (render.key === "player_roll") {
         ctx.beginPath();
         ctx.ellipse(sx + sw * 0.5, sy + sh * 0.74, sw * 0.45, sh * 0.18, 0, 0, Math.PI * 2);
         ctx.fill();
@@ -1943,7 +2374,7 @@
         ctx.beginPath();
         ctx.ellipse(sx + sw * 0.46, sy + sh * 0.72, sw * 0.32, sh * 0.14, 0, 0, Math.PI * 2);
         ctx.fill();
-      } else if (key === "player_crouch") {
+      } else if (render.key === "player_crouch") {
         ctx.fillRect(sx + 2, sy + sh * 0.46, sw - 4, sh * 0.54);
         ctx.fillStyle = "#2f3742";
         ctx.fillRect(sx + sw * 0.26, sy + sh * 0.32, sw * 0.44, sh * 0.2);
@@ -1978,26 +2409,11 @@
 
     if (p.muzzleFlashT > 0) {
       const muzzle = getPlayerMuzzlePoint(p);
-      const aim = getPlayerAimVector(p);
-      const mx = muzzle.x - state.cameraX;
-      const my = muzzle.y;
-      const nx = -aim.y;
-      const ny = aim.x;
-      drawGlowCircle(mx, my, 16, "#ffe27c", 0.3);
-      ctx.fillStyle = "#fff2b2";
-      ctx.beginPath();
-      ctx.moveTo(mx + aim.x * 14, my + aim.y * 14);
-      ctx.lineTo(mx - aim.x * 2 + nx * 4.5, my - aim.y * 2 + ny * 4.5);
-      ctx.lineTo(mx - aim.x * 2 - nx * 4.5, my - aim.y * 2 - ny * 4.5);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = "#ffb347";
-      ctx.beginPath();
-      ctx.moveTo(mx + aim.x * 8, my + aim.y * 8);
-      ctx.lineTo(mx - aim.x * 1 + nx * 2.3, my - aim.y * 1 + ny * 2.3);
-      ctx.lineTo(mx - aim.x * 1 - nx * 2.3, my - aim.y * 1 - ny * 2.3);
-      ctx.closePath();
-      ctx.fill();
+      drawMuzzleBloom(muzzle.x - state.cameraX, muzzle.y, aim.x, aim.y, p.weapon === "FLAME" ? 22 : 18, {
+        glow: p.weapon === "LASER" ? "#96f5ff" : "#ffe08c",
+        hot: "#fff7e2",
+        ember: p.weapon === "FLAME" ? "#ff7b34" : "#ffae4b",
+      }, p.weapon === "FLAME" ? 1.15 : 1);
     }
   }
 
@@ -2144,7 +2560,7 @@
     ctx.fillText("Jump: Space   Crouch: Arrow Down", 190, 298);
     ctx.fillText("Drop Through Catwalk: Down + Space", 190, 322);
     ctx.fillText("Climb Grates: Hold Up/Down near a wall", 190, 346);
-    ctx.fillText("Shoot: Z   Roll: R", 190, 370);
+    ctx.fillText("Shoot: Z   Aim Lock: X   X + Down + Left/Right = Low Aim", 190, 370);
     ctx.fillText("Cycle Weapons: A / B   Pause: P   Fullscreen: F", 190, 394);
 
     ctx.fillStyle = "#ffd447";
@@ -2179,6 +2595,7 @@
   function render() {
     drawBackground();
     drawTraversal();
+    drawAftermath();
     drawObjectives();
     drawExtraction();
     drawPickups();
@@ -2215,7 +2632,7 @@
 
   function onKeyDown(e) {
     keys[e.code] = true;
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyX", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
       e.preventDefault();
     }
 
@@ -2247,7 +2664,7 @@
 
   function onKeyUp(e) {
     keys[e.code] = false;
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyX", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
       e.preventDefault();
     }
   }
@@ -2272,7 +2689,8 @@
       player: {
         x: Math.round(p.x), y: Math.round(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy),
         hp: Math.round(p.hp), maxHp: p.maxHp, onGround: p.onGround, crouching: p.crouching, rolling: p.rollT > 0, climbing: p.climbing,
-        rollCooldown: Number(p.rollCd.toFixed(2)), muzzleFlash: p.muzzleFlashT > 0, facing: p.face, visualFacing: Number((p.visualFace || p.face).toFixed(2)),
+        rollCooldown: Number(p.rollCd.toFixed(2)), muzzleFlash: p.muzzleFlashT > 0, aimLock: isAimLockActive(p), facing: p.face, visualFacing: Number((p.visualFace || p.face).toFixed(2)),
+        pose: getPlayerPoseKey(p),
         support: p.supportType || null,
         aim: { x: Number((p.aimX || 0).toFixed(2)), y: Number((p.aimY || 0).toFixed(2)), mode: getPlayerAimMode(p) },
         activeWeapon: p.weapon,
@@ -2281,6 +2699,7 @@
       enemies: state.enemies.slice(0, 16).map((e) => ({ kind: e.kind, variant: e.variant || null, x: Math.round(e.x), y: Math.round(e.y), hp: Math.round(e.hp) })),
       boss: boss ? { name: boss.bossName, hp: Math.round(boss.hp), maxHp: boss.maxHp, x: Math.round(boss.x), y: Math.round(boss.y) } : null,
       bullets: { player: state.bullets.length, enemy: state.enemyBullets.length },
+      aftermath: { corpses: state.corpses.length, bloodParticles: state.bloodParticles.length },
       pickups: state.pickups.slice(0, 10).map((c) => ({ type: c.type, weapon: c.weapon || null, x: Math.round(c.x), y: Math.round(c.y) })),
       score: Math.round(state.score),
       lives: state.lives,
@@ -2330,6 +2749,219 @@
       boom(boss.x + boss.w * 0.5, boss.y + boss.h * 0.5, 68, "#ffd37d");
       state.enemies = state.enemies.filter((e) => e !== boss);
       finishLevel();
+      return true;
+    },
+    setupMuzzleCheck() {
+      clearSay();
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 220;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.aimX = 1;
+      state.player.aimY = 0;
+      state.player.weapon = "RIFLE";
+      state.player.fireCd = 0;
+      spawnEnemy({ t: "trooper", x: 420, surfaceY: terrainY(434), variant: "crimson" });
+      spawnPlayerBullets();
+      const trooper = state.enemies[0];
+      if (trooper) fireEnemy(trooper);
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupAimLockCheck() {
+      clearSay();
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 220;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.debugAimLock = true;
+      keys.ArrowRight = true;
+      keys.ArrowUp = true;
+      updatePlayer(DT);
+      keys.ArrowRight = false;
+      keys.ArrowUp = false;
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupCrouchCheck() {
+      clearSay();
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 220;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.crouching = true;
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.aimX = 1;
+      state.player.aimY = 0;
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupUpPoseCheck(face = 1, recoil = false) {
+      clearSay();
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 220;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = face;
+      state.player.visualFace = face;
+      state.player.aimX = 0;
+      state.player.aimY = -1;
+      state.player.muzzleFlashT = recoil ? 0.08 : 0;
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupDownPoseCheck(face = 1, airborne = false, recoil = false) {
+      clearSay();
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 220;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h - (airborne ? 84 : 0);
+      state.player.vx = airborne ? face * 36 : 0;
+      state.player.vy = airborne ? 90 : 0;
+      state.player.onGround = !airborne;
+      state.player.supportType = airborne ? null : "terrain";
+      state.player.crouching = false;
+      state.player.face = face;
+      state.player.visualFace = face;
+      state.player.aimX = face * 0.72;
+      state.player.aimY = 0.72;
+      state.player.airT = airborne ? 0.24 : 0;
+      state.player.muzzleFlashT = recoil ? 0.08 : 0;
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupEnemyRecoilCheck() {
+      clearSay();
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 520;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = -1;
+      state.player.visualFace = -1;
+      state.player.aimX = -1;
+      state.player.aimY = 0;
+      state.enemies.push({
+        kind: "trooper",
+        variant: "olive",
+        x: 332,
+        y: terrainY(346) - 44,
+        w: 28,
+        h: 44,
+        hp: 88,
+        maxHp: 88,
+        dir: 1,
+        attackT: 0.34,
+        shotAimX: 0.96,
+        shotAimY: -0.22,
+      });
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupBloodCheck() {
+      clearSay();
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      const enemy = {
+        kind: "trooper",
+        variant: "crimson",
+        x: 360,
+        y: terrainY(374) - 44,
+        w: 28,
+        h: 44,
+        dir: -1,
+        attackT: 0,
+      };
+      spawnTrooperCorpse(enemy, { vx: 380, vy: -40 });
+      for (let i = 0; i < 44; i++) updateAftermath(1 / 60);
+      state.mode = "paused";
+      render();
       return true;
     },
   };

@@ -28,6 +28,13 @@
       "frame_h": 160
     },
     {
+      "base": "player_idle_down_diag",
+      "file": "player_idle_down_diag_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
       "base": "player_run",
       "file": "player_run_sheet.png",
       "frames": 8,
@@ -44,6 +51,13 @@
     {
       "base": "player_run_diag",
       "file": "player_run_diag_sheet.png",
+      "frames": 8,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_run_down_diag",
+      "file": "player_run_down_diag_sheet.png",
       "frames": 8,
       "frame_w": 160,
       "frame_h": 160
@@ -72,6 +86,13 @@
     {
       "base": "player_air_diag",
       "file": "player_air_diag_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_air_down_diag",
+      "file": "player_air_down_diag_sheet.png",
       "frames": 4,
       "frame_w": 160,
       "frame_h": 160
@@ -119,6 +140,13 @@
       "frame_h": 160
     },
     {
+      "base": "enemy_trooper_death",
+      "file": "enemy_trooper_death_sheet.png",
+      "frames": 7,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
       "base": "enemy_trooper_olive",
       "file": "enemy_trooper_olive_sheet.png",
       "frames": 6,
@@ -136,6 +164,13 @@
       "base": "enemy_trooper_olive_up",
       "file": "enemy_trooper_olive_up_sheet.png",
       "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_olive_death",
+      "file": "enemy_trooper_olive_death_sheet.png",
+      "frames": 7,
       "frame_w": 160,
       "frame_h": 160
     },
@@ -161,6 +196,13 @@
       "frame_h": 160
     },
     {
+      "base": "enemy_trooper_crimson_death",
+      "file": "enemy_trooper_crimson_death_sheet.png",
+      "frames": 7,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
       "base": "enemy_trooper_navy",
       "file": "enemy_trooper_navy_sheet.png",
       "frames": 6,
@@ -178,6 +220,13 @@
       "base": "enemy_trooper_navy_up",
       "file": "enemy_trooper_navy_up_sheet.png",
       "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_navy_death",
+      "file": "enemy_trooper_navy_death_sheet.png",
+      "frames": 7,
       "frame_w": 160,
       "frame_h": 160
     },

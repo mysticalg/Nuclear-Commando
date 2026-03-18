@@ -19,6 +19,7 @@ ACTION_FRAMES = {
     "": [16, 17, 18, 19, 20, 21],
     "_fire": [2, 3, 4, 5, 6, 4],
     "_up": [35, 36, 37, 38, 39, 37],
+    "_death": [40, 41, 42, 43, 44, 45, 46],
 }
 
 PALETTES = {
@@ -59,9 +60,10 @@ PALETTES = {
 }
 
 ALIGN = {
-    "": {"fit_h": 132, "bottom": 150},
-    "_fire": {"fit_h": 132, "bottom": 150},
-    "_up": {"fit_h": 138, "bottom": 150},
+    "": {"fit_w": 112, "fit_h": 132, "bottom": 150},
+    "_fire": {"fit_w": 112, "fit_h": 132, "bottom": 150},
+    "_up": {"fit_w": 112, "fit_h": 138, "bottom": 150},
+    "_death": {"fit_w": 132, "fit_h": 132, "bottom": 150},
 }
 
 
@@ -168,7 +170,7 @@ def main() -> None:
             frames = []
             for index in indices:
                 frame = recolor_frame(load_frame(source_dir, index), variant)
-                frames.append(compose_canvas(frame, bottom=cfg["bottom"], fit_w=112, fit_h=cfg["fit_h"]))
+                frames.append(compose_canvas(frame, bottom=cfg["bottom"], fit_w=cfg["fit_w"], fit_h=cfg["fit_h"]))
             compose_strip(frames).save(target, format="PNG")
             print(f"Wrote {target}")
 
