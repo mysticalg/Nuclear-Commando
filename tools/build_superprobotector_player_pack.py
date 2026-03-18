@@ -35,6 +35,7 @@ PACK_MAP = {
     "player_air_diag_sheet.png": [52, 53, 56, 57],
     "player_crouch_sheet.png": [8, 9],
     "player_roll_sheet.png": [12, 13, 14, 15],
+    "player_climb_sheet.png": [65, 66, 67, 68, 69, 70],
 }
 
 ALIGN_OVERRIDES = {
@@ -50,6 +51,7 @@ ALIGN_OVERRIDES = {
     "player_air_forward_sheet.png": {"fit_h": 126, "bottom": 142},
     "player_air_up_sheet.png": {"fit_h": 126, "bottom": 142},
     "player_air_diag_sheet.png": {"fit_h": 126, "bottom": 142},
+    "player_climb_sheet.png": {"fit_h": 136, "bottom": 150},
 }
 
 

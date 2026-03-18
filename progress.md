@@ -789,3 +789,117 @@
   - `output/sprite-showcase-superprobotector-v1/shot-0.png`, `shot-1.png`
 - No `errors-*.json` files were generated in either validation folder.
 - Note: the bundled Playwright client releases held keys before capture, so the state dumps settle back to forward aim; the imported animation strips were verified visually in the showcase and generated sheet outputs.
+## Traversal + Boss Flow Pass
+
+- Added traversal geometry to all three levels in `game.js`:
+  - one-way catwalk platforms
+  - climbable grate / ladder wall strips
+  - solid obstacles / cover blocks / pillars
+  - floor hazards (laser floor, acid, spikes)
+- Added player support-aware movement:
+  - lands on platforms and obstacle tops
+  - `Down + Space` drops through one-way catwalks
+  - climb state on wall grates with vertical movement and jump-off
+- Added more enemy density and platform-based enemy placements using `surfaceY`, `patrolMin`, and `patrolMax` spawn metadata.
+- Added end-of-level boss arenas for all levels.
+  - Level 1 boss: `Iron Talon`
+  - Level 2 boss: `Mountain Warden`
+  - Level 3 boss: `Leviathan Core`
+- Bosses now:
+  - spawn when the player reaches the arena threshold
+  - lock the arena entrance visually
+  - show a boss HP bar in the HUD
+  - finish the level when defeated
+- Replaced the old instant next-level transition with a level-clear splash card before the next level starts.
+- Updated controls copy in `game.js` splash card and `index.html` to include climb and drop-through.
+
+## Imported Climb Animation
+
+- Extended `tools/build_superprobotector_player_pack.py` with `player_climb_sheet.png` using the external Probotector climb frames.
+- Added `player_climb` to `assets/sprites/sheets/png16/sheet_manifest.json`.
+- Rebuilt and reimported PNG frame assets:
+  - `python tools/build_superprobotector_player_pack.py --source-dir output/slice-superprobotector-png --sheet-dir assets/sprites/sheets/png16 --overwrite`
+  - `python tools/import_png_sprite_sheets.py --overwrite`
+- Added a climb preview card to `sprite-showcase.html`.
+
+## Debug / Validation Helpers
+
+- Added `window.__nuclear_commando_debug` in `game.js` with:
+  - `getState()`
+  - `clearObjectives()`
+  - `skipToBoss()`
+  - `defeatBoss()`
+- Added query-param driven debug scenarios in `startCampaign()` for validation with the standard Playwright client:
+  - `?scenario=skip-boss`
+  - `?scenario=clear-boss`
+  - `?scenario=next-level`
+
+## Validation
+
+- Syntax:
+  - `node --check game.js` passed
+  - `python -m py_compile tools/build_superprobotector_player_pack.py` passed
+- Standard Playwright traversal validation:
+  - `output/web-game-traversal-boss-v2/shot-0.png`, `shot-1.png`, `shot-2.png`
+  - verified platforms / climbables / obstacles / hazards render in gameplay
+  - `state-2.json` confirms player on `support:"platform"`
+- Boss spawn validation with bundled client:
+  - `output/web-game-boss-skip-v1/shot-0.png`
+  - `state-0.json` confirms `bossActive:true` and boss payload present
+- Level-clear splash validation with bundled client:
+  - `output/web-game-boss-clear-v1/shot-0.png`
+  - `state-0.json` confirms `mode:"levelClear"`
+- Auto-transition to level 2 validation with bundled client:
+  - `output/web-game-level2-transition-v1/shot-0.png`
+  - `state-0.json` confirms `level.index:1`, `name:"Arc Mountains"`, `mode:"playing"`
+- Sprite showcase validation:
+  - `output/sprite-showcase-traversal-v1/shot-0.png`
+- No `errors-*.json` files were generated in the new validation folders.
+
+## Notes
+
+- During implementation, the player could miss ground support and fall forever after a bad support resolution. Fixed by always allowing terrain to catch downward movement.
+- The bundled Playwright client still cannot press `Z`, so boss defeat was validated via the local debug scenario path instead of live combat input automation.
+## Enemy Sprite Import Pass
+
+- User-added source sheet detected at `assets/sprites/enemy.png`.
+- Sliced the sheet into `47` frames / `8` rows using:
+  - `python tools/slice_external_sprite_sheet.py --source assets/sprites/enemy.png --out output/slice-enemy-png --bg-mode sample --bg-distance 24 --grow 1 --pad 2 --min-area 24 --row-tolerance 18`
+- Added `tools/build_enemy_action_variants.py` to build trooper action sheets from the sliced source.
+  - Walk row mapped from frames `16-21`
+  - Forward-fire row mapped from frames `2-6`
+  - Up-fire row mapped from frames `35-39`
+- Generated trooper palette variants:
+  - default
+  - olive
+  - crimson
+  - navy
+- Built new action sheets in `assets/sprites/sheets/png16`:
+  - `enemy_trooper_sheet.png`
+  - `enemy_trooper_fire_sheet.png`
+  - `enemy_trooper_up_sheet.png`
+  - plus variant sheets like `enemy_trooper_olive_sheet.png`, `enemy_trooper_crimson_fire_sheet.png`, `enemy_trooper_navy_up_sheet.png`
+- Extended `assets/sprites/sheets/png16/sheet_manifest.json` with the new trooper action/variant bases and reimported the manifest:
+  - `python tools/import_png_sprite_sheets.py --overwrite`
+
+## Runtime Integration
+
+- Updated `game.js` so troopers now:
+  - pick deterministic palette variants from spawn order for immediate on-screen variety
+  - use the new walk sheets while moving
+  - switch to the imported forward-fire sheet while attacking at player height
+  - switch to the imported up-fire sheet when attacking a higher player
+- Added trooper variant info into `window.render_game_to_text()` enemy payloads for validation.
+- Expanded `sprite-showcase.html` with enemy variant/action cards.
+
+## Validation
+
+- `python -m py_compile tools/build_enemy_action_variants.py` passed
+- `node --check game.js` passed
+- Gameplay validation:
+  - `output/web-game-enemy-variants-v2/shot-0.png`
+  - `output/web-game-enemy-variants-v2/state-0.json`
+  - state confirms mixed enemy variants near the start (`null` original + `olive` visible)
+- Showcase validation:
+  - `output/sprite-showcase-enemy-variants-v2/shot-0.png`
+- No `errors-*.json` files in the new validation folders.

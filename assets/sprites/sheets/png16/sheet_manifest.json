@@ -91,8 +91,92 @@
       "frame_h": 160
     },
     {
+      "base": "player_climb",
+      "file": "player_climb_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
       "base": "enemy_trooper",
       "file": "enemy_trooper_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_fire",
+      "file": "enemy_trooper_fire_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_up",
+      "file": "enemy_trooper_up_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_olive",
+      "file": "enemy_trooper_olive_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_olive_fire",
+      "file": "enemy_trooper_olive_fire_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_olive_up",
+      "file": "enemy_trooper_olive_up_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_crimson",
+      "file": "enemy_trooper_crimson_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_crimson_fire",
+      "file": "enemy_trooper_crimson_fire_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_crimson_up",
+      "file": "enemy_trooper_crimson_up_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_navy",
+      "file": "enemy_trooper_navy_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_navy_fire",
+      "file": "enemy_trooper_navy_fire_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_navy_up",
+      "file": "enemy_trooper_navy_up_sheet.png",
       "frames": 6,
       "frame_w": 160,
       "frame_h": 160

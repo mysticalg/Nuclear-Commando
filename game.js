@@ -8,6 +8,7 @@
   const splash = document.getElementById("splash");
   const banner = document.getElementById("banner");
   const startBtn = document.getElementById("start-btn");
+  const DEBUG_SCENARIO = new URLSearchParams(window.location.search).get("scenario") || "";
 
   const DT = 1 / 60;
   const GRAVITY = 2200;
@@ -17,6 +18,8 @@
   const PLAYER_ROLL_SPEED = 420;
   const PLAYER_ROLL_DURATION = 0.38;
   const PLAYER_ROLL_COOLDOWN = 0.68;
+  const PLAYER_CLIMB_SPEED = 185;
+  const PLAYER_DROP_THROUGH = 0.22;
   const CAMERA_LERP = 6.4;
   const CAMERA_LEAD_LERP = 8.2;
   const FACE_LERP = 10.5;
@@ -46,12 +49,16 @@
       player_air_diag: { frames: 4, fps: 10 },
       player_crouch: { frames: 2, fps: 5 },
       player_roll: { frames: 4, fps: 16 },
+      player_climb: { frames: 6, fps: 10 },
     },
     enemy: {
       trooper: { frames: 6, fps: 12 },
+      trooper_fire: { frames: 6, fps: 12 },
+      trooper_up: { frames: 6, fps: 12 },
       drone: { frames: 4, fps: 12 },
       turret: { frames: 3, fps: 5 },
       mech: { frames: 6, fps: 8 },
+      boss: { frames: 6, fps: 8 },
     },
     objective: {
       centrifuge: { frames: 2, fps: 4 },
@@ -100,14 +107,51 @@
         { id: "forge", label: "Missile Forge", kind: "factory", x: 3980, y: 330, w: 142, h: 122, hp: 440, weak: "FLAME", reward: "LASER" },
         { id: "reactor", label: "Core Reactor", kind: "reactor", x: 6520, y: 286, w: 170, h: 168, hp: 620, weak: "LASER", reward: "FLAME" },
       ],
+      platforms: [
+        { id: "l1-catwalk-1", x: 500, y: 382, w: 176, h: 12 },
+        { id: "l1-catwalk-2", x: 960, y: 332, w: 170, h: 12 },
+        { id: "l1-catwalk-3", x: 1480, y: 358, w: 150, h: 12 },
+        { id: "l1-catwalk-4", x: 2050, y: 306, w: 178, h: 12 },
+        { id: "l1-catwalk-5", x: 2500, y: 342, w: 154, h: 12 },
+        { id: "l1-catwalk-6", x: 3220, y: 302, w: 170, h: 12 },
+        { id: "l1-catwalk-7", x: 3880, y: 344, w: 190, h: 12 },
+        { id: "l1-catwalk-8", x: 4600, y: 314, w: 174, h: 12 },
+        { id: "l1-catwalk-9", x: 5360, y: 354, w: 150, h: 12 },
+        { id: "l1-catwalk-10", x: 5980, y: 312, w: 182, h: 12 },
+      ],
+      climbables: [
+        { id: "l1-grate-1", x: 578, y: 302, w: 24, h: 168 },
+        { id: "l1-grate-2", x: 1032, y: 252, w: 24, h: 204 },
+        { id: "l1-grate-3", x: 2128, y: 232, w: 24, h: 224 },
+        { id: "l1-grate-4", x: 3290, y: 224, w: 24, h: 236 },
+        { id: "l1-grate-5", x: 4680, y: 236, w: 24, h: 224 },
+        { id: "l1-grate-6", x: 6060, y: 230, w: 24, h: 236 },
+      ],
+      obstacles: [
+        { id: "l1-cover-1", kind: "crate", x: 740, y: 406, w: 48, h: 48 },
+        { id: "l1-cover-2", kind: "barrier", x: 1680, y: 390, w: 60, h: 64 },
+        { id: "l1-cover-3", kind: "crate", x: 2800, y: 404, w: 52, h: 42 },
+        { id: "l1-cover-4", kind: "barrier", x: 4300, y: 388, w: 70, h: 64 },
+        { id: "l1-cover-5", kind: "crate", x: 5700, y: 404, w: 54, h: 44 },
+        { id: "l1-cover-6", kind: "pillar", x: 6800, y: 344, w: 58, h: 112 },
+      ],
+      hazards: [
+        { id: "l1-hazard-1", kind: "laser-floor", x: 1270, y: 446, w: 106, h: 10, dmg: 18 },
+        { id: "l1-hazard-2", kind: "acid", x: 3520, y: 446, w: 118, h: 12, dmg: 20 },
+        { id: "l1-hazard-3", kind: "spikes", x: 6200, y: 444, w: 120, h: 12, dmg: 22 },
+      ],
       spawns: [
-        { t: "trooper", x: 520 }, { t: "trooper", x: 820 }, { t: "drone", x: 1060, y: 258 }, { t: "turret", x: 1380 }, { t: "trooper", x: 1660 },
-        { t: "drone", x: 1940, y: 236 }, { t: "trooper", x: 2220 }, { t: "turret", x: 2480 }, { t: "trooper", x: 2860 }, { t: "drone", x: 3120, y: 214 },
-        { t: "turret", x: 3440 }, { t: "trooper", x: 3780 }, { t: "mech", x: 4120 }, { t: "drone", x: 4460, y: 224 }, { t: "trooper", x: 4820 },
-        { t: "turret", x: 5160 }, { t: "drone", x: 5480, y: 245 }, { t: "trooper", x: 5880 }, { t: "mech", x: 6240 }, { t: "drone", x: 6620, y: 216 },
-        { t: "trooper", x: 7040 }, { t: "turret", x: 7300 },
+        { t: "trooper", x: 420 }, { t: "trooper", x: 560, surfaceY: 382, patrolMin: 516, patrolMax: 644 }, { t: "drone", x: 760, y: 248 },
+        { t: "turret", x: 980, surfaceY: 332 }, { t: "trooper", x: 1180 }, { t: "trooper", x: 1530, surfaceY: 358, patrolMin: 1490, patrolMax: 1588 },
+        { t: "turret", x: 1710 }, { t: "drone", x: 1920, y: 220 }, { t: "trooper", x: 2110, surfaceY: 306, patrolMin: 2070, patrolMax: 2188 },
+        { t: "trooper", x: 2360 }, { t: "turret", x: 2570, surfaceY: 342 }, { t: "drone", x: 2860, y: 205 }, { t: "trooper", x: 3240, surfaceY: 302, patrolMin: 3232, patrolMax: 3348 },
+        { t: "trooper", x: 3470 }, { t: "mech", x: 3900, surfaceY: 344, patrolMin: 3880, patrolMax: 3998 }, { t: "drone", x: 4220, y: 230 },
+        { t: "turret", x: 4650, surfaceY: 314 }, { t: "trooper", x: 4880 }, { t: "drone", x: 5200, y: 240 }, { t: "trooper", x: 5400, surfaceY: 354, patrolMin: 5374, patrolMax: 5478 },
+        { t: "mech", x: 5820 }, { t: "turret", x: 6030, surfaceY: 312 }, { t: "drone", x: 6320, y: 205 }, { t: "trooper", x: 6570 },
+        { t: "trooper", x: 6980 }, { t: "drone", x: 7180, y: 190 },
       ],
       pickups: [{ type: "med", x: 2360, y: 360 }, { type: "med", x: 5060, y: 352 }],
+      boss: { name: "Iron Talon", intro: "Arena security commander engaging.", x: 7320, arenaStart: 6920, hp: 1650, w: 78, h: 96, speed: 82 },
     },
     {
       name: "Arc Mountains",
@@ -120,12 +164,40 @@
         { id: "fuel", label: "Fuel Crucible", kind: "factory", x: 2790, y: 338, w: 130, h: 114, hp: 430, weak: "FLAME", reward: "FLAME" },
         { id: "vault", label: "Launch Vault", kind: "reactor", x: 4280, y: 302, w: 158, h: 150, hp: 540, weak: "LASER", reward: "LASER" },
       ],
+      platforms: [
+        { id: "l2-bridge-1", x: 660, y: 366, w: 170, h: 12 },
+        { id: "l2-bridge-2", x: 1160, y: 324, w: 168, h: 12 },
+        { id: "l2-bridge-3", x: 1810, y: 344, w: 160, h: 12 },
+        { id: "l2-bridge-4", x: 2570, y: 308, w: 170, h: 12 },
+        { id: "l2-bridge-5", x: 3340, y: 330, w: 176, h: 12 },
+        { id: "l2-bridge-6", x: 4090, y: 302, w: 176, h: 12 },
+      ],
+      climbables: [
+        { id: "l2-ladder-1", x: 736, y: 298, w: 24, h: 162 },
+        { id: "l2-ladder-2", x: 1236, y: 250, w: 24, h: 200 },
+        { id: "l2-ladder-3", x: 2648, y: 238, w: 24, h: 214 },
+        { id: "l2-ladder-4", x: 3420, y: 256, w: 24, h: 188 },
+      ],
+      obstacles: [
+        { id: "l2-cover-1", kind: "crate", x: 490, y: 408, w: 52, h: 44 },
+        { id: "l2-cover-2", kind: "barrier", x: 1520, y: 394, w: 62, h: 60 },
+        { id: "l2-cover-3", kind: "crate", x: 2890, y: 392, w: 56, h: 44 },
+        { id: "l2-cover-4", kind: "pillar", x: 4340, y: 340, w: 56, h: 108 },
+      ],
+      hazards: [
+        { id: "l2-hazard-1", kind: "spikes", x: 980, y: 434, w: 96, h: 12, dmg: 18 },
+        { id: "l2-hazard-2", kind: "laser-floor", x: 2140, y: 432, w: 120, h: 10, dmg: 20 },
+        { id: "l2-hazard-3", kind: "acid", x: 3780, y: 430, w: 126, h: 14, dmg: 22 },
+      ],
       spawns: [
-        { t: "trooper", x: 460 }, { t: "drone", x: 860, y: 240 }, { t: "trooper", x: 1080 }, { t: "turret", x: 1240 }, { t: "trooper", x: 1640 },
-        { t: "drone", x: 1780, y: 220 }, { t: "trooper", x: 2060 }, { t: "turret", x: 2480 }, { t: "drone", x: 2580, y: 280 }, { t: "trooper", x: 2980 },
-        { t: "trooper", x: 3320 }, { t: "turret", x: 3600 }, { t: "drone", x: 3720, y: 250 }, { t: "mech", x: 3920 }, { t: "trooper", x: 4620 },
+        { t: "trooper", x: 460 }, { t: "drone", x: 820, y: 234 }, { t: "trooper", x: 730, surfaceY: 366, patrolMin: 680, patrolMax: 786 },
+        { t: "turret", x: 1220, surfaceY: 324 }, { t: "trooper", x: 1440 }, { t: "drone", x: 1680, y: 214 }, { t: "trooper", x: 1860, surfaceY: 344, patrolMin: 1822, patrolMax: 1932 },
+        { t: "trooper", x: 2140 }, { t: "turret", x: 2600, surfaceY: 308 }, { t: "drone", x: 2710, y: 272 }, { t: "trooper", x: 3030 },
+        { t: "trooper", x: 3380, surfaceY: 330, patrolMin: 3352, patrolMax: 3472 }, { t: "turret", x: 3620 }, { t: "drone", x: 3820, y: 244 }, { t: "mech", x: 3980 },
+        { t: "trooper", x: 4140, surfaceY: 302, patrolMin: 4104, patrolMax: 4240 }, { t: "turret", x: 4420 }, { t: "drone", x: 4620, y: 218 },
       ],
       pickups: [{ type: "med", x: 1890, y: 368 }, { type: "med", x: 3480, y: 355 }],
+      boss: { name: "Mountain Warden", intro: "Command mech descending from the ridge.", x: 4860, arenaStart: 4440, hp: 1820, w: 80, h: 98, speed: 84 },
     },
     {
       name: "Tidal Core",
@@ -138,12 +210,40 @@
         { id: "assembly", label: "Assembly Cradle", kind: "factory", x: 3060, y: 336, w: 138, h: 118, hp: 520, weak: "FLAME", reward: "FLAME" },
         { id: "midnight", label: "Midnight Reactor", kind: "reactor", x: 4740, y: 286, w: 170, h: 166, hp: 720, weak: "LASER", reward: "LASER" },
       ],
+      platforms: [
+        { id: "l3-catwalk-1", x: 620, y: 358, w: 170, h: 12 },
+        { id: "l3-catwalk-2", x: 1320, y: 326, w: 168, h: 12 },
+        { id: "l3-catwalk-3", x: 2140, y: 342, w: 168, h: 12 },
+        { id: "l3-catwalk-4", x: 2920, y: 304, w: 176, h: 12 },
+        { id: "l3-catwalk-5", x: 3820, y: 320, w: 176, h: 12 },
+        { id: "l3-catwalk-6", x: 4540, y: 300, w: 180, h: 12 },
+      ],
+      climbables: [
+        { id: "l3-chain-1", x: 698, y: 286, w: 24, h: 172 },
+        { id: "l3-chain-2", x: 1400, y: 250, w: 24, h: 214 },
+        { id: "l3-chain-3", x: 3000, y: 228, w: 24, h: 226 },
+        { id: "l3-chain-4", x: 4624, y: 220, w: 24, h: 232 },
+      ],
+      obstacles: [
+        { id: "l3-cover-1", kind: "crate", x: 520, y: 402, w: 54, h: 46 },
+        { id: "l3-cover-2", kind: "barrier", x: 1780, y: 392, w: 64, h: 60 },
+        { id: "l3-cover-3", kind: "crate", x: 3400, y: 396, w: 58, h: 42 },
+        { id: "l3-cover-4", kind: "pillar", x: 5080, y: 336, w: 60, h: 112 },
+      ],
+      hazards: [
+        { id: "l3-hazard-1", kind: "acid", x: 1040, y: 442, w: 116, h: 12, dmg: 20 },
+        { id: "l3-hazard-2", kind: "spikes", x: 2620, y: 438, w: 112, h: 14, dmg: 22 },
+        { id: "l3-hazard-3", kind: "laser-floor", x: 4380, y: 430, w: 126, h: 10, dmg: 22 },
+      ],
       spawns: [
-        { t: "trooper", x: 520 }, { t: "drone", x: 860, y: 248 }, { t: "turret", x: 1180 }, { t: "trooper", x: 1500 }, { t: "drone", x: 1820, y: 225 },
-        { t: "trooper", x: 2140 }, { t: "turret", x: 2500 }, { t: "mech", x: 2880 }, { t: "drone", x: 3200, y: 218 }, { t: "trooper", x: 3520 },
-        { t: "turret", x: 3900 }, { t: "drone", x: 4180, y: 242 }, { t: "mech", x: 4480 }, { t: "trooper", x: 5060 },
+        { t: "trooper", x: 520 }, { t: "drone", x: 860, y: 238 }, { t: "trooper", x: 690, surfaceY: 358, patrolMin: 646, patrolMax: 754 },
+        { t: "turret", x: 1180 }, { t: "trooper", x: 1390, surfaceY: 326, patrolMin: 1336, patrolMax: 1466 }, { t: "drone", x: 1820, y: 220 },
+        { t: "trooper", x: 2140, surfaceY: 342, patrolMin: 2150, patrolMax: 2260 }, { t: "turret", x: 2500 }, { t: "mech", x: 2880, surfaceY: 304, patrolMin: 2930, patrolMax: 3030 },
+        { t: "drone", x: 3200, y: 214 }, { t: "trooper", x: 3520 }, { t: "turret", x: 3900, surfaceY: 320 }, { t: "drone", x: 4180, y: 238 },
+        { t: "mech", x: 4480 }, { t: "trooper", x: 4620, surfaceY: 300, patrolMin: 4560, patrolMax: 4698 }, { t: "trooper", x: 5060 },
       ],
       pickups: [{ type: "med", x: 2300, y: 350 }, { type: "med", x: 4160, y: 344 }],
+      boss: { name: "Leviathan Core", intro: "Final defense chassis rising from the coolant trench.", x: 5260, arenaStart: 4840, hp: 2100, w: 82, h: 102, speed: 86 },
     },
   ];
 
@@ -158,6 +258,8 @@
     combo: 0,
     comboTimer: 0,
     extractionReady: false,
+    bossActive: false,
+    bossDefeated: false,
     levelClock: 0,
     msg: "",
     msgT: 0,
@@ -177,10 +279,15 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const rand = (a, b) => Math.random() * (b - a) + a;
   const damp = (current, target, rate, dt) => lerp(current, target, 1 - Math.exp(-rate * dt));
+  const TROOPER_VARIANTS = ["", "olive", "crimson", "navy"];
   const normalizeVec = (x, y) => {
     const d = Math.hypot(x, y) || 1;
     return { x: x / d, y: y / d };
   };
+
+  function pickTrooperVariant(seed) {
+    return TROOPER_VARIANTS[Math.abs(Math.floor(seed)) % TROOPER_VARIANTS.length];
+  }
 
   function getPlayerAimMode(p) {
     if (p.aimY < -0.86 && Math.abs(p.aimX) < 0.26) return "up";
@@ -233,6 +340,106 @@
     return t[t.length - 1].y;
   }
 
+  function levelPlatforms() {
+    return state.level?.platforms || [];
+  }
+
+  function levelClimbables() {
+    return state.level?.climbables || [];
+  }
+
+  function levelObstacles() {
+    return state.level?.obstacles || [];
+  }
+
+  function levelHazards() {
+    return state.level?.hazards || [];
+  }
+
+  function overlap1D(a0, a1, b0, b1, pad = 0) {
+    return a1 > b0 + pad && a0 < b1 - pad;
+  }
+
+  function rectOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function findClimbableForRect(rect) {
+    const centerX = rect.x + rect.w * 0.5;
+    for (const climb of levelClimbables()) {
+      if (centerX < climb.x - 10 || centerX > climb.x + climb.w + 10) continue;
+      if (!overlap1D(rect.y, rect.y + rect.h, climb.y, climb.y + climb.h, 6)) continue;
+      return climb;
+    }
+    return null;
+  }
+
+  function findLandingSupport(prevRect, nextRect, dropThroughPlatforms) {
+    const prevBottom = prevRect.y + prevRect.h;
+    const nextBottom = nextRect.y + nextRect.h;
+    const left = nextRect.x + 4;
+    const right = nextRect.x + nextRect.w - 4;
+    let best = null;
+
+    for (const obstacle of levelObstacles()) {
+      if (!overlap1D(left, right, obstacle.x, obstacle.x + obstacle.w, 2)) continue;
+      if (prevBottom > obstacle.y + 2 || nextBottom < obstacle.y) continue;
+      if (!best || obstacle.y < best.y) best = { y: obstacle.y, type: "obstacle", ref: obstacle };
+    }
+
+    if (!dropThroughPlatforms) {
+      for (const platform of levelPlatforms()) {
+        if (!overlap1D(left, right, platform.x, platform.x + platform.w, 6)) continue;
+        if (prevBottom > platform.y + 4 || nextBottom < platform.y) continue;
+        if (!best || platform.y < best.y) best = { y: platform.y, type: "platform", ref: platform };
+      }
+    }
+
+    const sampleX = nextRect.x + nextRect.w * 0.5;
+    const groundY = terrainY(sampleX);
+    if (nextBottom >= groundY && (!best || groundY < best.y)) {
+      best = { y: groundY, type: "terrain", ref: null };
+    }
+    return best;
+  }
+
+  function resolveHorizontalSolids(prevRect, nextRect) {
+    for (const obstacle of levelObstacles()) {
+      if (!overlap1D(nextRect.y + 6, nextRect.y + nextRect.h - 4, obstacle.y, obstacle.y + obstacle.h, 4)) continue;
+      if (!rectOverlap(nextRect, obstacle)) continue;
+      if (prevRect.x + prevRect.w <= obstacle.x + 1) {
+        nextRect.x = obstacle.x - nextRect.w;
+      } else if (prevRect.x >= obstacle.x + obstacle.w - 1) {
+        nextRect.x = obstacle.x + obstacle.w;
+      }
+    }
+    return nextRect;
+  }
+
+  function resolveCeilingSolids(prevRect, nextRect) {
+    for (const obstacle of levelObstacles()) {
+      if (!overlap1D(nextRect.x + 4, nextRect.x + nextRect.w - 4, obstacle.x, obstacle.x + obstacle.w, 2)) continue;
+      if (!rectOverlap(nextRect, obstacle)) continue;
+      if (prevRect.y >= obstacle.y + obstacle.h - 2) {
+        nextRect.y = obstacle.y + obstacle.h;
+      }
+    }
+    return nextRect;
+  }
+
+  function supportYForPickup(c) {
+    let bestY = terrainY(c.x + c.w * 0.5) - c.h;
+    for (const obstacle of levelObstacles()) {
+      if (c.x + c.w * 0.5 < obstacle.x || c.x + c.w * 0.5 > obstacle.x + obstacle.w) continue;
+      bestY = Math.min(bestY, obstacle.y - c.h);
+    }
+    for (const platform of levelPlatforms()) {
+      if (c.x + c.w * 0.5 < platform.x || c.x + c.w * 0.5 > platform.x + platform.w) continue;
+      bestY = Math.min(bestY, platform.y - c.h);
+    }
+    return bestY;
+  }
+
   function rectHit(a, b) {
     return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
   }
@@ -270,6 +477,7 @@
       vy: 0,
       face: 1,
       onGround: true,
+      supportType: "terrain",
       jumpLatch: false,
       hp: prev ? prev.maxHp : 220,
       maxHp: prev ? prev.maxHp : 220,
@@ -280,6 +488,9 @@
       rollCd: 0,
       rollLatch: false,
       muzzleFlashT: 0,
+      climbing: false,
+      climbId: null,
+      dropTimer: 0,
       aimX: prev ? prev.aimX : 1,
       aimY: prev ? prev.aimY : 0,
       visualFace: prev ? (prev.visualFace ?? prev.face) : 1,
@@ -297,10 +508,12 @@
     state.cameraLead = 180;
     state.levelClock = 0;
     state.extractionReady = false;
+    state.bossActive = false;
+    state.bossDefeated = false;
     state.combo = 0;
     state.comboTimer = 0;
     state.enemies = [];
-    state.pending = lvl.spawns.map((s, idx) => ({ ...s, id: `${s.t}-${idx}` }));
+    state.pending = lvl.spawns.map((s, idx) => ({ ...s, id: `${s.t}-${idx}`, variantSeed: idx }));
     state.objectives = lvl.objectives.map((o) => ({ ...o, maxHp: o.hp, destroyed: false }));
     state.bullets = [];
     state.enemyBullets = [];
@@ -317,13 +530,22 @@
       state.player.hp = state.player.maxHp;
     }
 
-    say(`<strong>${lvl.name}</strong><br>${lvl.subtitle}<br>Destroy all targets, then reach extraction.`, 3.6);
+    say(`<strong>${lvl.name}</strong><br>${lvl.subtitle}<br>Use catwalks, climb grates, survive the arena boss.`, 3.6);
   }
 
   function startCampaign() {
     resetLevel(0, false);
     state.mode = "playing";
     splash.classList.remove("visible");
+    if (DEBUG_SCENARIO) {
+      setTimeout(() => {
+        if (DEBUG_SCENARIO === "skip-boss") window.__nuclear_commando_debug.skipToBoss();
+        if (DEBUG_SCENARIO === "clear-boss" || DEBUG_SCENARIO === "next-level") {
+          window.__nuclear_commando_debug.skipToBoss();
+          window.__nuclear_commando_debug.defeatBoss();
+        }
+      }, 0);
+    }
   }
 
   function finishLevel() {
@@ -332,9 +554,9 @@
       say(`<strong>Operation Complete</strong><br>Score: ${Math.floor(state.score)}<br>Press Enter to replay.`, 999);
       return;
     }
-    state.mode = "transition";
-    state.transitionT = 2.4;
-    say(`<strong>${state.level.name} neutralized.</strong><br>Moving to next operation.`, 2.4);
+    state.mode = "levelClear";
+    state.transitionT = 3.4;
+    say(`<strong>${state.level.name} cleared.</strong><br>Moving to ${LEVELS[state.levelIndex + 1].name}.`, 3.4);
   }
 
   function loseLife() {
@@ -345,10 +567,15 @@
       return;
     }
     const p = state.player;
-    p.x = Math.max(60, p.x - 180);
+    const arenaStart = state.bossActive && state.level?.boss ? state.level.boss.arenaStart + 48 : 60;
+    p.x = Math.max(arenaStart, p.x - 180);
     p.y = terrainY(p.x + 10) - p.h;
     p.vx = 0;
     p.vy = 0;
+    p.climbing = false;
+    p.climbId = null;
+    p.dropTimer = 0;
+    p.supportType = "terrain";
     p.hp = p.maxHp;
     p.invuln = 1.4;
     state.bullets = [];
@@ -396,14 +623,49 @@
 
   function spawnEnemy(spawn) {
     const base = { x: spawn.x, y: spawn.y || 0, vx: 0, vy: 0, fireCd: rand(0.5, 1.3), wave: rand(0, Math.PI * 2), drop: 0.18 };
+    const surfaceY = typeof spawn.surfaceY === "number" ? spawn.surfaceY : null;
+    const patrolMin = typeof spawn.patrolMin === "number" ? spawn.patrolMin : null;
+    const patrolMax = typeof spawn.patrolMax === "number" ? spawn.patrolMax : null;
     if (spawn.t === "trooper") {
-      state.enemies.push({ ...base, kind: "trooper", w: 28, h: 44, y: terrainY(spawn.x) - 44, hp: 88, maxHp: 88, speed: 88 });
+      state.enemies.push({
+        ...base,
+        kind: "trooper",
+        w: 28,
+        h: 44,
+        y: (surfaceY ?? terrainY(spawn.x)) - 44,
+        surfaceY,
+        patrolMin,
+        patrolMax,
+        hp: 88,
+        maxHp: 88,
+        speed: 88,
+        dir: 1,
+        attackT: 0,
+        variant: spawn.variant || pickTrooperVariant(typeof spawn.variantSeed === "number" ? spawn.variantSeed : spawn.x),
+      });
     } else if (spawn.t === "drone") {
       state.enemies.push({ ...base, kind: "drone", w: 34, h: 24, y: spawn.y || 250, baseY: spawn.y || 250, hp: 56, maxHp: 56, speed: 112 });
     } else if (spawn.t === "turret") {
-      state.enemies.push({ ...base, kind: "turret", w: 36, h: 38, y: terrainY(spawn.x) - 38, hp: 130, maxHp: 130, speed: 0, fireCd: rand(0.3, 0.9), drop: 0.1 });
+      state.enemies.push({ ...base, kind: "turret", w: 36, h: 38, y: (surfaceY ?? terrainY(spawn.x)) - 38, surfaceY, hp: 130, maxHp: 130, speed: 0, fireCd: rand(0.3, 0.9), drop: 0.1 });
     } else if (spawn.t === "mech") {
-      state.enemies.push({ ...base, kind: "mech", w: 46, h: 62, y: terrainY(spawn.x) - 62, hp: 290, maxHp: 290, speed: 54, fireCd: rand(0.7, 1.1), drop: 0.24 });
+      state.enemies.push({ ...base, kind: "mech", w: 46, h: 62, y: (surfaceY ?? terrainY(spawn.x)) - 62, surfaceY, patrolMin, patrolMax, hp: 290, maxHp: 290, speed: 54, fireCd: rand(0.7, 1.1), drop: 0.24, dir: 1 });
+    } else if (spawn.t === "boss") {
+      state.enemies.push({
+        ...base,
+        kind: "boss",
+        w: spawn.w || 78,
+        h: spawn.h || 96,
+        y: terrainY(spawn.x) - (spawn.h || 96),
+        hp: spawn.hp || 1600,
+        maxHp: spawn.hp || 1600,
+        speed: spawn.speed || 82,
+        fireCd: 0.75,
+        drop: 0,
+        dir: -1,
+        arenaStart: spawn.arenaStart || Math.max(0, spawn.x - 360),
+        arenaEnd: spawn.arenaEnd || (state.level.length - 40),
+        bossName: spawn.name || "Command Unit",
+      });
     }
   }
 
@@ -413,8 +675,36 @@
     const tx = p.x + p.w * 0.5, ty = p.y + p.h * 0.45;
     const dx = tx - sx, dy = ty - sy;
     const d = Math.hypot(dx, dy) || 1;
+    if (enemy.kind === "boss") {
+      const baseAngle = Math.atan2(dy, dx);
+      for (const angle of [-0.24, -0.08, 0.08, 0.24]) {
+        const shot = baseAngle + angle;
+        state.enemyBullets.push({ x: sx, y: sy, vx: Math.cos(shot) * 420, vy: Math.sin(shot) * 420, r: 5, ttl: 2.4, dmg: 16, color: "#ffae63" });
+      }
+      return;
+    }
+    if (enemy.kind === "trooper") enemy.attackT = Math.max(enemy.attackT || 0, 0.34);
     const speed = enemy.kind === "mech" ? 440 : enemy.kind === "turret" ? 390 : 340;
     state.enemyBullets.push({ x: sx, y: sy, vx: (dx / d) * speed, vy: (dy / d) * speed, r: enemy.kind === "mech" ? 5 : 4, ttl: 2, dmg: enemy.kind === "mech" ? 18 : 10, color: enemy.kind === "turret" ? "#ff8f6a" : "#ff5969" });
+  }
+
+  function activateBossEncounter() {
+    const boss = state.level?.boss;
+    if (!boss || state.bossActive || state.bossDefeated) return;
+    state.bossActive = true;
+    spawnEnemy({ t: "boss", ...boss });
+    say(`<strong>${boss.name}</strong><br>${boss.intro}`, 2.6);
+  }
+
+  function resolveTrooperSpriteBase(e) {
+    const suffix = e.variant ? `_${e.variant}` : "";
+    const playerAbove = state.player.y + state.player.h * 0.5 < e.y + e.h * 0.2;
+    const action = e.attackT > 0.04 ? (playerAbove ? "_up" : "_fire") : "";
+    const preferred = `enemy_trooper${suffix}${action}`;
+    if (hasSpriteKey(`${preferred}_0`) || hasSpriteKey(preferred)) return preferred;
+    const fallbackAction = action ? `enemy_trooper${action}` : `enemy_trooper${suffix}`;
+    if (hasSpriteKey(`${fallbackAction}_0`) || hasSpriteKey(fallbackAction)) return fallbackAction;
+    return "enemy_trooper";
   }
 
   function spawnDrop(enemy) {
@@ -489,7 +779,92 @@
     const shootHeld = !!keys.KeyZ;
     const wantsRoll = !!keys.KeyR || (downHeld && shootHeld && left !== right);
     const prevOnGround = p.onGround;
+    const prevRect = { x: p.x, y: p.y, w: p.w, h: p.h };
+    const climbTouch = findClimbableForRect(prevRect);
+    const wantsDrop = jumpHeld && !p.jumpLatch && p.onGround && p.supportType === "platform" && downHeld && p.rollT <= 0;
     let desiredFace = p.face;
+
+    if (wantsDrop) {
+      p.onGround = false;
+      p.supportType = null;
+      p.dropTimer = PLAYER_DROP_THROUGH;
+      p.vy = Math.max(p.vy, 120);
+      p.crouching = false;
+    }
+
+    if (!p.climbing && climbTouch && p.rollT <= 0 && !wantsDrop && (upHeld || (downHeld && !p.onGround))) {
+      p.climbing = true;
+      p.climbId = climbTouch.id;
+      p.crouching = false;
+      p.onGround = false;
+      p.supportType = "climb";
+      p.vx = 0;
+      p.vy = 0;
+      p.x = clamp(climbTouch.x + climbTouch.w * 0.5 - p.w * 0.5, 0, state.level.length - p.w);
+    }
+
+    if (p.climbing) {
+      const climb = levelClimbables().find((c) => c.id === p.climbId) || climbTouch;
+      if (!climb) {
+        p.climbing = false;
+        p.climbId = null;
+      } else {
+        if (left !== right) desiredFace = right ? 1 : -1;
+        p.face = desiredFace;
+
+        if (jumpHeld && !p.jumpLatch) {
+          const launchDir = left === right ? p.face : (right ? 1 : -1);
+          p.climbing = false;
+          p.climbId = null;
+          p.vx = launchDir * 240;
+          p.vy = -760;
+          p.face = launchDir;
+          p.supportType = null;
+        } else {
+          const climbDir = (downHeld ? 1 : 0) - (upHeld ? 1 : 0);
+          p.vx = 0;
+          p.vy = climbDir * PLAYER_CLIMB_SPEED;
+          p.x = clamp(climb.x + climb.w * 0.5 - p.w * 0.5, 0, state.level.length - p.w);
+          p.y += p.vy * dt;
+          p.y = clamp(p.y, climb.y - p.h * 0.38, climb.y + climb.h - p.h + 8);
+
+          const climbRect = { x: climb.x - 12, y: climb.y - p.h * 0.4, w: climb.w + 24, h: climb.h + p.h * 0.5 + 12 };
+          if (!rectOverlap({ x: p.x, y: p.y, w: p.w, h: p.h }, climbRect)) {
+            p.climbing = false;
+            p.climbId = null;
+          }
+
+          p.onGround = false;
+          p.supportType = "climb";
+          p.airT = 0;
+        }
+      }
+    }
+
+    if (p.climbing) {
+      if (upHeld) {
+        if (left !== right) {
+          p.aimX = p.face * 0.72;
+          p.aimY = -0.72;
+        } else {
+          p.aimX = 0;
+          p.aimY = -1;
+        }
+      } else {
+        if (left !== right) p.face = right ? 1 : -1;
+        p.aimX = p.face;
+        p.aimY = 0;
+      }
+      p.invuln = Math.max(0, p.invuln - dt);
+      p.fireCd = Math.max(0, p.fireCd - dt);
+      p.rollCd = Math.max(0, p.rollCd - dt);
+      p.dropTimer = Math.max(0, p.dropTimer - dt);
+      p.muzzleFlashT = Math.max(0, p.muzzleFlashT - dt);
+      p.visualFace = damp(typeof p.visualFace === "number" ? p.visualFace : p.face, p.face, FACE_LERP, dt);
+      p.jumpLatch = jumpHeld;
+      if (shootHeld && p.fireCd <= 0) spawnPlayerBullets();
+      return;
+    }
 
     if (wantsRoll && !p.rollLatch && p.onGround && p.rollT <= 0 && p.rollCd <= 0) {
       const dir = left === right ? p.face : right ? 1 : -1;
@@ -506,7 +881,7 @@
       p.rollT = Math.max(0, p.rollT - dt);
       p.vx = p.face * PLAYER_ROLL_SPEED;
       p.crouching = false;
-    } else if (downHeld && p.onGround && !upHeld) {
+    } else if (downHeld && p.onGround && !upHeld && !wantsDrop) {
       p.crouching = true;
       p.vx *= 0.62;
       if (Math.abs(p.vx) < 12) p.vx = 0;
@@ -522,9 +897,10 @@
       }
     }
 
-    if (jumpHeld && !p.jumpLatch && p.onGround && !p.crouching && p.rollT <= 0) {
+    if (jumpHeld && !p.jumpLatch && p.onGround && !p.crouching && p.rollT <= 0 && !wantsDrop) {
       p.vy = -860;
       p.onGround = false;
+      p.supportType = null;
       p.airT = 0;
     }
     p.jumpLatch = jumpHeld;
@@ -550,22 +926,39 @@
       p.aimY = 0;
     }
 
+    p.dropTimer = Math.max(0, p.dropTimer - dt);
     p.vy += GRAVITY * dt;
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    p.x = clamp(p.x, 0, state.level.length - p.w);
+    let nextRect = {
+      x: clamp(p.x + p.vx * dt, 0, state.level.length - p.w),
+      y: p.y,
+      w: p.w,
+      h: p.h,
+    };
+    nextRect = resolveHorizontalSolids(prevRect, nextRect);
+    p.x = clamp(nextRect.x, 0, state.level.length - p.w);
 
-    const gy = terrainY(p.x + p.w * 0.5);
-    if (p.y + p.h >= gy) {
-      p.y = gy - p.h;
+    let nextYRect = { x: p.x, y: p.y + p.vy * dt, w: p.w, h: p.h };
+    if (p.vy < 0) {
+      const resolved = resolveCeilingSolids({ x: p.x, y: p.y, w: p.w, h: p.h }, nextYRect);
+      if (resolved.y !== nextYRect.y) p.vy = 0;
+      nextYRect = resolved;
+    }
+
+    const landed = p.vy >= 0 ? findLandingSupport({ x: p.x, y: p.y, w: p.w, h: p.h }, nextYRect, p.dropTimer > 0) : null;
+    if (landed) {
+      nextYRect.y = landed.y - p.h;
       p.vy = 0;
       p.onGround = true;
+      p.supportType = landed.type;
       p.airT = 0;
+      p.climbId = null;
     } else {
       p.onGround = false;
+      p.supportType = null;
       p.crouching = false;
       p.airT += dt;
     }
+    p.y = nextYRect.y;
     if (!prevOnGround && p.onGround) p.airT = 0;
 
     p.invuln = Math.max(0, p.invuln - dt);
@@ -588,11 +981,22 @@
     const p = state.player;
     for (const e of state.enemies) {
       e.fireCd -= dt;
+      if (typeof e.attackT === "number") e.attackT = Math.max(0, e.attackT - dt);
       if (e.kind === "trooper") {
         const dir = p.x >= e.x ? 1 : -1;
-        e.vx = dir * e.speed;
+        if (typeof e.patrolMin === "number" && typeof e.patrolMax === "number") {
+          if (e.x <= e.patrolMin + 2) e.dir = 1;
+          if (e.x >= e.patrolMax - e.w - 2) e.dir = -1;
+          if (Math.abs(p.x - e.x) < 260) e.dir = dir;
+          e.vx = e.dir * e.speed;
+        } else {
+          e.vx = dir * e.speed;
+        }
         e.x += e.vx * dt;
-        e.y = terrainY(e.x + e.w * 0.5) - e.h;
+        if (typeof e.patrolMin === "number" && typeof e.patrolMax === "number") {
+          e.x = clamp(e.x, e.patrolMin, e.patrolMax - e.w);
+        }
+        e.y = (typeof e.surfaceY === "number" ? e.surfaceY : terrainY(e.x + e.w * 0.5)) - e.h;
         if (e.fireCd <= 0 && Math.abs(p.x - e.x) < 520) {
           fireEnemy(e);
           e.fireCd = rand(0.9, 1.5);
@@ -610,11 +1014,34 @@
           fireEnemy(e);
           e.fireCd = rand(0.95, 1.3);
         }
+      } else if (e.kind === "boss") {
+        const dir = p.x >= e.x ? 1 : -1;
+        if (e.x <= e.arenaStart + 24) e.dir = 1;
+        if (e.x >= e.arenaEnd - e.w - 24) e.dir = -1;
+        if (Math.abs(p.x - e.x) > 100) e.dir = dir;
+        e.vx = e.dir * e.speed;
+        e.x += e.vx * dt;
+        e.x = clamp(e.x, e.arenaStart + 8, e.arenaEnd - e.w - 8);
+        e.y = terrainY(e.x + e.w * 0.5) - e.h;
+        if (e.fireCd <= 0 && Math.abs(p.x - e.x) < 760) {
+          fireEnemy(e);
+          e.fireCd = rand(0.7, 1.05);
+        }
       } else {
         const dir = p.x >= e.x ? 1 : -1;
-        e.vx = dir * e.speed;
+        if (typeof e.patrolMin === "number" && typeof e.patrolMax === "number") {
+          if (e.x <= e.patrolMin + 2) e.dir = 1;
+          if (e.x >= e.patrolMax - e.w - 2) e.dir = -1;
+          if (Math.abs(p.x - e.x) < 260) e.dir = dir;
+          e.vx = e.dir * e.speed;
+        } else {
+          e.vx = dir * e.speed;
+        }
         e.x += e.vx * dt;
-        e.y = terrainY(e.x + e.w * 0.5) - e.h;
+        if (typeof e.patrolMin === "number" && typeof e.patrolMax === "number") {
+          e.x = clamp(e.x, e.patrolMin, e.patrolMax - e.w);
+        }
+        e.y = (typeof e.surfaceY === "number" ? e.surfaceY : terrainY(e.x + e.w * 0.5)) - e.h;
         if (e.fireCd <= 0 && Math.abs(p.x - e.x) < 700) {
           fireEnemy(e);
           e.fireCd = rand(0.75, 1.1);
@@ -622,7 +1049,7 @@
       }
       e.x = clamp(e.x, 0, state.level.length - e.w);
     }
-    state.enemies = state.enemies.filter((e) => e.hp > 0 && e.x > state.cameraX - 240);
+    state.enemies = state.enemies.filter((e) => e.hp > 0 && (e.kind === "boss" || e.x > state.cameraX - 240));
   }
 
   function updateBullets(dt) {
@@ -630,6 +1057,11 @@
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       b.ttl -= dt;
+      for (const obstacle of levelObstacles()) {
+        if (!circleRect({ x: b.x, y: b.y, r: b.r }, obstacle)) continue;
+        b.ttl = 0;
+        break;
+      }
     }
     state.bullets = state.bullets.filter((b) => b.ttl > 0 && b.x > state.cameraX - 120 && b.x < state.cameraX + W + 220 && b.y > -50 && b.y < H + 60);
 
@@ -637,6 +1069,11 @@
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       b.ttl -= dt;
+      for (const obstacle of levelObstacles()) {
+        if (!circleRect({ x: b.x, y: b.y, r: b.r }, obstacle)) continue;
+        b.ttl = 0;
+        break;
+      }
     }
     state.enemyBullets = state.enemyBullets.filter((b) => b.ttl > 0 && b.x > state.cameraX - 120 && b.x < state.cameraX + W + 220 && b.y > -40 && b.y < H + 40);
   }
@@ -651,11 +1088,21 @@
         e.hp -= b.dmg;
         b.pierce -= 1;
         if (e.hp <= 0) {
-          state.score += e.kind === "mech" ? 320 : 120;
+          if (e.kind === "boss") {
+            state.score += 2600;
+            state.bossActive = false;
+            state.bossDefeated = true;
+          } else {
+            state.score += e.kind === "mech" ? 320 : 120;
+          }
           state.combo += 1;
           state.comboTimer = 2.2;
-          boom(e.x + e.w * 0.5, e.y + e.h * 0.5, e.kind === "mech" ? 32 : 20, "#ffd37d");
-          spawnDrop(e);
+          boom(e.x + e.w * 0.5, e.y + e.h * 0.5, e.kind === "boss" ? 68 : e.kind === "mech" ? 32 : 20, "#ffd37d");
+          if (e.kind === "boss") {
+            finishLevel();
+          } else {
+            spawnDrop(e);
+          }
         }
         if (b.pierce <= 0) {
           b.ttl = 0;
@@ -699,14 +1146,12 @@
     for (const e of state.enemies) {
       if (p.invuln > 0) continue;
       if (!rectHit(e, p)) continue;
-      p.hp -= e.kind === "mech" ? 20 : 10;
+      p.hp -= e.kind === "boss" ? 24 : e.kind === "mech" ? 20 : 10;
       p.invuln = 0.9;
       p.vx = e.x > p.x ? -250 : 250;
       p.vy = -280;
       boom(p.x + p.w * 0.5, p.y + p.h * 0.5, 14, "#ffced1");
     }
-
-    if (p.hp <= 0) loseLife();
   }
 
   function updatePickups(dt) {
@@ -714,7 +1159,7 @@
     for (const c of state.pickups) {
       c.vy += GRAVITY * 0.6 * dt;
       c.y += c.vy * dt;
-      const gy = terrainY(c.x + c.w * 0.5) - c.h;
+      const gy = supportYForPickup(c);
       if (c.y >= gy) {
         c.y = gy;
         c.vy *= -0.2;
@@ -736,6 +1181,21 @@
     });
   }
 
+  function updateHazards() {
+    const p = state.player;
+    for (const hazard of levelHazards()) {
+      const rect = { x: hazard.x, y: hazard.y, w: hazard.w, h: hazard.h };
+      if (!rectHit(rect, p)) continue;
+      if (p.invuln > 0) continue;
+      p.hp -= hazard.dmg || 18;
+      p.invuln = 0.8;
+      p.vy = -280;
+      p.vx = p.x + p.w * 0.5 < hazard.x + hazard.w * 0.5 ? -220 : 220;
+      boom(p.x + p.w * 0.5, p.y + p.h * 0.55, 18, hazard.kind === "acid" ? "#67ffd4" : "#ffb56c");
+    }
+    if (p.hp <= 0) loseLife();
+  }
+
   function updateExplosions(dt) {
     for (const e of state.explosions) e.t += dt;
     state.explosions = state.explosions.filter((e) => e.t < e.ttl);
@@ -744,13 +1204,20 @@
   function updateFlow(dt) {
     if (!state.extractionReady && state.objectives.every((o) => o.destroyed)) {
       state.extractionReady = true;
-      say("All critical targets neutralized. Reach extraction.", 2.2);
+      say("All critical targets neutralized. Push into the final arena.", 2.2);
     }
-    if (state.extractionReady && state.player.x >= state.level.length - 120) finishLevel();
+    const boss = state.level?.boss;
+    if (boss && !state.bossDefeated && state.player.x >= boss.arenaStart - 80) {
+      activateBossEncounter();
+    }
     const maxCamera = Math.max(0, state.level.length - W);
     const targetLead = state.player.face > 0 ? 180 : 120;
     state.cameraLead = damp(typeof state.cameraLead === "number" ? state.cameraLead : targetLead, targetLead, CAMERA_LEAD_LERP, dt);
-    const targetCameraX = clamp(state.player.x - W * 0.35 + state.cameraLead, 0, maxCamera);
+    let targetCameraX = clamp(state.player.x - W * 0.35 + state.cameraLead, 0, maxCamera);
+    if (boss && state.bossActive) {
+      targetCameraX = clamp(Math.max(targetCameraX, boss.arenaStart - 120), 0, maxCamera);
+      state.player.x = clamp(state.player.x, boss.arenaStart + 18, state.level.length - state.player.w - 18);
+    }
     state.cameraX = clamp(damp(state.cameraX, targetCameraX, CAMERA_LERP, dt), 0, maxCamera);
     if (state.player.x > targetCameraX + W - 130) state.player.x = targetCameraX + W - 130;
   }
@@ -760,6 +1227,15 @@
     if (state.msgT > 0) {
       state.msgT -= dt;
       if (state.msgT <= 0 && state.mode !== "gameOver" && state.mode !== "campaignComplete") clearSay();
+    }
+    if (state.mode === "levelClear") {
+      state.transitionT -= dt;
+      if (state.transitionT <= 0) {
+        clearSay();
+        resetLevel(state.levelIndex + 1, true);
+        state.mode = "playing";
+      }
+      return;
     }
     if (state.mode === "transition") {
       state.transitionT -= dt;
@@ -780,6 +1256,7 @@
     updateBullets(dt);
     resolveCombat();
     updatePickups(dt);
+    updateHazards();
     updateExplosions(dt);
     updateFlow(dt);
   }
@@ -1087,6 +1564,103 @@
     drawWorldAtmosphere();
   }
 
+  function drawTraversal() {
+    const p = state.level.palette;
+    const steel = p.theme === "cave" ? "#6e8298" : "#7c90a4";
+    const steelDark = p.theme === "cave" ? "#2c3947" : "#304152";
+
+    for (const climb of levelClimbables()) {
+      const x = climb.x - state.cameraX;
+      if (x < -60 || x > W + 40) continue;
+      ctx.fillStyle = "rgba(18, 24, 34, 0.32)";
+      ctx.fillRect(x - 4, climb.y, climb.w + 8, climb.h);
+      ctx.fillStyle = steelDark;
+      ctx.fillRect(x, climb.y, 5, climb.h);
+      ctx.fillRect(x + climb.w - 5, climb.y, 5, climb.h);
+      ctx.fillStyle = steel;
+      for (let y = climb.y + 10; y < climb.y + climb.h; y += 14) {
+        ctx.fillRect(x + 5, y, climb.w - 10, 3);
+      }
+      drawGlowCircle(x + climb.w * 0.5, climb.y + 8, 18, "#8be8ff", 0.08);
+    }
+
+    for (const platform of levelPlatforms()) {
+      const x = platform.x - state.cameraX;
+      if (x < -platform.w - 30 || x > W + 30) continue;
+      drawShadowBlob(x + platform.w * 0.5, platform.y + 6, platform.w * 0.42, 10, 0.18);
+      ctx.fillStyle = steelDark;
+      ctx.fillRect(x, platform.y, platform.w, platform.h);
+      ctx.fillStyle = steel;
+      ctx.fillRect(x + 4, platform.y + 2, platform.w - 8, 4);
+      ctx.fillStyle = "#b4cadb";
+      ctx.fillRect(x + 8, platform.y + 6, platform.w - 16, 2);
+      ctx.fillStyle = "#223140";
+      for (let px = x + 10; px < x + platform.w - 10; px += 26) {
+        ctx.fillRect(px, platform.y + 8, 4, 4);
+      }
+    }
+
+    for (const obstacle of levelObstacles()) {
+      const x = obstacle.x - state.cameraX;
+      if (x < -obstacle.w - 40 || x > W + 40) continue;
+      drawShadowBlob(x + obstacle.w * 0.5, obstacle.y + obstacle.h, obstacle.w * 0.44, 10, 0.22);
+      if (obstacle.kind === "pillar") {
+        ctx.fillStyle = "#324152";
+        ctx.fillRect(x, obstacle.y, obstacle.w, obstacle.h);
+        ctx.fillStyle = "#8aa6c0";
+        ctx.fillRect(x + 6, obstacle.y + 8, obstacle.w - 12, 8);
+        ctx.fillStyle = "#4e6176";
+        for (let y = obstacle.y + 24; y < obstacle.y + obstacle.h - 10; y += 18) {
+          ctx.fillRect(x + 8, y, obstacle.w - 16, 4);
+        }
+      } else if (obstacle.kind === "barrier") {
+        ctx.fillStyle = "#394557";
+        ctx.fillRect(x, obstacle.y, obstacle.w, obstacle.h);
+        ctx.fillStyle = "#d7b15d";
+        ctx.fillRect(x + 6, obstacle.y + 10, obstacle.w - 12, 7);
+        ctx.fillStyle = "#262d38";
+        ctx.fillRect(x + 10, obstacle.y + 24, obstacle.w - 20, obstacle.h - 34);
+      } else {
+        ctx.fillStyle = "#5b4637";
+        ctx.fillRect(x, obstacle.y, obstacle.w, obstacle.h);
+        ctx.fillStyle = "#8a6b50";
+        ctx.fillRect(x + 4, obstacle.y + 4, obstacle.w - 8, obstacle.h - 8);
+        ctx.strokeStyle = "#2f241c";
+        ctx.strokeRect(x + 6.5, obstacle.y + 6.5, obstacle.w - 13, obstacle.h - 13);
+      }
+    }
+
+    for (const hazard of levelHazards()) {
+      const x = hazard.x - state.cameraX;
+      if (x < -hazard.w - 20 || x > W + 20) continue;
+      if (hazard.kind === "acid") {
+        ctx.fillStyle = "rgba(80, 255, 208, 0.2)";
+        ctx.fillRect(x, hazard.y - 2, hazard.w, hazard.h + 4);
+        ctx.fillStyle = "#69ffd4";
+        for (let i = 0; i < hazard.w; i += 16) {
+          const bob = Math.sin(state.levelClock * 4 + i * 0.12) * 2.5;
+          ctx.fillRect(x + i, hazard.y + 3 + bob, 10, 3);
+        }
+      } else if (hazard.kind === "laser-floor") {
+        drawGlowCircle(x + hazard.w * 0.5, hazard.y + 4, hazard.w * 0.6, "#ff9861", 0.12);
+        ctx.fillStyle = "#362120";
+        ctx.fillRect(x, hazard.y, hazard.w, hazard.h);
+        ctx.fillStyle = "#ffb26a";
+        ctx.fillRect(x + 4, hazard.y + 3, hazard.w - 8, 3);
+      } else {
+        ctx.fillStyle = "#8c98a8";
+        for (let i = 0; i < hazard.w; i += 12) {
+          ctx.beginPath();
+          ctx.moveTo(x + i, hazard.y + hazard.h);
+          ctx.lineTo(x + i + 6, hazard.y);
+          ctx.lineTo(x + i + 12, hazard.y + hazard.h);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+    }
+  }
+
   function drawObjectives() {
     for (const o of state.objectives) {
       const x = o.x - state.cameraX;
@@ -1126,7 +1700,7 @@
   function drawEnemies() {
     for (const e of state.enemies) {
       const x = e.x - state.cameraX, y = e.y, flip = state.player.x >= e.x;
-      const scale = e.kind === "trooper" ? 1.66 : e.kind === "drone" ? 1.6 : e.kind === "turret" ? 1.4 : 1.5;
+      const scale = e.kind === "boss" ? 2.1 : e.kind === "trooper" ? 1.66 : e.kind === "drone" ? 1.6 : e.kind === "turret" ? 1.4 : 1.5;
       const sw = e.w * scale;
       const sh = e.h * scale;
       const sx = x - (sw - e.w) * 0.5;
@@ -1137,18 +1711,29 @@
       } else {
         drawEntityShadow(sx, sy, sw, sh, 0.25);
       }
-      const anim = ANIM.enemy[e.kind] || { frames: 1, fps: 0 };
+      let baseKey = e.kind === "boss" ? "enemy_mech" : `enemy_${e.kind}`;
+      let anim = ANIM.enemy[e.kind] || { frames: 1, fps: 0 };
+      if (e.kind === "trooper") {
+        baseKey = resolveTrooperSpriteBase(e);
+        anim = baseKey.includes("_up") ? ANIM.enemy.trooper_up : baseKey.includes("_fire") ? ANIM.enemy.trooper_fire : ANIM.enemy.trooper;
+      }
       const phase = (e.x * 0.013 + e.y * 0.007 + (e.wave || 0)) % 11;
-      drawAnimSprite(`enemy_${e.kind}`, anim.frames, anim.fps, phase, sx, sy, sw, sh, flip, () => {
+      drawAnimSprite(baseKey, anim.frames, anim.fps, phase, sx, sy, sw, sh, flip, () => {
         if (e.kind === "trooper") { ctx.fillStyle = "#f15d5d"; ctx.fillRect(sx, sy, sw, sh); }
         else if (e.kind === "drone") { ctx.fillStyle = "#f7b267"; ctx.fillRect(sx, sy, sw, sh); ctx.fillStyle = "#201f2a"; ctx.fillRect(sx + 6, sy + 4, sw - 12, 8); }
         else if (e.kind === "turret") { ctx.fillStyle = "#d6617c"; ctx.fillRect(sx, sy, sw, sh); ctx.fillRect(sx + 10, sy - 8, 16, 8); }
+        else if (e.kind === "boss") { ctx.fillStyle = "#ff9b57"; ctx.fillRect(sx, sy, sw, sh); ctx.fillStyle = "#352133"; ctx.fillRect(sx + 10, sy + 8, sw - 20, sh - 18); }
         else { ctx.fillStyle = "#ff9169"; ctx.fillRect(sx, sy, sw, sh); ctx.fillStyle = "#352133"; ctx.fillRect(sx + 8, sy + 10, sw - 16, 20); }
       });
       ctx.fillStyle = "rgba(10,12,16,0.78)";
       ctx.fillRect(sx, sy - 8, sw, 4);
       ctx.fillStyle = "#ff8d9a";
       ctx.fillRect(sx + 1, sy - 7, Math.max(0, (sw - 2) * (e.hp / e.maxHp)), 2);
+      if (e.kind === "boss") {
+        ctx.fillStyle = "#ffd98a";
+        ctx.font = "bold 14px Trebuchet MS";
+        ctx.fillText(e.bossName, sx + 6, sy - 16);
+      }
     }
   }
 
@@ -1233,7 +1818,9 @@
     drawEntityShadow(sx, sy, sw, sh, 0.26);
     const aimMode = getPlayerAimMode(p);
     const flipScale = typeof p.visualFace === "number" ? p.visualFace : p.face;
-    const key = p.rollT > 0
+    const key = p.climbing
+      ? "player_climb"
+      : p.rollT > 0
       ? "player_roll"
       : (p.crouching && p.onGround
         ? "player_crouch"
@@ -1333,17 +1920,19 @@
   }
 
   function drawExtraction() {
-    if (!state.extractionReady) return;
-    const x = state.level.length - 120 - state.cameraX;
-    if (x < -80 || x > W + 80) return;
-    const y = terrainY(state.level.length - 120) - 90;
-    ctx.strokeStyle = "#7fffd3";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x, y, 60, 80);
-    ctx.fillStyle = "#7fffd3";
-    ctx.fillRect(x + 24, y - 22, 12, 20);
+    const boss = state.level?.boss;
+    if (!boss || state.bossDefeated) return;
+    const x = boss.arenaStart - state.cameraX;
+    if (x < -120 || x > W + 140) return;
+    const y = terrainY(boss.arenaStart + 24) - 110;
+    ctx.fillStyle = "rgba(38, 53, 69, 0.8)";
+    ctx.fillRect(x, y, 34, 112);
+    ctx.fillStyle = "#7f95a8";
+    ctx.fillRect(x + 4, y + 8, 26, 96);
+    ctx.fillStyle = state.bossActive ? "#ff9861" : "#7fffd3";
+    ctx.fillRect(x + 12, y - 18, 10, 18);
     ctx.font = "12px Trebuchet MS";
-    ctx.fillText("EXTRACT", x - 8, y - 30);
+    ctx.fillText(state.bossActive ? "ARENA LOCK" : "BOSS GATE", x - 18, y - 28);
   }
 
   function drawHud() {
@@ -1380,6 +1969,17 @@
     ctx.font = "bold 12px Trebuchet MS";
     ctx.fillText(`HP ${Math.ceil(p.hp)}/${p.maxHp}`, 784, 53);
 
+    const boss = state.enemies.find((e) => e.kind === "boss");
+    if (boss) {
+      ctx.fillStyle = "rgba(18,23,32,0.9)";
+      ctx.fillRect(W * 0.5 - 170, 82, 340, 16);
+      ctx.fillStyle = "#ff9567";
+      ctx.fillRect(W * 0.5 - 168, 84, 336 * clamp(boss.hp / boss.maxHp, 0, 1), 12);
+      ctx.fillStyle = "#fff0d8";
+      ctx.font = "bold 13px Trebuchet MS";
+      ctx.fillText(boss.bossName, W * 0.5 - 56, 78);
+    }
+
     if (state.combo >= 2 && state.comboTimer > 0) {
       ctx.fillStyle = "#ffd447";
       ctx.font = "bold 16px Trebuchet MS";
@@ -1401,6 +2001,11 @@
 
     if (state.mode === "campaignComplete") {
       ctx.fillStyle = "rgba(4,8,12,0.6)";
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    if (state.mode === "levelClear") {
+      ctx.fillStyle = "rgba(6,10,16,0.66)";
       ctx.fillRect(0, 0, W, H);
     }
   }
@@ -1438,18 +2043,43 @@
     ctx.fillText("Move: Arrow Left/Right", 190, 250);
     ctx.fillText("Aim: Arrow Up / Up + Direction", 190, 274);
     ctx.fillText("Jump: Space   Crouch: Arrow Down", 190, 298);
-    ctx.fillText("Shoot: Z   Roll: R", 190, 322);
-    ctx.fillText("Diagonal fire follows your aim pose", 190, 346);
-    ctx.fillText("Cycle Weapons: A / B", 190, 370);
-    ctx.fillText("Pause: P   Fullscreen: F", 190, 394);
+    ctx.fillText("Drop Through Catwalk: Down + Space", 190, 322);
+    ctx.fillText("Climb Grates: Hold Up/Down near a wall", 190, 346);
+    ctx.fillText("Shoot: Z   Roll: R", 190, 370);
+    ctx.fillText("Cycle Weapons: A / B   Pause: P   Fullscreen: F", 190, 394);
 
     ctx.fillStyle = "#ffd447";
     ctx.font = "bold 20px Trebuchet MS";
     ctx.fillText("Press Enter or click Start Operation", 254, 436);
   }
 
+  function drawLevelClearCard() {
+    if (state.mode !== "levelClear") return;
+    const next = LEVELS[state.levelIndex + 1];
+    ctx.fillStyle = "rgba(7, 14, 24, 0.88)";
+    ctx.fillRect(180, 120, W - 360, H - 240);
+    ctx.strokeStyle = "rgba(147, 199, 255, 0.35)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(180, 120, W - 360, H - 240);
+    ctx.fillStyle = "#f1f8ff";
+    ctx.font = "bold 38px Trebuchet MS";
+    ctx.fillText(`${state.level.name} Clear`, 280, 198);
+    ctx.fillStyle = "#9ed0ff";
+    ctx.font = "bold 16px Trebuchet MS";
+    ctx.fillText("Boss destroyed. The route deeper inside is open.", 248, 236);
+    ctx.fillStyle = "#e2eefc";
+    ctx.font = "14px Trebuchet MS";
+    ctx.fillText(`Score: ${Math.floor(state.score)}`, 270, 286);
+    ctx.fillText(`Lives Remaining: ${state.lives}`, 270, 314);
+    if (next) {
+      ctx.fillText(`Next Operation: ${next.name}`, 270, 356);
+      ctx.fillText(next.subtitle, 270, 382);
+    }
+  }
+
   function render() {
     drawBackground();
+    drawTraversal();
     drawObjectives();
     drawExtraction();
     drawPickups();
@@ -1460,6 +2090,7 @@
     drawHud();
     drawPostFx();
     if (state.mode === "splash") drawSplashCard();
+    drawLevelClearCard();
   }
 
   function loop(now) {
@@ -1524,19 +2155,32 @@
 
   window.render_game_to_text = () => {
     const p = state.player;
+    const boss = state.enemies.find((e) => e.kind === "boss") || null;
     const payload = {
       coordinateSystem: { origin: "top-left", xDirection: "right", yDirection: "down" },
       mode: state.mode,
-      level: { index: state.levelIndex, name: state.level.name, cameraX: Math.round(state.cameraX), extractionReady: state.extractionReady },
+      level: {
+        index: state.levelIndex,
+        name: state.level.name,
+        cameraX: Math.round(state.cameraX),
+        extractionReady: state.extractionReady,
+        bossActive: state.bossActive,
+        bossDefeated: state.bossDefeated,
+        platforms: levelPlatforms().length,
+        climbables: levelClimbables().length,
+        hazards: levelHazards().length,
+      },
       player: {
         x: Math.round(p.x), y: Math.round(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy),
-        hp: Math.round(p.hp), maxHp: p.maxHp, onGround: p.onGround, crouching: p.crouching, rolling: p.rollT > 0,
+        hp: Math.round(p.hp), maxHp: p.maxHp, onGround: p.onGround, crouching: p.crouching, rolling: p.rollT > 0, climbing: p.climbing,
         rollCooldown: Number(p.rollCd.toFixed(2)), muzzleFlash: p.muzzleFlashT > 0, facing: p.face, visualFacing: Number((p.visualFace || p.face).toFixed(2)),
+        support: p.supportType || null,
         aim: { x: Number((p.aimX || 0).toFixed(2)), y: Number((p.aimY || 0).toFixed(2)), mode: getPlayerAimMode(p) },
         activeWeapon: p.weapon,
       },
       objectives: state.objectives.slice(0, 8).map((o) => ({ id: o.id, label: o.label, x: Math.round(o.x), y: Math.round(o.y), hp: Math.round(o.hp), maxHp: o.maxHp, destroyed: o.destroyed, weakness: o.weak })),
-      enemies: state.enemies.slice(0, 16).map((e) => ({ kind: e.kind, x: Math.round(e.x), y: Math.round(e.y), hp: Math.round(e.hp) })),
+      enemies: state.enemies.slice(0, 16).map((e) => ({ kind: e.kind, variant: e.variant || null, x: Math.round(e.x), y: Math.round(e.y), hp: Math.round(e.hp) })),
+      boss: boss ? { name: boss.bossName, hp: Math.round(boss.hp), maxHp: boss.maxHp, x: Math.round(boss.x), y: Math.round(boss.y) } : null,
       bullets: { player: state.bullets.length, enemy: state.enemyBullets.length },
       pickups: state.pickups.slice(0, 10).map((c) => ({ type: c.type, weapon: c.weapon || null, x: Math.round(c.x), y: Math.round(c.y) })),
       score: Math.round(state.score),
@@ -1553,6 +2197,42 @@
     }
     render();
     return Promise.resolve();
+  };
+
+  window.__nuclear_commando_debug = {
+    getState() {
+      return JSON.parse(window.render_game_to_text());
+    },
+    clearObjectives() {
+      for (const o of state.objectives) {
+        o.hp = 0;
+        o.destroyed = true;
+      }
+      state.extractionReady = true;
+    },
+    skipToBoss() {
+      const boss = state.level?.boss;
+      if (!boss) return false;
+      this.clearObjectives();
+      state.player.x = boss.arenaStart + 48;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      activateBossEncounter();
+      return true;
+    },
+    defeatBoss() {
+      const boss = state.enemies.find((e) => e.kind === "boss");
+      if (!boss) return false;
+      state.bossActive = false;
+      state.bossDefeated = true;
+      boom(boss.x + boss.w * 0.5, boss.y + boss.h * 0.5, 68, "#ffd37d");
+      state.enemies = state.enemies.filter((e) => e !== boss);
+      finishLevel();
+      return true;
+    },
   };
 
   function measureOpaqueBounds(img) {
