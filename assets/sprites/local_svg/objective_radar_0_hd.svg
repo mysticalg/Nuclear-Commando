@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" shape-rendering="crispEdges">
 <rect x="66" y="128" width="124" height="112" fill="#0b1320" />
-<rect x="70" y="132" width="116" height="94" fill="#778eb6" />
+<rect x="70" y="132" width="116" height="94" fill="#707d8e" />
 <rect x="80" y="220" width="96" height="18" fill="#232d3f" />
 <circle cx="128" cy="98" r="54" fill="#dde8f5" />
 <circle cx="128" cy="98" r="48" fill="#232d3f" />
 <circle cx="128" cy="98" r="40" fill="#273241" />
-<polygon points="128,98 164,86 164,110" fill="#69ddff" />
+<polygon points="128,98 164,86 164,110" fill="#91afba" />
 <circle cx="128" cy="98" r="10" fill="#edfaff" />
 </svg>

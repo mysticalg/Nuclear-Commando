@@ -11,9 +11,18 @@ const SNES16 = {
   playerArmor: "#2a3a58",
   playerLeg: "#1f2d49",
   playerBoot: "#101a2a",
-  playerSkin: "#e5edf8",
-  playerSkinShade: "#c4d0de",
+  playerTank: "#d6d0c0",
+  playerTankDark: "#8e8776",
+  playerTankLight: "#f2ecdc",
+  playerJean: "#63753f",
+  playerJeanDark: "#33411f",
+  playerJeanLight: "#899d5a",
+  playerSkin: "#d3a07c",
+  playerSkinShade: "#a97754",
   playerBand: "#d74453",
+  playerHair: "#4a2b1f",
+  playerStubble: "#6e5140",
+  playerStrap: "#88724a",
   playerGun: "#d3deee",
   playerGunDark: "#7485a4",
   eye: "#142033",
@@ -23,7 +32,10 @@ const SNES16 = {
   enemyArmor: "#712a3d",
   enemyLeg: "#3c1523",
   enemyBand: "#a4314a",
-  enemyVisor: "#ffd7a1",
+  enemyWrap: "#433846",
+  enemyWrapLight: "#6b5c73",
+  enemyWrapDark: "#231d26",
+  enemyVisor: "#f0c89b",
   enemyMech: "#bd5f3f",
   enemyMechDark: "#6d3527",
   enemyMechLight: "#df8765",
@@ -70,6 +82,14 @@ const STYLE_PRESETS = {
     playerSuit: "#54626b",
     playerSuitDark: "#374049",
     playerSuitLight: "#6d7d87",
+    playerTank: "#dad3c2",
+    playerTankDark: "#8f8878",
+    playerTankLight: "#f3ecdb",
+    playerJean: "#61773f",
+    playerJeanDark: "#33441f",
+    playerJeanLight: "#8aa05b",
+    playerSkin: "#cb9975",
+    playerSkinShade: "#996846",
     playerBand: "#9b4f4f",
     playerGun: "#a8b2bf",
     playerGunDark: "#62707c",
@@ -237,63 +257,87 @@ function bevelRect(x, y, w, h, base, light, dark, border = null) {
   ];
 }
 
+function camoPatches(x, y, colors, phase = 0) {
+  const a = colors[phase % colors.length];
+  const b = colors[(phase + 1) % colors.length];
+  const c = colors[(phase + 2) % colors.length];
+  return [
+    rect(x + 4, y + 6, 12, 6, a),
+    rect(x + 20, y + 14, 10, 5, b),
+    rect(x + 8, y + 28, 14, 6, c),
+    rect(x + 18, y + 40, 12, 6, a),
+    rect(x + 2, y + 46, 10, 5, b),
+  ];
+}
+
+function rifleRight(x, y, p, length = 68) {
+  return [
+    ...bevelRect(x, y, length, 10, p.playerGun, "#f3f8ff", p.playerGunDark, p.outline),
+    rect(x + 6, y + 2, length - 12, 2, "#edf6ff"),
+    rect(x - 10, y + 2, 14, 6, p.playerGunDark),
+    rect(x + length - 6, y + 2, 18, 6, p.playerGunDark),
+    rect(x + 20, y + 10, 10, 16, p.playerGunDark),
+    polygon(`${x + 16},${y + 10} ${x + 24},${y + 24} ${x + 34},${y + 24} ${x + 28},${y + 10}`, p.playerGunDark),
+    rect(x + 10, y + 8, 18, 2, p.outline),
+  ];
+}
+
 function playerStandingFrame(p, cfg = {}) {
   const bob = cfg.bob || 0;
-  const legL = cfg.legL || 0;
-  const legR = cfg.legR || 0;
-  const armL = cfg.armL || 0;
-  const armR = cfg.armR || 0;
+  const rearStride = cfg.legL || 0;
+  const leadStride = cfg.legR || 0;
+  const armBack = cfg.armL || 0;
+  const armFront = cfg.armR || 0;
   const gunKick = cfg.gunKick || 0;
   const lean = cfg.lean || 0;
-  const torsoY = 94 + bob;
-  const headY = 68 + bob;
-  const legYL = 176 + legL + bob;
-  const legYR = 176 + legR + bob;
-  const gunY = 170 + gunKick + bob;
+  const torsoX = 102 + lean;
+  const torsoY = 98 + bob;
+  const headX = 100 + lean;
+  const headY = 58 + bob;
+  const rearLegX = 98 + Math.round(rearStride * 0.4) + lean;
+  const leadLegX = 122 + Math.round(leadStride * 0.5) + lean;
+  const rearLegY = 158 + Math.max(0, rearStride) + bob;
+  const leadLegY = 154 + Math.max(0, -leadStride) + bob;
+  const gunX = 132 + lean;
+  const gunY = 116 + gunKick + bob;
+  const camo = [p.playerJeanDark, p.playerJeanLight, p.playerTank];
 
   return [
-    ...bevelRect(82 + lean, torsoY - 2, 96, 100, p.playerSuit, p.playerSuitLight, p.playerSuitDark, p.outline),
-    rect(90 + lean, torsoY + 8, 80, 24, p.playerSuitLight),
-    ...checker(92 + lean, torsoY + 10, 76, 20, p.playerSuit, 3, 1),
-    ...panelRows(96 + lean, torsoY + 40, 68, 4, 6, p.playerSuitDark),
-    rect(98 + lean, torsoY + 64, 64, 10, p.playerArmor),
-    rect(102 + lean, torsoY + 72, 56, 8, p.playerSuitDark),
-    ...rivetRow(104 + lean, torsoY + 78, 5, 12, p.playerSuitLight, 1.1),
-    ...bevelRect(98 + lean, headY, 64, 38, p.playerSkin, "#f5fbff", p.playerSkinShade, p.outline),
-    rect(92 + lean, headY - 8, 76, 10, p.playerBand),
-    rect(98 + lean, headY - 10, 64, 2, p.outline),
-    rect(96 + lean, headY + 8, 68, 3, p.outline),
-    ...rivetRow(102 + lean, headY + 2, 6, 10, p.playerSuitLight, 1.2),
-    ...bevelRect(74 + lean, torsoY + 10 + armL, 16, 64, p.playerArmor, p.playerSuitLight, p.playerSuitDark, p.outline),
-    ...bevelRect(170 + lean, torsoY + 10 + armR, 16, 64, p.playerArmor, p.playerSuitLight, p.playerSuitDark, p.outline),
-    rect(76 + lean, torsoY + 18 + armL, 12, 6, p.playerSuitLight),
-    rect(172 + lean, torsoY + 18 + armR, 12, 6, p.playerSuitLight),
-    rect(76 + lean, torsoY + 34 + armL, 12, 6, p.playerSuitDark),
-    rect(172 + lean, torsoY + 34 + armR, 12, 6, p.playerSuitDark),
-    rect(72 + lean, torsoY + 10 + armL, 20, 8, p.outline),
-    rect(168 + lean, torsoY + 10 + armR, 20, 8, p.outline),
-    ...bevelRect(86 + lean, legYL, 34, 66, p.playerLeg, p.playerSuitLight, p.playerBoot, p.outline),
-    ...bevelRect(136 + lean, legYR, 34, 66, p.playerLeg, p.playerSuitLight, p.playerBoot, p.outline),
-    ...checker(90 + lean, legYL + 4, 26, 44, p.playerSuitDark, 3, 0),
-    ...checker(140 + lean, legYR + 4, 26, 44, p.playerSuitDark, 3, 1),
-    ...panelRows(92 + lean, legYL + 12, 22, 4, 9, p.playerBoot),
-    ...panelRows(142 + lean, legYR + 12, 22, 4, 9, p.playerBoot),
-    rect(90 + lean, legYL + 24, 26, 8, p.playerSuitDark),
-    rect(140 + lean, legYR + 24, 26, 8, p.playerSuitDark),
-    ...bevelRect(78 + lean, 238, 52, 14, p.playerBoot, p.playerSuitDark, p.outline, p.outline),
-    ...bevelRect(132 + lean, 238, 52, 14, p.playerBoot, p.playerSuitDark, p.outline, p.outline),
-    ...rivetRow(82 + lean, 244, 8, 6, p.playerArmor, 1.1),
-    ...rivetRow(136 + lean, 244, 8, 6, p.playerArmor, 1.1),
-    ...bevelRect(154 + lean, gunY, 60, 12, p.playerGun, "#f1f7ff", p.playerGunDark, p.outline),
-    rect(156 + lean, gunY + 2, 56, 4, p.playerGunDark),
-    rect(202 + lean, gunY + 2, 26, 8, p.playerGunDark),
-    rect(154 + lean, gunY + 10, 54, 2, p.outline),
-    ...rivetRow(162 + lean, gunY + 4, 4, 12, p.playerSuitLight, 1),
-    rect(108 + lean, headY + 16, 14, 6, p.eye),
-    rect(138 + lean, headY + 16, 14, 6, p.eye),
-    rect(122 + lean, headY + 20, 14, 4, p.visor),
-    rect(114 + lean, headY + 16, 2, 6, p.playerSkinShade),
-    rect(144 + lean, headY + 16, 2, 6, p.playerSkinShade),
+    polygon(`${headX - 2},${headY + 2} ${headX + 34},${headY - 2} ${headX + 48},${headY + 8} ${headX + 46},${headY + 30} ${headX + 18},${headY + 36} ${headX + 4},${headY + 26}`, p.outline),
+    polygon(`${headX},${headY + 4} ${headX + 32},${headY} ${headX + 44},${headY + 8} ${headX + 42},${headY + 28} ${headX + 18},${headY + 34} ${headX + 6},${headY + 24}`, p.playerSkin),
+    polygon(`${headX - 2},${headY - 4} ${headX + 34},${headY - 8} ${headX + 50},${headY - 1} ${headX + 42},${headY + 4} ${headX + 6},${headY + 2}`, p.playerBand),
+    polygon(`${headX - 6},${headY + 4} ${headX + 6},${headY + 2} ${headX + 4},${headY + 22} ${headX - 8},${headY + 18}`, p.playerHair),
+    rect(headX + 10, headY + 32, 10, 8, p.playerSkinShade),
+    rect(headX + 20, headY + 32, 6, 4, p.playerSkin),
+    rect(headX + 14, headY + 11, 8, 2, p.outline),
+    rect(headX + 18, headY + 14, 6, 4, p.eye),
+    rect(headX + 16, headY + 24, 12, 4, p.playerStubble),
+    rect(headX + 34, headY + 16, 8, 2, p.playerSkinShade),
+    polygon(`${torsoX - 4},${torsoY + 8} ${torsoX + 34},${torsoY} ${torsoX + 54},${torsoY + 10} ${torsoX + 58},${torsoY + 52} ${torsoX + 6},${torsoY + 60}`, p.outline),
+    polygon(`${torsoX},${torsoY + 10} ${torsoX + 32},${torsoY + 4} ${torsoX + 50},${torsoY + 12} ${torsoX + 54},${torsoY + 50} ${torsoX + 8},${torsoY + 56}`, p.playerTank),
+    rect(torsoX + 4, torsoY + 12, 26, 10, p.playerTankLight),
+    rect(torsoX + 6, torsoY + 26, 36, 3, p.playerTankDark),
+    rect(torsoX + 8, torsoY + 34, 40, 3, p.playerTankDark),
+    rect(torsoX + 6, torsoY + 18, 6, 22, p.playerSkin),
+    rect(torsoX + 30, torsoY + 14, 6, 18, p.playerSkin),
+    polygon(`${torsoX + 10},${torsoY + 8} ${torsoX + 18},${torsoY + 6} ${torsoX + 30},${torsoY + 34} ${torsoX + 22},${torsoY + 36}`, p.playerStrap),
+    rect(torsoX + 20, torsoY + 40, 14, 10, p.playerArmor),
+    polygon(`${torsoX - 4},${torsoY + 20 + armBack} ${torsoX + 8},${torsoY + 18 + armBack} ${torsoX + 10},${torsoY + 50 + armBack} ${torsoX - 2},${torsoY + 54 + armBack}`, p.playerSkin),
+    rect(torsoX - 2, torsoY + 28 + armBack, 7, 20, p.playerTankDark),
+    rect(torsoX - 6, torsoY + 50 + armBack, 10, 6, p.playerSkin),
+    polygon(`${torsoX + 28},${torsoY + 18 + armFront} ${torsoX + 42},${torsoY + 20 + armFront} ${gunX - 8},${gunY + 6} ${gunX - 16},${gunY + 6}`, p.playerSkin),
+    polygon(`${torsoX + 36},${torsoY + 34 + armFront} ${torsoX + 48},${torsoY + 34 + armFront} ${gunX - 4},${gunY + 14} ${gunX - 10},${gunY + 18}`, p.playerTankDark),
+    rect(gunX - 12, gunY + 5, 7, 7, p.playerSkin),
+    rect(gunX + 18, gunY + 4, 7, 7, p.playerSkin),
+    ...rifleRight(gunX, gunY, p, 74),
+    ...bevelRect(rearLegX, rearLegY, 20, 60, p.playerJeanDark, p.playerJeanLight, p.playerBoot, p.outline),
+    ...bevelRect(leadLegX, leadLegY, 22, 62, p.playerJean, p.playerJeanLight, p.playerBoot, p.outline),
+    ...camoPatches(rearLegX + 1, rearLegY + 2, camo, 0),
+    ...camoPatches(leadLegX + 1, leadLegY + 6, camo, 1),
+    rect(rearLegX + 6, rearLegY + 30, 10, 8, p.playerTankDark),
+    rect(leadLegX + 8, leadLegY + 26, 10, 8, p.playerTankDark),
+    ...bevelRect(rearLegX - 4, 236 + Math.max(0, rearStride), 34, 12, p.playerBoot, p.playerJeanDark, p.outline, p.outline),
+    ...bevelRect(leadLegX - 4, 236 + Math.max(0, -leadStride), 40, 12, p.playerBoot, p.playerJeanDark, p.outline, p.outline),
   ];
 }
 
@@ -301,35 +345,50 @@ function playerJumpFrame(p, cfg = {}) {
   const bob = cfg.bob || 0;
   const spread = cfg.spread || 0;
   return [
-    ...playerStandingFrame(p, { bob, legL: 10, legR: 10, armL: -4, armR: -8, gunKick: -6 }),
-    rect(92, 204 + bob, 30, 34, p.playerLeg),
-    rect(138, 196 + bob + spread, 30, 34, p.playerLeg),
-    rect(92, 228 + bob, 28, 10, p.playerBoot),
-    rect(140, 224 + bob + spread, 28, 10, p.playerBoot),
+    ...playerStandingFrame(p, { bob, legL: 10, legR: -14, armL: -6, armR: -8, gunKick: -10, lean: 4 }),
+    polygon(`100,172 ${116 - spread},156 ${126 - spread},170 ${118 - spread},208 ${100},204`, p.playerJeanDark),
+    polygon(`126,166 ${152 + spread},150 ${166 + spread},166 ${158 + spread},204 ${132},200`, p.playerJean),
+    ...bevelRect(94 - spread, 204 + bob, 34, 12, p.playerBoot, p.playerJeanDark, p.outline, p.outline),
+    ...bevelRect(138 + spread, 200 + bob, 38, 12, p.playerBoot, p.playerJeanDark, p.outline, p.outline),
   ];
 }
 
 function playerCrouchFrame(p, cfg = {}) {
   const bob = cfg.bob || 0;
   const recoil = cfg.recoil || 0;
+  const headX = 108;
+  const headY = 94 + bob;
+  const torsoX = 94;
+  const torsoY = 130 + bob;
+  const gunX = 136;
+  const gunY = 130 + recoil + bob;
+  const camo = [p.playerJeanDark, p.playerJeanLight, p.playerTank];
   return [
-    rect(76, 128 + bob, 104, 62, p.outline),
-    rect(80, 132 + bob, 96, 56, p.playerSuit),
-    rect(84, 138 + bob, 88, 18, p.playerSuitLight),
-    rect(86, 160 + bob, 84, 10, p.playerSuitDark),
-    rect(100, 102 + bob, 58, 32, p.playerSkin),
-    rect(100, 122 + bob, 58, 12, p.playerSkinShade),
-    rect(92, 94 + bob, 74, 9, p.playerBand),
-    rect(74, 140 + bob + recoil, 18, 42, p.playerArmor),
-    rect(170, 140 + bob + recoil, 18, 42, p.playerArmor),
-    rect(84, 186 + bob, 82, 40, p.playerLeg),
-    rect(80, 226 + bob, 52, 18, p.playerBoot),
-    rect(126, 226 + bob, 52, 18, p.playerBoot),
-    rect(158, 166 + bob + recoil, 68, 10, p.playerGun),
-    rect(210, 167 + bob + recoil, 20, 7, p.playerGunDark),
-    rect(108, 118 + bob, 14, 5, p.eye),
-    rect(136, 118 + bob, 14, 5, p.eye),
-    rect(122, 122 + bob, 14, 4, p.visor),
+    polygon(`${headX - 2},${headY + 4} ${headX + 34},${headY} ${headX + 48},${headY + 8} ${headX + 46},${headY + 28} ${headX + 18},${headY + 34} ${headX + 4},${headY + 24}`, p.outline),
+    polygon(`${headX},${headY + 6} ${headX + 32},${headY + 2} ${headX + 44},${headY + 10} ${headX + 42},${headY + 28} ${headX + 18},${headY + 32} ${headX + 6},${headY + 22}`, p.playerSkin),
+    polygon(`${headX - 2},${headY} ${headX + 36},${headY - 4} ${headX + 48},${headY + 1} ${headX + 42},${headY + 6} ${headX + 4},${headY + 4}`, p.playerBand),
+    rect(headX + 10, headY + 30, 10, 8, p.playerSkinShade),
+    polygon(`${torsoX - 6},${torsoY + 8} ${torsoX + 28},${torsoY + 4} ${torsoX + 54},${torsoY + 18} ${torsoX + 52},${torsoY + 44} ${torsoX + 8},${torsoY + 50}`, p.outline),
+    polygon(`${torsoX},${torsoY + 10} ${torsoX + 26},${torsoY + 8} ${torsoX + 48},${torsoY + 20} ${torsoX + 46},${torsoY + 42} ${torsoX + 10},${torsoY + 46}`, p.playerTank),
+    rect(torsoX + 8, torsoY + 14, 24, 9, p.playerTankLight),
+    rect(torsoX + 12, torsoY + 30, 30, 3, p.playerTankDark),
+    rect(torsoX + 6, torsoY + 18, 6, 18, p.playerSkin),
+    rect(torsoX + 26, torsoY + 14, 6, 16, p.playerSkin),
+    polygon(`${torsoX + 4},${torsoY + 18} ${torsoX + 16},${torsoY + 20} ${torsoX + 20},${torsoY + 44} ${torsoX + 8},${torsoY + 46}`, p.playerSkin),
+    polygon(`${torsoX + 26},${torsoY + 16} ${torsoX + 40},${torsoY + 20} ${gunX - 10},${gunY + 6} ${gunX - 18},${gunY + 8}`, p.playerSkin),
+    polygon(`${torsoX + 24},${torsoY + 30} ${torsoX + 40},${torsoY + 32} ${gunX - 4},${gunY + 14} ${gunX - 10},${gunY + 18}`, p.playerTankDark),
+    rect(gunX - 12, gunY + 5, 7, 7, p.playerSkin),
+    rect(gunX + 18, gunY + 4, 7, 7, p.playerSkin),
+    ...rifleRight(gunX, gunY, p, 72),
+    polygon(`102,176 126,162 148,174 140,208 112,206`, p.playerJeanDark),
+    polygon(`132,178 154,168 174,184 170,212 144,212`, p.playerJean),
+    ...camoPatches(106, 174, camo, 0),
+    ...camoPatches(138, 178, camo, 1),
+    ...bevelRect(100, 212 + bob, 44, 12, p.playerBoot, p.playerJeanDark, p.outline, p.outline),
+    ...bevelRect(136, 216 + bob, 42, 12, p.playerBoot, p.playerJeanDark, p.outline, p.outline),
+    rect(headX + 16, headY + 14, 7, 3, p.eye),
+    rect(headX + 14, headY + 11, 9, 2, p.outline),
+    rect(headX + 18, headY + 24, 10, 4, p.playerStubble),
   ];
 }
 
@@ -342,53 +401,65 @@ function playerRollFrame(p, idx) {
   ];
   const s = centers[idx % centers.length];
   return [
-    ellipse(s.x, s.y, 84, 46, p.playerLeg),
-    ellipse(s.x, s.y, 66, 34, p.playerSuit),
+    ellipse(s.x, s.y, 84, 46, p.playerJeanDark),
+    ellipse(s.x, s.y, 66, 34, p.playerTank),
     ellipse(s.x + 8, s.y - 8, 30, 20, p.playerSkin),
     ellipse(s.x + 8, s.y + 2, 30, 10, p.playerSkinShade),
     rect(s.x - 34, s.y - 28, 72, 8, p.playerBand, ` transform="rotate(${s.rot} ${s.x} ${s.y - 24})"`),
     rect(s.x + 40, s.y - 10, 42, 10, p.playerGun),
     rect(s.x + 72, s.y - 9, 18, 6, p.playerGunDark),
     rect(s.x + 10, s.y - 12, 10, 4, p.eye),
-    rect(s.x + 2, s.y + 4, 30, 6, p.playerSuitDark),
+    rect(s.x + 2, s.y + 4, 30, 6, p.playerTankDark),
   ];
 }
 
 function trooperFrame(p, cfg = {}) {
   const bob = cfg.bob || 0;
-  const legL = cfg.legL || 0;
-  const legR = cfg.legR || 0;
+  const rearStride = cfg.legL || 0;
+  const leadStride = cfg.legR || 0;
   const gunKick = cfg.gunKick || 0;
+  const headX = 102;
+  const headY = 60 + bob;
+  const torsoX = 100;
+  const torsoY = 98 + bob;
+  const rearLegX = 100 + Math.round(rearStride * 0.4);
+  const leadLegX = 122 + Math.round(leadStride * 0.5);
+  const rearLegY = 160 + Math.max(0, rearStride) + bob;
+  const leadLegY = 154 + Math.max(0, -leadStride) + bob;
+  const gunX = 134;
+  const gunY = 116 + gunKick + bob;
   return [
-    ...bevelRect(78, 90 + bob, 100, 102, p.enemyBody, "#de6f90", p.enemyBodyDark, p.outline),
-    rect(86, 100 + bob, 84, 18, p.enemyBodyDark),
-    ...checker(88, 102 + bob, 80, 14, p.enemyBody, 3, 1),
-    ...panelRows(94, 122 + bob, 68, 4, 8, p.enemyBodyDark),
-    ...bevelRect(98, 64 + bob, 60, 36, p.playerSkin, "#f6fbff", p.playerSkinShade, p.outline),
-    rect(94, 58 + bob, 68, 8, p.enemyBand),
-    rect(96, 64 + bob, 64, 2, p.outline),
-    ...rivetRow(102, 60 + bob, 5, 12, p.enemyBodyDark, 1.2),
-    ...bevelRect(74, 104 + bob, 18, 66, p.enemyArmor, p.enemyBody, p.enemyBodyDark, p.outline),
-    ...bevelRect(172, 104 + bob, 18, 66, p.enemyArmor, p.enemyBody, p.enemyBodyDark, p.outline),
-    rect(76, 118 + bob, 14, 6, p.enemyBodyDark),
-    rect(174, 118 + bob, 14, 6, p.enemyBodyDark),
-    rect(76, 136 + bob, 14, 6, p.enemyBodyDark),
-    rect(174, 136 + bob, 14, 6, p.enemyBodyDark),
-    ...bevelRect(90, 182 + legL + bob, 34, 62, p.enemyLeg, p.enemyBody, p.enemyArmor, p.outline),
-    ...bevelRect(132, 182 + legR + bob, 34, 62, p.enemyLeg, p.enemyBody, p.enemyArmor, p.outline),
-    ...checker(94, 186 + legL + bob, 26, 42, p.enemyArmor, 3, 0),
-    ...checker(136, 186 + legR + bob, 26, 42, p.enemyArmor, 3, 1),
-    ...bevelRect(86, 238, 50, 14, p.enemyArmor, p.enemyBody, p.outline, p.outline),
-    ...bevelRect(128, 238, 50, 14, p.enemyArmor, p.enemyBody, p.outline, p.outline),
-    ...rivetRow(90, 244, 6, 6, p.enemyArmor, 1),
-    ...rivetRow(132, 244, 6, 6, p.enemyArmor, 1),
-    ...bevelRect(148, 152 + gunKick + bob, 64, 12, p.playerGun, "#f0f5ff", p.playerGunDark, p.outline),
-    rect(202, 154 + gunKick + bob, 20, 8, p.playerGunDark),
-    rect(150, 160 + gunKick + bob, 58, 2, p.outline),
-    rect(154, 154 + gunKick + bob, 10, 2, p.playerSuitLight),
-    rect(116, 82 + bob, 24, 6, p.enemyVisor),
-    rect(108, 92 + bob, 12, 2, p.enemyBodyDark),
-    rect(136, 92 + bob, 12, 2, p.enemyBodyDark),
+    polygon(`${headX - 4},${headY + 2} ${headX + 30},${headY - 2} ${headX + 46},${headY + 6} ${headX + 46},${headY + 30} ${headX + 18},${headY + 36} ${headX + 2},${headY + 24}`, p.outline),
+    polygon(`${headX},${headY + 4} ${headX + 28},${headY} ${headX + 42},${headY + 8} ${headX + 42},${headY + 28} ${headX + 18},${headY + 34} ${headX + 6},${headY + 22}`, p.playerSkin),
+    polygon(`${headX - 4},${headY - 4} ${headX + 24},${headY - 10} ${headX + 42},${headY - 2} ${headX + 46},${headY + 8} ${headX + 38},${headY + 12} ${headX + 6},${headY + 8}`, p.enemyWrap),
+    polygon(`${headX - 2},${headY + 10} ${headX + 10},${headY + 8} ${headX + 8},${headY + 30} ${headX - 4},${headY + 26}`, p.enemyWrapLight),
+    polygon(`${headX + 2},${headY + 28} ${headX + 10},${headY + 40} ${headX + 20},${headY + 36} ${headX + 16},${headY + 24}`, p.enemyWrapDark),
+    rect(headX + 10, headY + 31, 9, 7, p.playerSkinShade),
+    rect(headX + 16, headY + 12, 8, 2, p.outline),
+    rect(headX + 20, headY + 15, 6, 4, p.eye),
+    rect(headX + 30, headY + 16, 7, 2, p.playerSkinShade),
+    polygon(`${torsoX - 4},${torsoY + 8} ${torsoX + 32},${torsoY + 2} ${torsoX + 56},${torsoY + 12} ${torsoX + 58},${torsoY + 58} ${torsoX + 8},${torsoY + 64}`, p.outline),
+    polygon(`${torsoX},${torsoY + 10} ${torsoX + 30},${torsoY + 6} ${torsoX + 52},${torsoY + 14} ${torsoX + 54},${torsoY + 56} ${torsoX + 10},${torsoY + 60}`, p.enemyBody),
+    rect(torsoX + 4, torsoY + 16, 26, 8, "#de7a92"),
+    rect(torsoX + 8, torsoY + 28, 34, 3, p.enemyBodyDark),
+    rect(torsoX + 10, torsoY + 38, 34, 3, p.enemyBodyDark),
+    rect(torsoX + 6, torsoY + 18, 5, 18, p.playerSkin),
+    polygon(`${torsoX + 8},${torsoY + 8} ${torsoX + 20},${torsoY + 6} ${torsoX + 34},${torsoY + 36} ${torsoX + 24},${torsoY + 38}`, p.enemyArmor),
+    rect(torsoX + 22, torsoY + 42, 14, 11, p.enemyArmor),
+    polygon(`${torsoX - 4},${torsoY + 24} ${torsoX + 8},${torsoY + 20} ${torsoX + 10},${torsoY + 56} ${torsoX},${torsoY + 58}`, p.playerSkinShade),
+    rect(torsoX - 2, torsoY + 30, 6, 18, p.enemyArmor),
+    rect(torsoX - 6, torsoY + 52, 9, 6, p.playerSkin),
+    polygon(`${torsoX + 28},${torsoY + 18} ${torsoX + 42},${torsoY + 20} ${gunX - 8},${gunY + 6} ${gunX - 16},${gunY + 8}`, p.playerSkinShade),
+    polygon(`${torsoX + 34},${torsoY + 34} ${torsoX + 48},${torsoY + 34} ${gunX - 4},${gunY + 14} ${gunX - 10},${gunY + 18}`, p.enemyArmor),
+    rect(gunX - 12, gunY + 5, 7, 7, p.playerSkin),
+    rect(gunX + 18, gunY + 4, 7, 7, p.playerSkin),
+    ...rifleRight(gunX, gunY, p, 70),
+    ...bevelRect(rearLegX, rearLegY, 20, 60, p.enemyLeg, p.enemyBody, p.enemyArmor, p.outline),
+    ...bevelRect(leadLegX, leadLegY, 22, 62, p.enemyBodyDark, p.enemyBody, p.enemyArmor, p.outline),
+    ...checker(rearLegX + 2, rearLegY + 6, 14, 42, p.enemyArmor, 3, 0),
+    ...checker(leadLegX + 4, leadLegY + 6, 14, 42, p.enemyArmor, 3, 1),
+    ...bevelRect(rearLegX - 2, 236 + Math.max(0, rearStride), 34, 12, p.enemyWrapDark, p.enemyArmor, p.outline, p.outline),
+    ...bevelRect(leadLegX - 2, 236 + Math.max(0, -leadStride), 38, 12, p.enemyWrapDark, p.enemyArmor, p.outline, p.outline),
   ];
 }
 

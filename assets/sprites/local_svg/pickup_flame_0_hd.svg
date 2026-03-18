@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" shape-rendering="crispEdges">
 <rect x="68" y="68" width="120" height="120" fill="#0b1320" />
-<rect x="69" y="69" width="118" height="118" fill="#ef8744" />
+<rect x="69" y="69" width="118" height="118" fill="#bc6f3d" />
 <rect x="69" y="69" width="118" height="1" fill="#ffb37f" />
 <rect x="69" y="69" width="1" height="118" fill="#ffb37f" />
 <rect x="69" y="186" width="118" height="1" fill="#8f3f1a" />
@@ -187,13 +187,13 @@
 <rect x="142" y="162" width="2" height="2" fill="#1f2838" />
 <rect x="150" y="162" width="2" height="2" fill="#1f2838" />
 <rect x="158" y="162" width="2" height="2" fill="#1f2838" />
-<polygon points="128,94 152,130 140,166 116,166 104,130" fill="#ef8744" />
+<polygon points="128,94 152,130 140,166 116,166 104,130" fill="#bc6f3d" />
 <polygon points="128,104 142,130 134,154 122,154 114,130" fill="#ffd79f" />
 <rect x="112" y="166" width="32" height="8" fill="#53301c" />
-<circle cx="106" cy="150" r="1" fill="#ef8744" />
-<circle cx="118" cy="150" r="1" fill="#ef8744" />
-<circle cx="130" cy="150" r="1" fill="#ef8744" />
-<circle cx="142" cy="150" r="1" fill="#ef8744" />
-<circle cx="154" cy="150" r="1" fill="#ef8744" />
-<circle cx="128" cy="128" r="44" fill="#ef8744" opacity="0.26" />
+<circle cx="106" cy="150" r="1" fill="#bc6f3d" />
+<circle cx="118" cy="150" r="1" fill="#bc6f3d" />
+<circle cx="130" cy="150" r="1" fill="#bc6f3d" />
+<circle cx="142" cy="150" r="1" fill="#bc6f3d" />
+<circle cx="154" cy="150" r="1" fill="#bc6f3d" />
+<circle cx="128" cy="128" r="44" fill="#bc6f3d" opacity="0.26" />
 </svg>

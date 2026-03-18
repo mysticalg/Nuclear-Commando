@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" shape-rendering="crispEdges">
 <rect x="40" y="82" width="176" height="148" fill="#0b1320" />
-<rect x="41" y="83" width="174" height="146" fill="#778eb6" />
+<rect x="41" y="83" width="174" height="146" fill="#707d8e" />
 <rect x="41" y="83" width="174" height="1" fill="#9eb4cf" />
 <rect x="41" y="83" width="1" height="146" fill="#9eb4cf" />
-<rect x="41" y="228" width="174" height="1" fill="#495c80" />
-<rect x="214" y="83" width="1" height="146" fill="#495c80" />
-<rect x="50" y="92" width="156" height="14" fill="#495c80" />
+<rect x="41" y="228" width="174" height="1" fill="#4b5460" />
+<rect x="214" y="83" width="1" height="146" fill="#4b5460" />
+<rect x="50" y="92" width="156" height="14" fill="#4b5460" />
 <rect x="66" y="58" width="42" height="36" fill="#232d3f" />
 <rect x="118" y="50" width="38" height="44" fill="#232d3f" />
 <rect x="168" y="62" width="32" height="32" fill="#232d3f" />
 <rect x="58" y="110" width="140" height="24" fill="#d5dfeb" />
 <rect x="58" y="146" width="140" height="24" fill="#cad6e4" />
 <rect x="58" y="182" width="140" height="24" fill="#becbda" />
-<rect x="184" y="38" width="18" height="26" fill="#495c80" />
-<rect x="184" y="22" width="12" height="16" fill="#f19858" />
-<ellipse cx="190" cy="18" rx="14" ry="9" fill="#f19858" opacity="0.32" />
+<rect x="184" y="38" width="18" height="26" fill="#4b5460" />
+<rect x="184" y="22" width="12" height="16" fill="#ca7c4e" />
+<ellipse cx="190" cy="18" rx="14" ry="9" fill="#ca7c4e" opacity="0.32" />
 </svg>

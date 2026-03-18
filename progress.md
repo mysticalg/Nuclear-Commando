@@ -599,3 +599,193 @@
 ### Note
 
 - The Playwright canvas-capture harness hits a `SecurityError` on `file://` because the canvas becomes tainted when local image files are drawn onto it. This affects automated canvas export only; direct browser rendering is working.
+
+## Rugged Side-View Sprite Pass
+
+- User requested less silly art direction:
+  - rifles held higher near the chest
+  - left/right readable side-view sprites
+  - visible walking animation
+  - tougher commando look with headband, tank top, and camo pants
+  - more distinct hostile guard styling
+- Reworked the local SVG sprite generator in `tools/generate_local_svg_sprite_pack.mjs`:
+  - added new rugged palette keys for:
+    - tank top / camo jeans / stubble / hair / chest strap
+    - enemy headwrap cloth colors
+  - replaced the old frontal block-style player/trooper bodies with side-view silhouettes
+  - added `rifleRight(...)` helper so weapons sit at chest height instead of low at the waist
+  - added `camoPatches(...)` helper for player leg texture
+  - rewrote:
+    - `playerStandingFrame`
+    - `playerJumpFrame`
+    - `playerCrouchFrame`
+    - `playerRollFrame`
+    - `trooperFrame`
+- Regenerated and activated the current sprite pack with:
+  - `node tools/generate_local_svg_sprite_pack.mjs --overwrite --style gritty`
+
+### Validation (this pass)
+
+- Syntax:
+  - `node --check tools/generate_local_svg_sprite_pack.mjs` passed
+- Gameplay captures:
+  - `output/web-game-rugged-pass-v1/shot-0.png` ... `shot-3.png`
+  - `state-0.json` ... `state-3.json`
+  - no `errors-*.json` files
+- Showcase captures:
+  - `output/sprite-showcase-rugged-pass-v1/shot-0.png`, `shot-1.png`
+  - no `errors-*.json` files
+
+### Result summary
+
+- Player now reads as a side-on rugged commando with:
+  - red headband
+  - sleeveless/tank-top upper body
+  - camo legs
+  - rifle held up at chest level
+- Troopers now read as side-on hostile guards with:
+  - dark headwrap / cloth headgear
+  - harsher facial expression
+  - chest-level rifles
+- Run/walk frames are visibly side-view rather than frontal bobbing.
+
+## Pixel-By-Pixel Character Sheet Pass
+
+- User requested richer color depth and hand-built pixel art instead of the flatter SVG pass.
+- Added `tools/generate_pixel_character_sheets.py`.
+  - Builds player + trooper sheets at 80x80 pixel-art resolution, then upscales to 160x160 strips.
+  - Uses per-pixel shading/material ramps for skin, tank top, strap, rifle metal, boots, and camo pants.
+  - Generates updated sheets for:
+    - `player_idle`
+    - `player_run`
+    - `player_jump`
+    - `player_crouch`
+    - `player_roll`
+    - `enemy_trooper`
+- Ran:
+  - `python tools/generate_pixel_character_sheets.py --overwrite --run-import`
+- Resulting sheet color richness:
+  - `player_idle_sheet.png`: 303 unique non-transparent colors
+  - `player_run_sheet.png`: 383 unique non-transparent colors
+  - `player_jump_sheet.png`: 299 unique non-transparent colors
+  - `player_crouch_sheet.png`: 258 unique non-transparent colors
+  - `player_roll_sheet.png`: 363 unique non-transparent colors
+  - `enemy_trooper_sheet.png`: 340 unique non-transparent colors
+- Importer rewired active manifest keys to `png16_frames/...` for the updated character sheets.
+
+### Validation (this pass)
+
+- `python -m py_compile tools/generate_pixel_character_sheets.py` passed.
+- Gameplay verification:
+  - `output/web-game-pixel-pass-v1/shot-0.png`
+  - `output/web-game-pixel-pass-v1/shot-2.png`
+- Showcase verification:
+  - `output/sprite-showcase-pixel-pass-v1/shot-0.png`
+- Visual inspection confirms the browser is using the new raster character sheets rather than fallback blocks or flat SVG art.
+
+## Directional Aim + Anime-Style Character Pass
+
+- User requested:
+  - richer, slicker character art with more colors
+  - `Z` to fire, `Space` to jump
+  - `ArrowUp` aiming up, `ArrowUp + direction` aiming diagonally
+  - gun pose to follow shot direction
+  - jump to read as a leaping somersault
+  - smoother direction/camera changes instead of abrupt screen flipping
+- Expanded raster character pipeline in `tools/generate_pixel_character_sheets.py`:
+  - upgraded player/trooper color ramps and highlights
+  - added dedicated pose strips:
+    - `player_idle_up`
+    - `player_idle_diag`
+    - `player_run_up`
+    - `player_run_diag`
+    - `player_air_forward`
+    - `player_air_up`
+    - `player_air_diag`
+  - upgraded `player_jump` from 2 -> 6 frames as a somersault strip
+  - kept `player_roll`, `player_crouch`, `enemy_trooper` wired into same PNG workflow
+- Updated `assets/sprites/sheets/png16/sheet_manifest.json` for the new player strips and frame counts.
+- Regenerated/imported assets with:
+  - `python tools/generate_pixel_character_sheets.py --overwrite --run-import`
+- Updated `game.js`:
+  - controls remapped to `Space` jump and `Z` fire
+  - added aim-vector helpers and directional bullet spawning
+  - `ArrowUp` now aims up; `ArrowUp + direction` aims diagonally
+  - player sprite selection now switches across forward/up/diag/air pose families
+  - muzzle flash now points along the real aim vector
+  - camera lead and sprite facing use damping to smooth turn-induced screen shifts
+  - text state now reports `aim` and `visualFacing`
+- Updated `index.html` and splash-card text to match the new controls.
+- Updated `sprite-showcase.html` with cards for run-diagonal, idle-up, and the somersault jump strip.
+
+### Validation (this pass)
+
+- Syntax:
+  - `node --check game.js` passed
+  - `python -m py_compile tools/generate_pixel_character_sheets.py` passed
+- PNG import:
+  - `115` frame PNGs written from `26` sheet entries
+- Gameplay captures:
+  - `output/web-game-aim-jump-v2/shot-0.png`
+  - `output/web-game-aim-jump-v2/shot-2.png`
+- Targeted `KeyZ` browser captures using Playwright from the skill's installed `node_modules`:
+  - `output/web-game-keyz-aim-v2/shot-up-fire.png`
+  - `output/web-game-keyz-aim-v2/shot-diag-jump-fire-air.png`
+  - `output/web-game-keyz-aim-v2/state-up-fire.json` confirms `aim.mode:"up"`
+  - `output/web-game-keyz-aim-v2/state-diag-jump-fire-air.json` confirms `onGround:false` and `aim.mode:"diag"`
+- Showcase capture:
+  - `output/sprite-showcase-aim-v2/shot-0.png`
+- No `errors-*.json` files were generated in `output/web-game-aim-jump-v2` or `output/sprite-showcase-aim-v2`.
+
+## External Sprite Sheet Cutter
+
+- User provided a screenshot of a retro sprite sheet and asked to use those sprites, cut correctly.
+- I could not reliably locate the uploaded chat attachment as a local file, so I added a reusable cutter instead of guessing from the chat preview pixels.
+- Added `tools/slice_external_sprite_sheet.py`.
+  - Detects foreground sprites on black/transparent background
+  - Dilates the mask slightly before component detection to avoid broken cutouts
+  - Extracts individual frames with transparent background
+  - Groups frames into rows
+  - Writes `frames.json` plus a numbered `contact_sheet.png`
+- Validation run:
+  - `python tools/slice_external_sprite_sheet.py --source assets/sprites/sheets/png16/player_run_sheet.png --out output/slice-test-player-run`
+  - Result: `8` frames detected, `1` row detected
+  - Artifacts:
+    - `output/slice-test-player-run/contact_sheet.png`
+    - `output/slice-test-player-run/frames.json`
+- Next step once the real imported sheet PNG is available locally:
+  - run the cutter on that file
+  - inspect the numbered contact sheet
+  - map selected rows/frames into the game's animation keys
+## Super Probotector Import Pass
+
+- Added `tools/slice_external_sprite_sheet.py` to auto-cut external sheets with transparent or sampled solid-color backgrounds.
+- Sliced `assets/sprites/superprobotectorsheet1.png` into `88` transparent frames:
+  - output folder: `output/slice-superprobotector-png`
+  - contact sheet: `output/slice-superprobotector-png/contact_sheet.png`
+  - metadata: `output/slice-superprobotector-png/frames.json`
+- Added `tools/build_superprobotector_player_pack.py` to repack selected external frames into the game's player sheet layout.
+- Updated the repack map to use the contiguous left-to-right Super Probotector sequences:
+  - idle: `0-3`
+  - run forward: `16-21`
+  - run up: `22-27`
+  - run diagonal: `34-39`
+  - crouch: `8-9`
+  - roll: `12-15`
+  - air forward/up/diag: `60-61`, `58-59`, `52-53/56-57`
+  - jump / somersault: `82-86`
+- Climb / ladder frames are preserved in the slice output (`62-81`) for a future ladder mechanic, but the current controller does not expose climb states yet.
+- Rebuilt the player sheets and reimported the PNG manifest:
+  - `python tools/build_superprobotector_player_pack.py --source-dir output/slice-superprobotector-png --sheet-dir assets/sprites/sheets/png16 --overwrite`
+  - `python tools/import_png_sprite_sheets.py --overwrite`
+
+### Validation
+
+- `python -m py_compile tools/build_superprobotector_player_pack.py` passed.
+- Playwright gameplay validation passed:
+  - `output/web-game-superprobotector-v1/shot-0.png`, `shot-1.png`, `shot-2.png`
+  - `output/web-game-superprobotector-v1/state-0.json`, `state-1.json`, `state-2.json`
+- Playwright showcase validation passed:
+  - `output/sprite-showcase-superprobotector-v1/shot-0.png`, `shot-1.png`
+- No `errors-*.json` files were generated in either validation folder.
+- Note: the bundled Playwright client releases held keys before capture, so the state dumps settle back to forward aim; the imported animation strips were verified visually in the showcase and generated sheet outputs.

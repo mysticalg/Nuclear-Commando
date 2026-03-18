@@ -1,0 +1,111 @@
+{
+  "source": "C:\\Users\\drhoo\\OneDrive\\Documents\\GitHub\\Nuclear-Commando\\assets\\sprites\\sheets\\png16\\player_run_sheet.png",
+  "size": [
+    1280,
+    160
+  ],
+  "frame_count": 8,
+  "rows": [
+    {
+      "row": 0,
+      "frames": [
+        {
+          "index": 0,
+          "row_index": 0,
+          "column_index": 0,
+          "file": "frame_000.png",
+          "box": [
+            57,
+            17,
+            159,
+            153
+          ]
+        },
+        {
+          "index": 1,
+          "row_index": 0,
+          "column_index": 1,
+          "file": "frame_001.png",
+          "box": [
+            205,
+            15,
+            319,
+            153
+          ]
+        },
+        {
+          "index": 2,
+          "row_index": 0,
+          "column_index": 2,
+          "file": "frame_002.png",
+          "box": [
+            359,
+            13,
+            479,
+            153
+          ]
+        },
+        {
+          "index": 3,
+          "row_index": 0,
+          "column_index": 3,
+          "file": "frame_003.png",
+          "box": [
+            525,
+            15,
+            639,
+            153
+          ]
+        },
+        {
+          "index": 4,
+          "row_index": 0,
+          "column_index": 4,
+          "file": "frame_004.png",
+          "box": [
+            697,
+            17,
+            799,
+            153
+          ]
+        },
+        {
+          "index": 5,
+          "row_index": 0,
+          "column_index": 5,
+          "file": "frame_005.png",
+          "box": [
+            857,
+            15,
+            959,
+            151
+          ]
+        },
+        {
+          "index": 6,
+          "row_index": 0,
+          "column_index": 6,
+          "file": "frame_006.png",
+          "box": [
+            1017,
+            13,
+            1119,
+            151
+          ]
+        },
+        {
+          "index": 7,
+          "row_index": 0,
+          "column_index": 7,
+          "file": "frame_007.png",
+          "box": [
+            1177,
+            15,
+            1279,
+            151
+          ]
+        }
+      ]
+    }
+  ]
+}

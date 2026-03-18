@@ -14,6 +14,20 @@
       "frame_h": 160
     },
     {
+      "base": "player_idle_up",
+      "file": "player_idle_up_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_idle_diag",
+      "file": "player_idle_diag_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
       "base": "player_run",
       "file": "player_run_sheet.png",
       "frames": 8,
@@ -21,9 +35,44 @@
       "frame_h": 160
     },
     {
+      "base": "player_run_up",
+      "file": "player_run_up_sheet.png",
+      "frames": 8,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_run_diag",
+      "file": "player_run_diag_sheet.png",
+      "frames": 8,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
       "base": "player_jump",
       "file": "player_jump_sheet.png",
-      "frames": 2,
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_air_forward",
+      "file": "player_air_forward_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_air_up",
+      "file": "player_air_up_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_air_diag",
+      "file": "player_air_diag_sheet.png",
+      "frames": 4,
       "frame_w": 160,
       "frame_h": 160
     },

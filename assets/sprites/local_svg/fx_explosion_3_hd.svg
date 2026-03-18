@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" shape-rendering="crispEdges">
-<circle cx="128" cy="128" r="70" fill="#eb8355" opacity="0.72" />
-<circle cx="128" cy="128" r="44" fill="#ffd474" opacity="0.7999999999999999" />
+<circle cx="128" cy="128" r="70" fill="#cc7954" opacity="0.72" />
+<circle cx="128" cy="128" r="44" fill="#deb46a" opacity="0.7999999999999999" />
 <circle cx="86" cy="94" r="20" fill="#5b4339" opacity="0.54" />
 <circle cx="170" cy="102" r="16" fill="#5b4339" opacity="0.48" />
 <circle cx="98" cy="168" r="22" fill="#5b4339" opacity="0.5" />

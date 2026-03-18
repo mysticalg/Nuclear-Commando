@@ -17,6 +17,9 @@
   const PLAYER_ROLL_SPEED = 420;
   const PLAYER_ROLL_DURATION = 0.38;
   const PLAYER_ROLL_COOLDOWN = 0.68;
+  const CAMERA_LERP = 6.4;
+  const CAMERA_LEAD_LERP = 8.2;
+  const FACE_LERP = 10.5;
 
   const keys = Object.create(null);
   const sprites = new Map();
@@ -32,8 +35,15 @@
   const ANIM = {
     player: {
       player_idle: { frames: 6, fps: 7 },
+      player_idle_up: { frames: 6, fps: 7 },
+      player_idle_diag: { frames: 6, fps: 7 },
       player_run: { frames: 8, fps: 14 },
-      player_jump: { frames: 2, fps: 6 },
+      player_run_up: { frames: 8, fps: 14 },
+      player_run_diag: { frames: 8, fps: 14 },
+      player_jump: { frames: 6, fps: 16 },
+      player_air_forward: { frames: 4, fps: 10 },
+      player_air_up: { frames: 4, fps: 10 },
+      player_air_diag: { frames: 4, fps: 10 },
       player_crouch: { frames: 2, fps: 5 },
       player_roll: { frames: 4, fps: 16 },
     },
@@ -142,6 +152,7 @@
     levelIndex: 0,
     level: null,
     cameraX: 0,
+    cameraLead: 180,
     score: 0,
     lives: 4,
     combo: 0,
@@ -165,6 +176,39 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const rand = (a, b) => Math.random() * (b - a) + a;
+  const damp = (current, target, rate, dt) => lerp(current, target, 1 - Math.exp(-rate * dt));
+  const normalizeVec = (x, y) => {
+    const d = Math.hypot(x, y) || 1;
+    return { x: x / d, y: y / d };
+  };
+
+  function getPlayerAimMode(p) {
+    if (p.aimY < -0.86 && Math.abs(p.aimX) < 0.26) return "up";
+    if (p.aimY < -0.24) return "diag";
+    return "forward";
+  }
+
+  function getPlayerAimVector(p) {
+    if (p.rollT > 0) return { x: p.face, y: 0 };
+    const rawX = typeof p.aimX === "number" ? p.aimX : p.face;
+    const rawY = typeof p.aimY === "number" ? p.aimY : 0;
+    if (Math.abs(rawX) < 0.001 && Math.abs(rawY) < 0.001) {
+      return { x: p.face, y: 0 };
+    }
+    return normalizeVec(rawX, rawY);
+  }
+
+  function getPlayerMuzzlePoint(p) {
+    const aim = getPlayerAimVector(p);
+    const shoulderX = p.x + p.w * 0.5 + p.face * 8;
+    const shoulderY = p.y + (p.crouching ? 24 : (!p.onGround ? 18 : 18));
+    return {
+      x: shoulderX + aim.x * 20,
+      y: shoulderY + aim.y * 20,
+      dirX: aim.x,
+      dirY: aim.y,
+    };
+  }
 
   function say(text, s = 2.2) {
     state.msg = text;
@@ -236,6 +280,10 @@
       rollCd: 0,
       rollLatch: false,
       muzzleFlashT: 0,
+      aimX: prev ? prev.aimX : 1,
+      aimY: prev ? prev.aimY : 0,
+      visualFace: prev ? (prev.visualFace ?? prev.face) : 1,
+      airT: 0,
       weapon: prev ? prev.weapon : "RIFLE",
       bag: newLoadout(prev ? prev.bag : null),
     };
@@ -246,6 +294,7 @@
     state.levelIndex = i;
     state.level = lvl;
     state.cameraX = 0;
+    state.cameraLead = 180;
     state.levelClock = 0;
     state.extractionReady = false;
     state.combo = 0;
@@ -398,13 +447,16 @@
     }
 
     const lvl = clamp(slot.level, 1, 3);
-    const mx = p.face > 0 ? p.x + p.w + 2 : p.x - 2;
-    const my = p.y + 19;
+    const muzzle = getPlayerMuzzlePoint(p);
+    const aim = getPlayerAimVector(p);
+    const baseAngle = Math.atan2(aim.y, aim.x);
+    const mx = muzzle.x;
+    const my = muzzle.y;
 
     function add(angle, speedScale, dmgScale, r, ttl, pierce) {
-      const vx = Math.cos(angle) * meta.speed * speedScale * p.face;
-      const vy = Math.sin(angle) * meta.speed * speedScale;
-      state.bullets.push({ x: mx, y: my, vx, vy, r, ttl, dmg: meta.dmg[lvl - 1] * dmgScale, color: meta.color, weapon, pierce });
+      const shotAngle = baseAngle + angle;
+      const vx = Math.cos(shotAngle) * meta.speed * speedScale;
+      state.bullets.push({ x: mx, y: my, vx, vy: Math.sin(shotAngle) * meta.speed * speedScale, r, ttl, dmg: meta.dmg[lvl - 1] * dmgScale, color: meta.color, weapon, pierce });
     }
 
     if (weapon === "RIFLE") add(0, 1, 1, 3, 1.2, 1);
@@ -431,10 +483,13 @@
     const p = state.player;
     const left = !!keys.ArrowLeft;
     const right = !!keys.ArrowRight;
+    const upHeld = !!keys.ArrowUp;
     const downHeld = !!keys.ArrowDown;
-    const jumpHeld = !!keys.ArrowUp;
-    const shootHeld = !!keys.Space;
+    const jumpHeld = !!keys.Space;
+    const shootHeld = !!keys.KeyZ;
     const wantsRoll = !!keys.KeyR || (downHeld && shootHeld && left !== right);
+    const prevOnGround = p.onGround;
+    let desiredFace = p.face;
 
     if (wantsRoll && !p.rollLatch && p.onGround && p.rollT <= 0 && p.rollCd <= 0) {
       const dir = left === right ? p.face : right ? 1 : -1;
@@ -451,28 +506,49 @@
       p.rollT = Math.max(0, p.rollT - dt);
       p.vx = p.face * PLAYER_ROLL_SPEED;
       p.crouching = false;
-    } else if (downHeld && p.onGround) {
+    } else if (downHeld && p.onGround && !upHeld) {
       p.crouching = true;
       p.vx *= 0.62;
       if (Math.abs(p.vx) < 12) p.vx = 0;
-      if (left !== right) p.face = right ? 1 : -1;
+      if (left !== right) desiredFace = right ? 1 : -1;
     } else {
       p.crouching = false;
       if (left === right) {
         p.vx *= 0.78;
         if (Math.abs(p.vx) < 12) p.vx = 0;
       } else {
-        p.vx = (right ? 1 : -1) * PLAYER_SPEED;
-        p.face = right ? 1 : -1;
+        desiredFace = right ? 1 : -1;
+        p.vx = desiredFace * PLAYER_SPEED;
       }
     }
 
     if (jumpHeld && !p.jumpLatch && p.onGround && !p.crouching && p.rollT <= 0) {
       p.vy = -860;
       p.onGround = false;
+      p.airT = 0;
     }
     p.jumpLatch = jumpHeld;
     if (!jumpHeld && p.vy < 0) p.vy *= 0.62;
+
+    if (p.rollT <= 0) {
+      if (left !== right) p.face = desiredFace;
+      if (upHeld) {
+        if (left !== right) {
+          p.face = desiredFace;
+          p.aimX = p.face * 0.72;
+          p.aimY = -0.72;
+        } else {
+          p.aimX = 0;
+          p.aimY = -1;
+        }
+      } else {
+        p.aimX = p.face;
+        p.aimY = 0;
+      }
+    } else {
+      p.aimX = p.face;
+      p.aimY = 0;
+    }
 
     p.vy += GRAVITY * dt;
     p.x += p.vx * dt;
@@ -484,15 +560,20 @@
       p.y = gy - p.h;
       p.vy = 0;
       p.onGround = true;
+      p.airT = 0;
     } else {
       p.onGround = false;
       p.crouching = false;
+      p.airT += dt;
     }
+    if (!prevOnGround && p.onGround) p.airT = 0;
 
     p.invuln = Math.max(0, p.invuln - dt);
     p.fireCd = Math.max(0, p.fireCd - dt);
     p.rollCd = Math.max(0, p.rollCd - dt);
     p.muzzleFlashT = Math.max(0, p.muzzleFlashT - dt);
+    p.visualFace = damp(typeof p.visualFace === "number" ? p.visualFace : p.face, p.face, FACE_LERP, dt);
+    if (Math.abs(p.visualFace) < 0.08) p.visualFace = p.face * 0.08;
     if (shootHeld && p.fireCd <= 0) spawnPlayerBullets();
   }
 
@@ -660,15 +741,18 @@
     state.explosions = state.explosions.filter((e) => e.t < e.ttl);
   }
 
-  function updateFlow() {
+  function updateFlow(dt) {
     if (!state.extractionReady && state.objectives.every((o) => o.destroyed)) {
       state.extractionReady = true;
       say("All critical targets neutralized. Reach extraction.", 2.2);
     }
     if (state.extractionReady && state.player.x >= state.level.length - 120) finishLevel();
-    const lead = state.player.face > 0 ? 180 : 120;
-    state.cameraX = clamp(state.player.x - W * 0.35 + lead, 0, Math.max(0, state.level.length - W));
-    if (state.player.x > state.cameraX + W - 130) state.player.x = state.cameraX + W - 130;
+    const maxCamera = Math.max(0, state.level.length - W);
+    const targetLead = state.player.face > 0 ? 180 : 120;
+    state.cameraLead = damp(typeof state.cameraLead === "number" ? state.cameraLead : targetLead, targetLead, CAMERA_LEAD_LERP, dt);
+    const targetCameraX = clamp(state.player.x - W * 0.35 + state.cameraLead, 0, maxCamera);
+    state.cameraX = clamp(damp(state.cameraX, targetCameraX, CAMERA_LERP, dt), 0, maxCamera);
+    if (state.player.x > targetCameraX + W - 130) state.player.x = targetCameraX + W - 130;
   }
 
   function step(dt) {
@@ -697,7 +781,7 @@
     resolveCombat();
     updatePickups(dt);
     updateExplosions(dt);
-    updateFlow();
+    updateFlow(dt);
   }
 
   function drawSprite(key, x, y, w, h, flip, fallback) {
@@ -713,13 +797,17 @@
     const py = Math.round(y);
     const pw = Math.max(1, Math.round(w));
     const ph = Math.max(1, Math.round(h));
+    const scaleX = typeof flip === "number" ? flip : (flip ? -1 : 1);
+    const needsTransform = Math.abs(scaleX - 1) > 0.001;
     const prevSmooth = ctx.imageSmoothingEnabled;
     ctx.imageSmoothingEnabled = false;
     ctx.imageSmoothingQuality = "low";
     ctx.save();
-    if (flip) {
-      ctx.translate(px + pw, py);
-      ctx.scale(-1, 1);
+    if (needsTransform) {
+      const sign = scaleX < 0 ? -1 : 1;
+      const magnitude = Math.max(0.08, Math.abs(scaleX));
+      ctx.translate(px + (sign < 0 ? pw : 0), py);
+      ctx.scale(sign * magnitude, 1);
       ctx.drawImage(img, bounds.sx, bounds.sy, bounds.sw, bounds.sh, 0, 0, pw, ph);
     } else {
       ctx.drawImage(img, bounds.sx, bounds.sy, bounds.sw, bounds.sh, px, py, pw, ph);
@@ -1136,20 +1224,30 @@
 
   function drawPlayer() {
     const p = state.player;
-    const x = p.x - state.cameraX, y = p.y, flip = p.face < 0;
+    const x = p.x - state.cameraX, y = p.y;
     const scale = 1.86;
     const sw = p.w * scale;
     const sh = p.h * scale;
     const sx = x - (sw - p.w) * 0.5;
     const sy = y - (sh - p.h);
     drawEntityShadow(sx, sy, sw, sh, 0.26);
+    const aimMode = getPlayerAimMode(p);
+    const flipScale = typeof p.visualFace === "number" ? p.visualFace : p.face;
     const key = p.rollT > 0
       ? "player_roll"
       : (p.crouching && p.onGround
         ? "player_crouch"
-        : (!p.onGround ? "player_jump" : Math.abs(p.vx) > 20 ? "player_run" : "player_idle"));
+        : (!p.onGround
+          ? (aimMode === "up"
+            ? "player_air_up"
+            : aimMode === "diag"
+              ? "player_air_diag"
+              : (p.muzzleFlashT > 0 ? "player_air_forward" : "player_jump"))
+          : (Math.abs(p.vx) > 20
+            ? (aimMode === "up" ? "player_run_up" : aimMode === "diag" ? "player_run_diag" : "player_run")
+            : (aimMode === "up" ? "player_idle_up" : aimMode === "diag" ? "player_idle_diag" : "player_idle"))));
     const anim = ANIM.player[key] || { frames: 1, fps: 0 };
-    drawAnimSprite(key, anim.frames, anim.fps, p.x * 0.013 + (flip ? 0.5 : 0), sx, sy, sw, sh, flip, () => {
+    drawAnimSprite(key, anim.frames, anim.fps, p.x * 0.013 + (flipScale < 0 ? 0.5 : 0), sx, sy, sw, sh, flipScale, () => {
       ctx.fillStyle = p.invuln > 0 && Math.floor(state.levelClock * 18) % 2 === 0 ? "#ffd8d8" : "#f1f8ff";
       if (key === "player_roll") {
         ctx.beginPath();
@@ -1177,7 +1275,7 @@
         ctx.fillRect(sx + sw * 0.25, sy + sh * 0.42, sw * 0.5, sh * 0.45);
       }
       ctx.fillStyle = "#d9e4ff";
-      if (flip) ctx.fillRect(sx - 6, sy + sh * 0.52, 14, 4);
+      if (flipScale < 0) ctx.fillRect(sx - 6, sy + sh * 0.52, 14, 4);
       else ctx.fillRect(sx + sw - 6, sy + sh * 0.52, 14, 4);
     });
 
@@ -1186,33 +1284,34 @@
       ctx.globalAlpha = 0.18;
       ctx.fillStyle = "#9dc8ff";
       for (let i = 0; i < 4; i++) {
-        const ox = flip ? sx + sw + i * 4 : sx - i * 4;
+        const ox = flipScale < 0 ? sx + sw + i * 4 : sx - i * 4;
         ctx.fillRect(ox, sy + sh * 0.48 + i, 10 + i * 2, 10 - i);
       }
       ctx.restore();
     }
 
     if (p.muzzleFlashT > 0) {
-      const flashW = 18;
-      const flashH = 18;
-      const flashX = flip ? sx - flashW * 0.62 : sx + sw - 2;
-      const flashY = sy + (p.rollT > 0 ? sh * 0.38 : p.crouching ? sh * 0.53 : sh * 0.42);
-      drawGlowCircle(flashX + flashW * 0.5, flashY + flashH * 0.5, 16, "#ffe27c", 0.3);
-      drawAnimSprite("fx_muzzle_flash", 3, 24, state.levelClock * 2.1, flashX, flashY, flashW, flashH, flip, () => {
-        ctx.fillStyle = "#ffe27c";
-        ctx.beginPath();
-        if (flip) {
-          ctx.moveTo(flashX + flashW, flashY + flashH * 0.5);
-          ctx.lineTo(flashX + 3, flashY + 2);
-          ctx.lineTo(flashX + 3, flashY + flashH - 2);
-        } else {
-          ctx.moveTo(flashX, flashY + flashH * 0.5);
-          ctx.lineTo(flashX + flashW - 3, flashY + 2);
-          ctx.lineTo(flashX + flashW - 3, flashY + flashH - 2);
-        }
-        ctx.closePath();
-        ctx.fill();
-      });
+      const muzzle = getPlayerMuzzlePoint(p);
+      const aim = getPlayerAimVector(p);
+      const mx = muzzle.x - state.cameraX;
+      const my = muzzle.y;
+      const nx = -aim.y;
+      const ny = aim.x;
+      drawGlowCircle(mx, my, 16, "#ffe27c", 0.3);
+      ctx.fillStyle = "#fff2b2";
+      ctx.beginPath();
+      ctx.moveTo(mx + aim.x * 14, my + aim.y * 14);
+      ctx.lineTo(mx - aim.x * 2 + nx * 4.5, my - aim.y * 2 + ny * 4.5);
+      ctx.lineTo(mx - aim.x * 2 - nx * 4.5, my - aim.y * 2 - ny * 4.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#ffb347";
+      ctx.beginPath();
+      ctx.moveTo(mx + aim.x * 8, my + aim.y * 8);
+      ctx.lineTo(mx - aim.x * 1 + nx * 2.3, my - aim.y * 1 + ny * 2.3);
+      ctx.lineTo(mx - aim.x * 1 - nx * 2.3, my - aim.y * 1 - ny * 2.3);
+      ctx.closePath();
+      ctx.fill();
     }
   }
 
@@ -1337,10 +1436,10 @@
     ctx.fillStyle = "#e2eefc";
     ctx.font = "14px Trebuchet MS";
     ctx.fillText("Move: Arrow Left/Right", 190, 250);
-    ctx.fillText("Jump: Arrow Up", 190, 274);
-    ctx.fillText("Crouch: Arrow Down", 190, 298);
-    ctx.fillText("Roll: R  (or Down + Move + Shoot)", 190, 322);
-    ctx.fillText("Shoot: Space", 190, 346);
+    ctx.fillText("Aim: Arrow Up / Up + Direction", 190, 274);
+    ctx.fillText("Jump: Space   Crouch: Arrow Down", 190, 298);
+    ctx.fillText("Shoot: Z   Roll: R", 190, 322);
+    ctx.fillText("Diagonal fire follows your aim pose", 190, 346);
     ctx.fillText("Cycle Weapons: A / B", 190, 370);
     ctx.fillText("Pause: P   Fullscreen: F", 190, 394);
 
@@ -1386,6 +1485,9 @@
 
   function onKeyDown(e) {
     keys[e.code] = true;
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
+      e.preventDefault();
+    }
 
     if (e.code === "KeyF") {
       toggleFullscreen();
@@ -1415,6 +1517,9 @@
 
   function onKeyUp(e) {
     keys[e.code] = false;
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
+      e.preventDefault();
+    }
   }
 
   window.render_game_to_text = () => {
@@ -1426,7 +1531,9 @@
       player: {
         x: Math.round(p.x), y: Math.round(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy),
         hp: Math.round(p.hp), maxHp: p.maxHp, onGround: p.onGround, crouching: p.crouching, rolling: p.rollT > 0,
-        rollCooldown: Number(p.rollCd.toFixed(2)), muzzleFlash: p.muzzleFlashT > 0, facing: p.face, activeWeapon: p.weapon,
+        rollCooldown: Number(p.rollCd.toFixed(2)), muzzleFlash: p.muzzleFlashT > 0, facing: p.face, visualFacing: Number((p.visualFace || p.face).toFixed(2)),
+        aim: { x: Number((p.aimX || 0).toFixed(2)), y: Number((p.aimY || 0).toFixed(2)), mode: getPlayerAimMode(p) },
+        activeWeapon: p.weapon,
       },
       objectives: state.objectives.slice(0, 8).map((o) => ({ id: o.id, label: o.label, x: Math.round(o.x), y: Math.round(o.y), hp: Math.round(o.hp), maxHp: o.maxHp, destroyed: o.destroyed, weakness: o.weak })),
       enemies: state.enemies.slice(0, 16).map((e) => ({ kind: e.kind, x: Math.round(e.x), y: Math.round(e.y), hp: Math.round(e.hp) })),
