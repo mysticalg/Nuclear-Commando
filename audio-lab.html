@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nuclear Commando Audio Lab</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="lab-shell">
+    <section class="lab-panel">
+      <h1>Audio Lab</h1>
+      <p>Preview the renamed music, audition the numbered sound effects, and remap gameplay events without editing code.</p>
+      <p class="lab-note">The numbered SFX stay honest here until we hear them. This page gives us a clean way to decide what each one should do.</p>
+      <div class="action-row">
+        <button id="enable-audio" class="ghost-btn" type="button">Enable Audio</button>
+        <button id="stop-audio" class="ghost-btn" type="button">Stop Preview</button>
+        <button id="reset-map" class="ghost-btn" type="button">Reset Defaults</button>
+        <a class="ghost-link" href="./index.html">Back To Game</a>
+      </div>
+      <div class="lab-range-row">
+        <label class="lab-range">
+          <span>Music Volume</span>
+          <input id="music-volume" type="range" min="0" max="1" step="0.01" />
+        </label>
+        <label class="lab-range">
+          <span>SFX Volume</span>
+          <input id="sfx-volume" type="range" min="0" max="1" step="0.01" />
+        </label>
+      </div>
+      <p id="lab-status" class="lab-status"></p>
+    </section>
+
+    <section class="lab-grid">
+      <section class="lab-panel">
+        <h2>Music Preview</h2>
+        <div id="music-list" class="lab-list"></div>
+      </section>
+      <section class="lab-panel">
+        <h2>SFX Preview</h2>
+        <div id="sfx-list" class="lab-list"></div>
+      </section>
+    </section>
+
+    <section class="lab-panel">
+      <h2>Gameplay Event Mapping</h2>
+      <div id="map-list" class="lab-grid"></div>
+    </section>
+  </main>
+
+  <script src="./assets/sfx/manifest.js"></script>
+  <script>
+    (() => {
+      "use strict";
+
+      const manifest = window.NUCLEAR_COMMANDO_AUDIO_MANIFEST || { music: [], sfx: [], defaultMap: {}, eventLabels: {} };
+      const MAP_KEY = "nuclear-commando-audio-map-v1";
+      const PREFS_KEY = "nuclear-commando-audio-prefs-v1";
+      const statusEl = document.getElementById("lab-status");
+      const musicList = document.getElementById("music-list");
+      const sfxList = document.getElementById("sfx-list");
+      const mapList = document.getElementById("map-list");
+      const musicVolumeInput = document.getElementById("music-volume");
+      const sfxVolumeInput = document.getElementById("sfx-volume");
+      const enableBtn = document.getElementById("enable-audio");
+      const stopBtn = document.getElementById("stop-audio");
+      const resetBtn = document.getElementById("reset-map");
+
+      const catalog = new Map();
+      const defaultMap = { ...(manifest.defaultMap || {}) };
+      const eventLabels = manifest.eventLabels || {};
+      let currentMusic = null;
+
+      for (const entry of [...(manifest.music || []), ...(manifest.sfx || [])]) {
+        if (entry && entry.key && entry.file) catalog.set(entry.key, entry);
+      }
+
+      function readStoredJson(key, fallback) {
+        try {
+          const raw = window.localStorage.getItem(key);
+          if (!raw) return fallback;
+          const parsed = JSON.parse(raw);
+          return parsed && typeof parsed === "object" ? parsed : fallback;
+        } catch {
+          return fallback;
+        }
+      }
+
+      function writeStoredJson(key, value) {
+        try {
+          window.localStorage.setItem(key, JSON.stringify(value));
+        } catch {
+          // Ignore storage failures.
+        }
+      }
+
+      function getPrefs() {
+        return {
+          muted: false,
+          musicVolume: 0.54,
+          sfxVolume: 0.82,
+          ...readStoredJson(PREFS_KEY, {}),
+        };
+      }
+
+      function getMap() {
+        return {
+          ...defaultMap,
+          ...readStoredJson(MAP_KEY, {}),
+        };
+      }
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+      }
+
+      function stopPreview() {
+        if (!currentMusic) return;
+        currentMusic.pause();
+        currentMusic.currentTime = 0;
+        currentMusic = null;
+      }
+
+      function createAudio(file, volume) {
+        const audio = new Audio(`./assets/sfx/${file}`);
+        audio.preload = "auto";
+        audio.playsInline = true;
+        audio.volume = Math.max(0, Math.min(1, volume));
+        return audio;
+      }
+
+      function playEntry(entry) {
+        if (!entry) return;
+        const prefs = getPrefs();
+        if (entry.role === "music" || entry.role === "stinger") {
+          stopPreview();
+          currentMusic = createAudio(entry.file, prefs.musicVolume);
+          currentMusic.loop = entry.role === "music";
+          currentMusic.play().catch(() => {});
+          setStatus(`Playing music: ${entry.key}`);
+          return;
+        }
+        const audio = createAudio(entry.file, prefs.sfxVolume);
+        audio.play().catch(() => {});
+        setStatus(`Previewing SFX: ${entry.key}`);
+      }
+
+      function renderLists() {
+        musicList.innerHTML = "";
+        for (const entry of manifest.music || []) {
+          const item = document.createElement("div");
+          item.className = "lab-item";
+          item.innerHTML = `<strong>${entry.key}</strong><code>${entry.file}</code>`;
+          const actions = document.createElement("div");
+          actions.className = "lab-actions";
+          const playBtn = document.createElement("button");
+          playBtn.className = "ghost-btn";
+          playBtn.type = "button";
+          playBtn.textContent = "Play";
+          playBtn.addEventListener("click", () => playEntry(entry));
+          actions.appendChild(playBtn);
+          item.appendChild(actions);
+          musicList.appendChild(item);
+        }
+
+        sfxList.innerHTML = "";
+        for (const entry of manifest.sfx || []) {
+          const item = document.createElement("div");
+          item.className = "lab-item";
+          item.innerHTML = `<strong>${entry.key}</strong><code>${entry.file}</code>`;
+          const actions = document.createElement("div");
+          actions.className = "lab-actions";
+          const playBtn = document.createElement("button");
+          playBtn.className = "ghost-btn";
+          playBtn.type = "button";
+          playBtn.textContent = "Preview";
+          playBtn.addEventListener("click", () => playEntry(entry));
+          actions.appendChild(playBtn);
+          item.appendChild(actions);
+          sfxList.appendChild(item);
+        }
+      }
+
+      function renderMappings() {
+        const savedMap = getMap();
+        const options = [...(manifest.sfx || []), ...(manifest.music || [])];
+        mapList.innerHTML = "";
+        for (const eventKey of Object.keys(defaultMap)) {
+          const item = document.createElement("div");
+          item.className = "lab-item";
+          const label = document.createElement("strong");
+          label.textContent = eventLabels[eventKey] || eventKey;
+          const select = document.createElement("select");
+          select.className = "lab-select";
+          for (const optionEntry of options) {
+            const option = document.createElement("option");
+            option.value = optionEntry.key;
+            option.textContent = `${optionEntry.key} (${optionEntry.file})`;
+            if (savedMap[eventKey] === optionEntry.key) option.selected = true;
+            select.appendChild(option);
+          }
+          const previewBtn = document.createElement("button");
+          previewBtn.className = "ghost-btn";
+          previewBtn.type = "button";
+          previewBtn.textContent = "Preview Mapping";
+          previewBtn.addEventListener("click", () => playEntry(catalog.get(select.value)));
+          select.addEventListener("change", () => {
+            const next = getMap();
+            next[eventKey] = select.value;
+            writeStoredJson(MAP_KEY, next);
+            setStatus(`Saved mapping for ${eventLabels[eventKey] || eventKey}.`);
+          });
+          item.appendChild(label);
+          item.appendChild(select);
+          item.appendChild(previewBtn);
+          mapList.appendChild(item);
+        }
+      }
+
+      function syncVolumeInputs() {
+        const prefs = getPrefs();
+        musicVolumeInput.value = String(prefs.musicVolume);
+        sfxVolumeInput.value = String(prefs.sfxVolume);
+      }
+
+      function saveVolumePrefs() {
+        const prefs = {
+          ...getPrefs(),
+          musicVolume: Number(musicVolumeInput.value),
+          sfxVolume: Number(sfxVolumeInput.value),
+        };
+        writeStoredJson(PREFS_KEY, prefs);
+        if (currentMusic) currentMusic.volume = prefs.musicVolume;
+      }
+
+      enableBtn.addEventListener("click", () => {
+        setStatus("Audio unlocked for previews.");
+      });
+
+      stopBtn.addEventListener("click", () => {
+        stopPreview();
+        setStatus("Preview stopped.");
+      });
+
+      resetBtn.addEventListener("click", () => {
+        writeStoredJson(MAP_KEY, defaultMap);
+        renderMappings();
+        setStatus("Gameplay mappings reset to defaults.");
+      });
+
+      musicVolumeInput.addEventListener("input", saveVolumePrefs);
+      sfxVolumeInput.addEventListener("input", saveVolumePrefs);
+
+      renderLists();
+      renderMappings();
+      syncVolumeInputs();
+      setStatus("Click any preview button to audition a track or effect.");
+    })();
+  </script>
+</body>
+</html>

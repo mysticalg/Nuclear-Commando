@@ -30,7 +30,7 @@ jobs:
         run: |
           rm -rf dist
           mkdir -p dist
-          cp index.html game.js styles.css sprite-showcase.html dist/
+          cp index.html audio-lab.html game.js styles.css sprite-showcase.html dist/
           cp -R assets dist/assets
           touch dist/.nojekyll
 

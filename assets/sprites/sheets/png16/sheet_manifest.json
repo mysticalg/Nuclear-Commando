@@ -7,15 +7,498 @@
   ],
   "sheets": [
     {
-      "base": "player_idle",
-      "file": "player_idle_sheet.png",
+      "base": "enemy_boss_cyberbrute_attack",
+      "file": "enemy_boss_cyberbrute_attack_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_cyberbrute_idle",
+      "file": "enemy_boss_cyberbrute_idle_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_cyberbrute_walk",
+      "file": "enemy_boss_cyberbrute_walk_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_demonspider_attack",
+      "file": "enemy_boss_demonspider_attack_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_demonspider_idle",
+      "file": "enemy_boss_demonspider_idle_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_demonspider_walk",
+      "file": "enemy_boss_demonspider_walk_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_giantskull_attack",
+      "file": "enemy_boss_giantskull_attack_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_giantskull_idle",
+      "file": "enemy_boss_giantskull_idle_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_giantskull_walk",
+      "file": "enemy_boss_giantskull_walk_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_ironskull_attack",
+      "file": "enemy_boss_ironskull_attack_sheet.png",
       "frames": 6,
       "frame_w": 160,
       "frame_h": 160
     },
     {
-      "base": "player_idle_up",
-      "file": "player_idle_up_sheet.png",
+      "base": "enemy_boss_ironskull_idle",
+      "file": "enemy_boss_ironskull_idle_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_ironskull_walk",
+      "file": "enemy_boss_ironskull_walk_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_skulltank_attack",
+      "file": "enemy_boss_skulltank_attack_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_skulltank_idle",
+      "file": "enemy_boss_skulltank_idle_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_boss_skulltank_walk",
+      "file": "enemy_boss_skulltank_walk_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_drone",
+      "file": "enemy_drone_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech",
+      "file": "enemy_mech_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech_crawler_attack",
+      "file": "enemy_mech_crawler_attack_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech_crawler_idle",
+      "file": "enemy_mech_crawler_idle_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech_crawler_walk",
+      "file": "enemy_mech_crawler_walk_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech_ironskull_attack",
+      "file": "enemy_mech_ironskull_attack_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech_ironskull_idle",
+      "file": "enemy_mech_ironskull_idle_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech_ironskull_walk",
+      "file": "enemy_mech_ironskull_walk_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech_walker_attack",
+      "file": "enemy_mech_walker_attack_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech_walker_idle",
+      "file": "enemy_mech_walker_idle_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_mech_walker_walk",
+      "file": "enemy_mech_walker_walk_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper",
+      "file": "enemy_trooper_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_crimson",
+      "file": "enemy_trooper_crimson_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_crimson_death",
+      "file": "enemy_trooper_crimson_death_sheet.png",
+      "frames": 7,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_crimson_fire",
+      "file": "enemy_trooper_crimson_fire_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_crimson_up",
+      "file": "enemy_trooper_crimson_up_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_death",
+      "file": "enemy_trooper_death_sheet.png",
+      "frames": 7,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_fire",
+      "file": "enemy_trooper_fire_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_navy",
+      "file": "enemy_trooper_navy_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_navy_death",
+      "file": "enemy_trooper_navy_death_sheet.png",
+      "frames": 7,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_navy_fire",
+      "file": "enemy_trooper_navy_fire_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_navy_up",
+      "file": "enemy_trooper_navy_up_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_olive",
+      "file": "enemy_trooper_olive_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_olive_death",
+      "file": "enemy_trooper_olive_death_sheet.png",
+      "frames": 7,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_olive_fire",
+      "file": "enemy_trooper_olive_fire_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_olive_up",
+      "file": "enemy_trooper_olive_up_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_trooper_up",
+      "file": "enemy_trooper_up_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_turret",
+      "file": "enemy_turret_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "fx_explosion",
+      "file": "fx_explosion_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "fx_muzzle_flash",
+      "file": "fx_muzzle_flash_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_centrifuge",
+      "file": "objective_centrifuge_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_factory",
+      "file": "objective_factory_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_radar",
+      "file": "objective_radar_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_reactor",
+      "file": "objective_reactor_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "pickup_flame",
+      "file": "pickup_flame_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "pickup_laser",
+      "file": "pickup_laser_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "pickup_med",
+      "file": "pickup_med_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "pickup_spread",
+      "file": "pickup_spread_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_air_diag",
+      "file": "player_air_diag_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_air_down_diag",
+      "file": "player_air_down_diag_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_air_forward",
+      "file": "player_air_forward_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_air_up",
+      "file": "player_air_up_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_climb",
+      "file": "player_climb_sheet.png",
+      "frames": 8,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_climb_diag",
+      "file": "player_climb_diag_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_climb_down",
+      "file": "player_climb_down_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_climb_down_diag",
+      "file": "player_climb_down_diag_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_climb_forward",
+      "file": "player_climb_forward_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_climb_up",
+      "file": "player_climb_up_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_crouch",
+      "file": "player_crouch_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_hang",
+      "file": "player_hang_sheet.png",
+      "frames": 8,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_hang_diag",
+      "file": "player_hang_diag_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_hang_down",
+      "file": "player_hang_down_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_hang_down_diag",
+      "file": "player_hang_down_diag_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_hang_forward",
+      "file": "player_hang_forward_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_hang_up",
+      "file": "player_hang_up_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_idle",
+      "file": "player_idle_sheet.png",
       "frames": 6,
       "frame_w": 160,
       "frame_h": 160
@@ -35,15 +518,29 @@
       "frame_h": 160
     },
     {
-      "base": "player_run",
-      "file": "player_run_sheet.png",
-      "frames": 8,
+      "base": "player_idle_up",
+      "file": "player_idle_up_sheet.png",
+      "frames": 6,
       "frame_w": 160,
       "frame_h": 160
     },
     {
-      "base": "player_run_up",
-      "file": "player_run_up_sheet.png",
+      "base": "player_jump",
+      "file": "player_jump_sheet.png",
+      "frames": 6,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_roll",
+      "file": "player_roll_sheet.png",
+      "frames": 4,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "player_run",
+      "file": "player_run_sheet.png",
       "frames": 8,
       "frame_w": 160,
       "frame_h": 160
@@ -63,261 +560,9 @@
       "frame_h": 160
     },
     {
-      "base": "player_jump",
-      "file": "player_jump_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "player_air_forward",
-      "file": "player_air_forward_sheet.png",
-      "frames": 4,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "player_air_up",
-      "file": "player_air_up_sheet.png",
-      "frames": 4,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "player_air_diag",
-      "file": "player_air_diag_sheet.png",
-      "frames": 4,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "player_air_down_diag",
-      "file": "player_air_down_diag_sheet.png",
-      "frames": 4,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "player_crouch",
-      "file": "player_crouch_sheet.png",
-      "frames": 2,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "player_roll",
-      "file": "player_roll_sheet.png",
-      "frames": 4,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "player_climb",
-      "file": "player_climb_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper",
-      "file": "enemy_trooper_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_fire",
-      "file": "enemy_trooper_fire_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_up",
-      "file": "enemy_trooper_up_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_death",
-      "file": "enemy_trooper_death_sheet.png",
-      "frames": 7,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_olive",
-      "file": "enemy_trooper_olive_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_olive_fire",
-      "file": "enemy_trooper_olive_fire_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_olive_up",
-      "file": "enemy_trooper_olive_up_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_olive_death",
-      "file": "enemy_trooper_olive_death_sheet.png",
-      "frames": 7,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_crimson",
-      "file": "enemy_trooper_crimson_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_crimson_fire",
-      "file": "enemy_trooper_crimson_fire_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_crimson_up",
-      "file": "enemy_trooper_crimson_up_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_crimson_death",
-      "file": "enemy_trooper_crimson_death_sheet.png",
-      "frames": 7,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_navy",
-      "file": "enemy_trooper_navy_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_navy_fire",
-      "file": "enemy_trooper_navy_fire_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_navy_up",
-      "file": "enemy_trooper_navy_up_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_trooper_navy_death",
-      "file": "enemy_trooper_navy_death_sheet.png",
-      "frames": 7,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_drone",
-      "file": "enemy_drone_sheet.png",
-      "frames": 4,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_turret",
-      "file": "enemy_turret_sheet.png",
-      "frames": 3,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "enemy_mech",
-      "file": "enemy_mech_sheet.png",
-      "frames": 6,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "objective_centrifuge",
-      "file": "objective_centrifuge_sheet.png",
-      "frames": 2,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "objective_factory",
-      "file": "objective_factory_sheet.png",
-      "frames": 2,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "objective_reactor",
-      "file": "objective_reactor_sheet.png",
-      "frames": 3,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "objective_radar",
-      "file": "objective_radar_sheet.png",
-      "frames": 2,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "pickup_med",
-      "file": "pickup_med_sheet.png",
-      "frames": 3,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "pickup_spread",
-      "file": "pickup_spread_sheet.png",
-      "frames": 3,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "pickup_laser",
-      "file": "pickup_laser_sheet.png",
-      "frames": 3,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "pickup_flame",
-      "file": "pickup_flame_sheet.png",
-      "frames": 3,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "fx_muzzle_flash",
-      "file": "fx_muzzle_flash_sheet.png",
-      "frames": 3,
-      "frame_w": 160,
-      "frame_h": 160
-    },
-    {
-      "base": "fx_explosion",
-      "file": "fx_explosion_sheet.png",
-      "frames": 6,
+      "base": "player_run_up",
+      "file": "player_run_up_sheet.png",
+      "frames": 8,
       "frame_w": 160,
       "frame_h": 160
     }

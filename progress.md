@@ -155,6 +155,182 @@
 - No `errors-*.json` files in the final `v2` validation folders.
 - For guaranteed progress, use local fallback sprite generation script (`tools/generate_local_svg_sprite_pack.mjs`) or switch to a keyed provider.
 
+## Cavern Art + Longer Levels Pass
+
+- Integrated the newly added cavern/industrial environment art directly into `game.js`:
+  - `cb4dffda-pixel-art-crystalline-cave-glowing-geodes-underground-compressed.jpg`
+  - `aHR0cHM6Ly9iLnN0YWJsZWNvZy5jb20vODc5ZmE3MDUtYTQ5Ny00OTE1LTgyMjUtZjM3YzdjNjMyZjc3LmpwZWc.webp`
+  - `Free-Industrial-Zone-Tileset-Pixel-Art5-720x480.webp`
+  - `deshfsw-418d0116-ef10-4106-871a-7154fdadafdf.png`
+- Added environment-art loaders plus reusable backdrop/tile drawing helpers:
+  - `loadEnvironmentArt()`
+  - `drawBackdropLayer()`
+  - `drawEnvironmentCrop()`
+- Cave backgrounds now layer user-provided cavern images behind the existing parallax silhouettes, plus a subtler industrial silhouette pass for underground structure depth.
+- Traversal pieces now borrow the imported tile atlas so:
+  - catwalks
+  - climb grates
+  - hang bars
+  - pillars / barriers
+  read more like built map pieces instead of flat debug geometry.
+- Increased the environment crop alpha on platforms, grates, pillars, and hang bars so the supplied tile art shows up more clearly in gameplay.
+
+### Level Length Extensions
+
+- Extended all three levels with additional traversal sections, checkpoints, and combat spacing:
+  - Level 1 `Subterranean Breach`: `7600 -> 10300`
+  - Level 2 `Arc Mountains`: `6200 -> 7800`
+  - Level 3 `Tidal Core`: `6600 -> 8200`
+- Added more:
+  - platforms
+  - climbables
+  - hangables
+  - obstacles
+  - hazards
+  - spawns
+  - pickups
+  - checkpoints
+- Pushed each boss arena deeper so the new sections are part of the intended route rather than filler before the old boss gate.
+- Updated the level intro copy to mention hanging rails alongside grates/catwalks.
+
+### Debug / Validation Support
+
+- Added extended-section debug scenarios:
+  - `?scenario=level1-extended-check`
+  - `?scenario=level2-extended-check`
+  - `?scenario=level3-extended-check`
+- Added `window.__nuclear_commando_debug.setupLevelSectionCheck(levelIndex, checkpointIndex)` for deterministic section snapshots.
+- Hid the large pause card during extended-section and vertical-scroll debug captures so the map layout stays readable in screenshots.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Browser validation used the bundled Playwright client through a short-lived local HTTP server helper because loading the new JPG/WEBP cave art over `file://` taints the canvas export path.
+- No `errors-*.json` files were generated in:
+  - `output/web-game-longer-pass-start-v2`
+  - `output/web-game-level1-extended-v2`
+  - `output/web-game-level2-extended-v2`
+  - `output/web-game-level3-extended-v2`
+  - `output/web-game-vertical-scroll-v5`
+- Verified state dumps:
+  - Level 2 extended scene reports `level.index: 1`, `name: "Arc Mountains"`, `platforms: 13`, `climbables: 9`, `hangables: 6`
+  - Level 3 extended scene reports `level.index: 2`, `name: "Tidal Core"`, `platforms: 13`, `climbables: 9`, `hangables: 6`
+- Visual checks confirm:
+  - user cavern backgrounds are visible in level 1 / vertical sections
+  - tile textures now read more clearly on catwalks and climbables
+
+## Cave Variant Polish Pass
+
+- Pushed levels 2 and 3 further away from level 1 visually by expanding the cave preset system in `game.js`:
+  - per-variant backdrop image mixes
+  - per-variant atmospheric veils
+  - per-variant dust / fog / floor-glow tuning
+  - darker basalt bunker mood for level 2
+  - colder teal coolant mood for level 3
+- Added authored room-light styling to the new scenery chunks:
+  - level 2 chunks now use brighter steel-blue lights and lines
+  - level 3 chunks now use teal reactor/coolant lights and lines
+- Added optional `coreGlow` support to scenery chunks so long shafts can carry a stronger visual center instead of reading as flat boxes.
+- Updated level 2 and level 3 cave palettes so their sky/back/mid/floor ramps now support the new underground look rather than inheriting too much of the original surface palette feel.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Revalidated with the bundled Playwright client through a short-lived local HTTP server and a splash click so the debug scenarios actually engaged.
+- No `errors-*.json` files were generated in:
+  - `output/web-game-level1-extended-v5`
+  - `output/web-game-level2-extended-v5`
+  - `output/web-game-level3-extended-v5`
+  - `output/web-game-vertical-scroll-v8`
+- Visual checks confirm:
+  - level 1 still reads as the crystal-heavy base look
+  - level 2 now reads darker / more basalt-industrial
+  - level 3 now reads more teal / coolant-heavy
+  - the vertical climbing shaft still composes cleanly after the preset changes
+
+## Boss Death Sequence Pass
+
+- Added a dedicated `bossDeath` phase in `game.js` so bosses no longer disappear instantly on kill.
+- Boss kills now trigger a 5-second meltdown sequence before the level-clear card:
+  - repeated explosion bursts across the boss body
+  - escalating flash intensity toward the end of the sequence
+  - boss flicker/jitter while the meltdown is active
+  - HUD boss bar switches to a `CORE MELTDOWN` countdown-style depletion
+- Level-clear / next-level progression now waits until the meltdown finishes.
+- Added debug helpers and scenarios for validation:
+  - `?scenario=boss-death-check`
+  - `?scenario=boss-death-finish-check`
+- Updated the boss debug harness so arena validation isolates the boss fight properly:
+  - clears stray enemies/projectiles
+  - positions the camera in the boss arena before captures
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright visual validation passed with start click and no error logs:
+  - meltdown mid-sequence: `output/web-game-boss-death-v2/shot-0.png`
+  - post-meltdown clear screen: `output/web-game-boss-clear-after-death-v2/shot-0.png`
+  - next-level progression smoke: `output/web-game-boss-next-level-v1/shot-0.png`
+- State verification:
+  - meltdown snapshot reports `mode:"paused"` with `boss.dying:true` and `bossDeath.t:2.9`
+  - clear snapshot reports `mode:"levelClear"` with `boss:null` and `bossDeath:null`
+  - longer checkpoint-driven routes are present in all levels
+
+## Nuclear Whiteout Pass
+
+- Extended the boss-death sequence from a single 5-second meltdown into a two-stage 10-second finish:
+  - first 5 seconds: escalating meltdown explosions
+  - next 5 seconds: full-screen nuclear whiteout and fade-back
+- Bosses are now removed at the start of the nuclear flash, so they are gone before the scene fades back in.
+- Added whole-screen blast shake tied to the boss-death state so the detonation hits harder visually.
+- Added helper logic in `game.js` for:
+  - `getBossDeathScreenShake()`
+  - `getBossWhiteoutAlpha()`
+- Updated boss-death debug timing so we can capture:
+  - mid-meltdown
+  - mid-whiteout with the boss already gone
+  - post-whiteout clear screen
+- Extended `render_game_to_text()` with boss-death whiteout metadata for easier validation.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright validation passed with long settle time and no `errors-*.json` files:
+  - meltdown: `output/web-game-boss-death-v4/shot-0.png`
+  - whiteout: `output/web-game-boss-whiteout-v2/shot-0.png`
+  - post-whiteout clear: `output/web-game-boss-clear-after-whiteout-v2/shot-0.png`
+- State verification:
+  - whiteout snapshot reports `boss:null`, `bossDeath.detonated:true`, `bossDeath.whiteoutAlpha:0.97`
+  - clear snapshot reports `mode:"levelClear"` with `boss:null` and `bossDeath:null`
+
+## Audio Rename Pass
+
+- Renamed the added music tracks under `assets/sfx` to stable semantic filenames:
+  - `music_stage_01_lightning_and_grenades.mp3`
+  - `music_stage_02_military_fortress.mp3`
+  - `music_stage_03_jungle.mp3`
+  - `music_stage_04_mechanic_factory.mp3`
+  - `music_stage_05_perilous_cliff.mp3`
+  - `music_stage_06_under_the_feet.mp3`
+  - `music_stage_07_xenophobic_organs.mp3`
+  - `music_stage_08_the_falling_wall.mp3`
+  - `music_boss_main.mp3`
+  - `music_boss_simple.mp3`
+  - `music_stage_clear.mp3`
+  - `music_campaign_clear.mp3`
+  - `music_helicopter_return_stinger.mp3`
+  - `music_game_over.mp3`
+  - `music_stinger_steel_spider.mp3`
+- Normalized the numbered unlabeled sound effects to stable IDs:
+  - `sfx_01.mp3` through `sfx_28.mp3`
+- Added [manifest.json](C:/Users/drhoo/OneDrive/Documents/GitHub/Nuclear-Commando/assets/sfx/manifest.json) with a clean list of renamed music tracks and placeholder SFX keys.
+- Important note:
+  - I cannot literally listen by ear from this terminal session, so the numbered SFX were normalized rather than semantically guessed. They are ready to be mapped once we audition them in-game.
+
+### Next Notes
+
+- If another pass is needed, the biggest visual opportunity is making levels 2 and 3 lean harder into the cavern imagery the way level 1 now does; they currently read more industrial/blue because of their composition and camera placement.
+
 ## Local SVG Generator Adoption
 
 - Switched to local deterministic sprite workflow per user request.
@@ -1060,3 +1236,289 @@
 - State checks confirm:
   - right recoil scene: `pose:"player_idle_up"`, `muzzleFlash:true`, `facing:1`
   - left up scene: `pose:"player_idle_up"`, `facing:-1`, `visualFacing:-1`
+
+## Aspect Preservation Pass
+
+- Reworked character sprite flipping in `game.js` so player/enemy sprites no longer squash horizontally during smooth turn transitions.
+- `drawSprite()` now preserves aspect for character art and uses a full-size left/right alpha blend for in-between facing values instead of scaling width through zero.
+- Added `turn-blend-check` debug scenario for verifying mid-turn rendering without gameplay noise.
+- Fixed `render_game_to_text()` so `visualFacing` reports the true in-between value instead of collapsing `0` to the facing sign.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright scenario captures rerun with start click + paused debug scenes:
+  - `output/web-game-diag-right-v4/shot-0.png`
+  - `output/web-game-climb-diag-v4/shot-0.png`
+  - `output/web-game-turn-blend-v3/shot-0.png`
+- State verification:
+  - diagonal run pose reports `pose:"player_run_diag"`
+  - climb pose reports `pose:"player_climb"`, `climbing:true`
+  - turn blend reports `visualFacing:-0.18`
+- Console still logs one existing `Failed to load resource: net::ERR_CONNECTION_REFUSED` entry during automated runs; no new syntax/runtime crash was introduced by the aspect fix.
+
+## Hang + Checkpoint + Vertical Pass
+
+- Added dedicated hang animation families derived from the imported Super Probotector sheet:
+  - `player_hang`
+  - `player_hang_up`
+  - `player_hang_diag`
+  - `player_hang_forward`
+  - `player_hang_down_diag`
+  - `player_hang_down`
+- Added these new hang strips to `sheet_manifest.json`, rebuilt sheets, and reimported the frame manifest.
+- Split traversal pose routing so ladders use `player_climb*` while bars use `player_hang*`.
+- Added hang-specific muzzle anchors and reach handling so firing while hanging follows the correct pose family.
+- Added extra hang-bar routes to levels 2 and 3 so hanging is part of the campaign structure, not only the first shaft.
+- Added checkpoint activation logic in `updateFlow()` and checkpoint beacon rendering in `drawTraversal()`.
+- Added/updated debug scenarios:
+  - `?scenario=hang-aimlock-diag-check`
+  - `?scenario=hang-forward-check`
+  - `?scenario=checkpoint-check`
+- Improved debug scenario reliability by waiting for sprite loading before executing URL-driven setup scenes.
+- Updated splash/help copy in `game.js` and `index.html` to mention hang bars.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- `python -m py_compile tools/build_superprobotector_player_pack.py tools/import_png_sprite_sheets.py` passed.
+- Rebuilt/imported player sheets:
+  - `python tools/build_superprobotector_player_pack.py --overwrite`
+  - `python tools/import_png_sprite_sheets.py --overwrite`
+- Playwright validation states/screens passed:
+  - hanging aim-lock: `output/web-game-hang-aim-v3/shot-0.png`
+    - state: `hanging:true`, `aimLock:true`, `pose:"player_hang_diag"`
+  - climb diagonal: `output/web-game-climb-diag-v6/shot-0.png`
+    - state: `climbing:true`, `pose:"player_climb_diag"`
+  - checkpoint activation: `output/web-game-checkpoint-v3/shot-0.png`
+    - state checkpoint became `l1-cp-1`
+  - vertical shaft framing: `output/web-game-vertical-scroll-v3/shot-0.png`
+    - state camera: `cameraY:-211`
+- No `errors-0.json` files were produced for the final `v3/v6` validation captures.
+
+## Bullet Alignment + Size Pass
+
+- Fixed bullet spawn alignment after the aspect-preservation renderer change.
+- Added `getSpriteDrawMetrics()` so muzzle anchors now use the actual fitted sprite draw box instead of the old full render box.
+- Updated player muzzle placement to compute against the real animated frame currently on screen.
+- Updated enemy muzzle placement to do the same for trooper/turret/mech/boss shots.
+- Tuned player muzzle anchor offsets slightly so forward/diag/up/down shots sit closer to the weapon barrel line.
+- Reduced bullet radii globally by `50%` for both player and enemy projectiles.
+- Reduced trail stroke minimum width and glow radius to match the smaller projectile size.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright muzzle validation passed:
+  - `output/web-game-muzzle-check-v5/shot-0.png`
+  - state shows `bullets.player:1`, `bullets.enemy:1`, `muzzleFlash:true`
+- No `errors-0.json` file was produced for the final muzzle validation.
+
+## Flash Tip + Trooper Scale Match
+
+- Added `TROOPER_VISUAL_SCALE` so troopers match the player's 32x48 body scale instead of inheriting the smaller 28x44 base box directly.
+- Added `MUZZLE_FLASH_FORWARD_OFFSET` and moved both player and enemy flash blooms slightly forward along their aim vector so the flash sits on the barrel tip instead of inside the sprite.
+- Kept bullet spawn math on the real fitted sprite bounds, so the flash lead is visual-only and does not reintroduce knee/torso bullet drift.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright muzzle validation rerun with start click + debug scene:
+  - `output/web-game-muzzle-check-v7/shot-0.png`
+  - state shows `mode:"paused"`, `muzzleFlash:true`, `bullets.player:1`, `bullets.enemy:1`
+- No `errors-0.json` file was produced for the final `v7` validation capture.
+
+## Precision Muzzle Raise
+
+- Raised the default player forward muzzle anchor from `{ x: 0.81, y: 0.43 }` to `{ x: 0.83, y: 0.39 }` so rifle shots align more cleanly with the imported standing fire frame.
+- Nudged the trooper forward-fire muzzle anchor upward from `y: 0.38` to `y: 0.35` so enemy rounds also sit closer to the barrel line.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright muzzle validation rerun with start click + debug scene:
+  - `output/web-game-muzzle-check-v8/shot-0.png`
+  - state shows `mode:"paused"`, `muzzleFlash:true`, `bullets.player:1`, `bullets.enemy:1`
+- No `errors-0.json` file was produced for the final `v8` validation capture.
+
+## Ground Diagonal Aim Fix
+
+- Corrected `player_idle_diag_sheet.png` in `tools/build_superprobotector_player_pack.py` to use the actual diagonal-up source frames (`22/23`) instead of the mistaken forward-fire frames.
+- Rebuilt and reimported the PNG player sheets so the browser now loads the corrected diagonal art.
+- Limited player recoil offset in `drawPlayer()` to forward left/right poses (`player_idle` / `player_run`) so diagonal aim no longer bounces vertically when firing.
+- Kept grounded diagonal idle poses on their base diagonal art during muzzle flash, while climb/hang angle-specific fire frames remain available.
+- Added dedicated grounded debug scenarios:
+  - `?scenario=ground-aimlock-diag-check`
+  - `?scenario=ground-aimlock-diag-fire-check`
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- `python -m py_compile tools/build_superprobotector_player_pack.py tools/import_png_sprite_sheets.py` passed.
+- Rebuilt/imported sheets:
+  - `python tools/build_superprobotector_player_pack.py --overwrite`
+  - `python tools/import_png_sprite_sheets.py --overwrite`
+- Playwright captures passed with no error files:
+  - `output/web-game-ground-aimlock-diag-v2/shot-0.png`
+  - `output/web-game-ground-aimlock-diag-fire-v2/shot-0.png`
+- State verification:
+  - grounded diagonal pose reports `pose:"player_idle_diag"` with `aim.mode:"diag"`
+  - grounded diagonal fire reports `pose:"player_idle_diag"`, `muzzleFlash:true`, `bullets.player:1`
+
+## Boss / Miniboss Sheet Import Pass
+
+- Inspected the new boss/miniboss sprite sheets added under `assets/sprites`.
+- The showcase atlas pages (`4151960d-...png`, `cf675bec-...png`, `2c75dceb-...png`, `9fcdce5d-...png`) were reviewed first, but their panel chrome/text makes them better suited to a later manual crop pass or boss-intro art.
+- Used the clean black-background source sheet `assets/sprites/b18a73cc-f03f-4167-afef-fcb5df893387.png` as the live gameplay import source because it slices cleanly into isolated transparent boss parts.
+- Added `tools/build_boss_sprite_sheets.py` to:
+  - slice the clean black source sheet into standalone frames
+  - repack selected frames into 160x160 PNG strips
+  - update `assets/sprites/sheets/png16/sheet_manifest.json`
+- Generated and imported live strips for:
+  - `enemy_mech_crawler_idle / walk / attack`
+  - `enemy_boss_giantskull_idle / walk / attack`
+  - `enemy_boss_demonspider_idle / walk / attack`
+  - `enemy_boss_cyberbrute_idle / walk / attack`
+- Reimported the PNG frame pipeline:
+  - `python tools/build_boss_sprite_sheets.py --overwrite`
+  - `python tools/import_png_sprite_sheets.py --overwrite`
+- Wired runtime style routing in `game.js`:
+  - level 1 boss -> `giantskull`
+  - level 2 boss -> `demonspider`
+  - level 3 boss -> `cyberbrute`
+  - mech minibosses -> `crawler`
+- Added focused debug scenes for visual validation:
+  - `?scenario=boss-style-check`
+  - `?scenario=boss-demonspider-check`
+  - `?scenario=boss-cyberbrute-check`
+  - `?scenario=mech-style-check`
+- Added a small debug-only pause-overlay bypass for those inspection scenes so boss bodies remain visible in captures.
+- Fixed the runtime renderer bug where style tables used `base` instead of `baseKey`; before this fix, bosses/mechs fell back to the orange placeholder despite valid manifest entries.
+
+### Validation (this pass)
+
+- `python -m py_compile tools/build_boss_sprite_sheets.py` passed.
+- `python tools/build_boss_sprite_sheets.py --overwrite` passed.
+- `python tools/import_png_sprite_sheets.py --overwrite` passed.
+- `node --check game.js` passed.
+- Direct strip inspection passed:
+  - `assets/sprites/sheets/png16/enemy_boss_giantskull_walk_sheet.png`
+  - `assets/sprites/sheets/png16/enemy_boss_demonspider_walk_sheet.png`
+  - `assets/sprites/sheets/png16/enemy_boss_cyberbrute_walk_sheet.png`
+  - `assets/sprites/sheets/png16/enemy_mech_crawler_attack_sheet.png`
+- Playwright visual validation passed after fixing the `baseKey` mapping:
+  - `output/web-game-boss-giantskull-v5/shot-0.png`
+  - `output/web-game-boss-demonspider-v4/shot-0.png`
+  - `output/web-game-boss-cyberbrute-v4/shot-0.png`
+  - `output/web-game-mech-crawler-v5/shot-0.png`
+  - live encounter smoke test: `output/web-game-skip-boss-style-v1/shot-0.png`
+- The only console issue still present in those browser runs was the existing `ERR_CONNECTION_REFUSED` resource error, which predates the sprite import and did not block the new boss art from loading.
+
+## Hang Drop Release Fix
+
+- Fixed the overhead-bar hang trap where the player could get stuck hanging with no clean way to fall.
+- Added explicit bar release on `Down` while hanging when `X` aim-lock is not held.
+- Reused a short release timer (`PLAYER_HANG_RELEASE`) so the player does not instantly re-grab the same bar on the next frame.
+- Kept `X` hanging aim-lock behavior intact, so `X + direction` still works for hanging combat while plain `Down` releases the bar.
+- Updated control text in both the DOM splash and the in-canvas splash card to show `Drop From Bars: Hold Down`.
+- Added debug scenario `?scenario=hang-drop-check` for automated validation.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Playwright hang-drop validation passed:
+  - `output/web-game-hang-drop-v4/shot-0.png`
+  - state after input: `hanging:false`, `onGround:true`, `support:"platform"`
+- Gameplay smoke test passed after the traversal fix:
+  - `output/web-game-smoke-after-hangfix-v1/shot-0.png`
+  - state shows normal level start flow with no hang regression.
+- No `errors-0.json` file was produced for the final hang-drop or smoke captures.
+
+## Extra Boss Atlas Follow-Up
+
+- Built a repeatable atlas importer for additional boss/miniboss sheets in `tools/build_boss_sprite_sheets.py`.
+- Added extraction recipes for:
+  - `Iron Skull Commander`
+  - `Skull Tank`
+  - `Mech Walker`
+- Rebuilt/imported those strips into the sprite manifest successfully.
+- I did **not** leave those new atlas-derived encounters active in the live levels yet:
+  - `Iron Skull` and `Skull Tank` still need one more cleanup pass to remove remaining atlas/panel background contamination.
+  - `Mech Walker` frames import correctly on disk, but the live runtime draw path still needs one more pass before it can replace the stable mech without placeholders.
+- The stable live level enemy roster was restored after validation so the hang fix ships cleanly without regressing gameplay visuals.
+
+## Audio Integration Pass
+
+- Added a real browser audio layer in `game.js`:
+  - inline audio manifest support via `window.NUCLEAR_COMMANDO_AUDIO_MANIFEST`
+  - stage music, boss music, clear/game-over stingers
+  - pooled SFX playback with per-event throttling
+  - persistent mute + volume prefs through `localStorage`
+  - `M` mute toggle
+- Wired audio events into gameplay flow:
+  - campaign start
+  - stage transitions
+  - boss encounter
+  - checkpoint activation
+  - jumping
+  - player fire / enemy fire
+  - pickups and upgrades
+  - hits, deaths, explosions, nuclear blast
+- Added browser-safe audio bundle files:
+  - `assets/sfx/manifest.json`
+  - `assets/sfx/manifest.js`
+- Added `audio-lab.html` for in-browser preview/remapping of the numbered SFX without editing code.
+- Updated `index.html` and `styles.css` so the splash exposes:
+  - `Mute: M`
+  - `Open Audio Lab`
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Splash validation:
+  - screenshot: `output/web-game-audio-splash-v1/shot-0.png`
+  - state confirms `audio.enabled:true`, `audio.unlocked:false`
+- Gameplay validation:
+  - screenshot: `output/web-game-audio-gameplay-v1/shot-0.png`
+  - state: `output/web-game-audio-gameplay-v1/state-0.json`
+  - confirms `audio.currentMusicKey:"stage1"`
+  - no `errors-0.json`
+- Boss validation:
+  - screenshot: `output/web-game-audio-boss-v1/shot-0.png`
+  - state confirms `audio.currentMusicKey:"boss_main"`
+  - no `errors-0.json`
+- Audio lab validation:
+  - screenshot: `output/web-game-audio-lab-v1/shot-0.png`
+  - no `errors-0.json`
+
+### Notes / TODO
+
+- The numbered SFX are still provisional mappings. Use `audio-lab.html` to audition and remap them properly by ear.
+- One gameplay Playwright run timed out after producing valid artifacts once looping audio was active, but the generated screenshot/state were valid and the follow-up boss/audio-lab runs completed cleanly.
+
+## Music Ducking Pass
+
+- Added dynamic music ducking in `game.js` so louder SFX briefly push the BGM down and then let it recover smoothly.
+- Audio state now tracks:
+  - `musicDuck`
+  - `musicDuckTarget`
+  - `musicDuckHoldT`
+  - attack/release tuning for the recovery curve
+- Added `updateAudio(dt)` into the main step loop so ducking continues during gameplay and boss-death explosions.
+- Tuned ducking depth per event instead of treating all sounds the same:
+  - light duck: jump, pickups
+  - medium duck: rifle fire, enemy shots, player hits
+  - heavy duck: explosions, boss alarms, player death
+  - strongest duck: nuclear blast
+- Added duck state to `render_game_to_text` under `audio.duck` and `audio.duckTarget`.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Live combat validation screenshot:
+  - `output/web-game-audio-duck-live-v1/shot-0.png`
+- Live combat state:
+  - `output/web-game-audio-duck-live-v1/state-0.json`
+  - confirms `audio.currentMusicKey:"stage1"`
+  - confirms active ducking with `audio.duck:0.69`
+- The existing browser console `ERR_CONNECTION_REFUSED` resource error still appears in one capture run, but it predates the ducking logic and did not block audio state or rendering.

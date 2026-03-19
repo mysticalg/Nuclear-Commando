@@ -6,7 +6,8 @@ Frame notes from the extracted contact sheet:
 - 0-15: standing, aiming, crouch, prone, roll
 - 16-39: contiguous run / aim-up / aim-diagonal loops
 - 52-61: airborne aiming
-- 62-81: climb / ladder poses (catalogued for future ladder support)
+- 62-74: traversal aim poses
+- 75-81: hang / ladder traverse cycle
 - 82-87: leap / tumble / landing / prone
 """
 
@@ -25,7 +26,7 @@ DEFAULT_SHEET_DIR = "assets/sprites/sheets/png16"
 PACK_MAP = {
     "player_idle_sheet.png": [0, 1, 0, 1, 0, 1],
     "player_idle_up_sheet.png": [2, 3, 2, 3, 2, 3],
-    "player_idle_diag_sheet.png": [4, 5, 4, 5, 4, 5],
+    "player_idle_diag_sheet.png": [22, 23, 22, 23, 22, 23],
     "player_idle_down_diag_sheet.png": [40, 43, 40, 43, 40, 43],
     "player_run_sheet.png": [16, 17, 18, 19, 20, 21, 18, 19],
     "player_run_up_sheet.png": [22, 23, 24, 25, 26, 27, 24, 25],
@@ -38,7 +39,18 @@ PACK_MAP = {
     "player_air_down_diag_sheet.png": [52, 53, 52, 53],
     "player_crouch_sheet.png": [8, 9],
     "player_roll_sheet.png": [12, 13, 14, 15],
-    "player_climb_sheet.png": [65, 66, 67, 68, 69, 70],
+    "player_climb_sheet.png": [75, 76, 77, 78, 79, 80, 81, 80],
+    "player_climb_up_sheet.png": [65, 66, 65, 66],
+    "player_climb_diag_sheet.png": [67, 68, 67, 68],
+    "player_climb_forward_sheet.png": [69, 70, 69, 70],
+    "player_climb_down_diag_sheet.png": [71, 72, 71, 72],
+    "player_climb_down_sheet.png": [73, 74, 73, 74],
+    "player_hang_sheet.png": [75, 76, 77, 78, 79, 80, 81, 80],
+    "player_hang_up_sheet.png": [65, 66, 65, 66],
+    "player_hang_diag_sheet.png": [67, 68, 67, 68],
+    "player_hang_forward_sheet.png": [69, 70, 69, 70],
+    "player_hang_down_diag_sheet.png": [71, 72, 71, 72],
+    "player_hang_down_sheet.png": [73, 74, 73, 74],
 }
 
 ALIGN_OVERRIDES = {
@@ -58,6 +70,17 @@ ALIGN_OVERRIDES = {
     "player_air_diag_sheet.png": {"fit_h": 126, "bottom": 142},
     "player_air_down_diag_sheet.png": {"fit_h": 126, "bottom": 142},
     "player_climb_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_climb_up_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_climb_diag_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_climb_forward_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_climb_down_diag_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_climb_down_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_hang_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_hang_up_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_hang_diag_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_hang_forward_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_hang_down_diag_sheet.png": {"fit_h": 136, "bottom": 150},
+    "player_hang_down_sheet.png": {"fit_h": 136, "bottom": 150},
 }
 
 
@@ -89,8 +112,6 @@ def compose_canvas(src: Image.Image, bottom: int, fit_w: int, fit_h: int) -> Ima
     y = bottom - fitted.height
     canvas.alpha_composite(fitted, (x, y))
     return canvas
-
-
 def compose_strip(frames: Iterable[Image.Image]) -> Image.Image:
     frames = list(frames)
     strip = Image.new("RGBA", (FRAME * len(frames), FRAME), (0, 0, 0, 0))
