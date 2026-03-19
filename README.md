@@ -264,3 +264,8 @@ If a key is missing, the game falls back to built-in procedural art.
 
 Do not use ripped copyrighted sprite sheets (for example commercial Contra/Probotector sheets) unless you have explicit rights.  
 Use your own generated art, original art, or properly licensed packs.
+
+## Support
+
+If you'd like to support this project, you can buy me a coffee:
+[buymeacoffee.com/dhooksterm](https://buymeacoffee.com/dhooksterm)
