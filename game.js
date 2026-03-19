@@ -32,6 +32,13 @@
   const MAX_BLOOD_PARTICLES = 320;
   const BULLET_RADIUS_SCALE = 0.5;
   const MUZZLE_FLASH_FORWARD_OFFSET = 2.5;
+  const PLAYER_CANONICAL_BOUNDS = Object.freeze({ sx: 31 / 160, sy: 21 / 160, sw: 98 / 160, sh: 123 / 160 });
+  const SMART_BOMB_GROW_DURATION = 3.2;
+  const SMART_BOMB_FLASH_DURATION = 0.22;
+  const SMART_BOMB_WHITEOUT_HOLD = 0.72;
+  const SMART_BOMB_FADE_DURATION = 1.45;
+  const SMART_BOMB_DURATION = SMART_BOMB_GROW_DURATION + SMART_BOMB_FLASH_DURATION + SMART_BOMB_WHITEOUT_HOLD + SMART_BOMB_FADE_DURATION;
+  const SMART_BOMB_MAX_RADIUS = 1360;
   const BOSS_DEATH_DURATION = 5;
   const BOSS_WHITEOUT_DURATION = 5;
   const BOSS_DEATH_TOTAL_DURATION = BOSS_DEATH_DURATION + BOSS_WHITEOUT_DURATION;
@@ -776,6 +783,7 @@
     explosions: [],
     corpses: [],
     bloodParticles: [],
+    smartBombs: [],
     acc: 0,
   };
   const audioState = {
@@ -1616,6 +1624,7 @@
       airT: 0,
       weapon: prev ? prev.weapon : "RIFLE",
       bag: newLoadout(prev ? prev.bag : null),
+      smartBombs: prev ? prev.smartBombs : 2,
     };
   }
 
@@ -1643,6 +1652,7 @@
     state.explosions = [];
     state.corpses = [];
     state.bloodParticles = [];
+    state.smartBombs = [];
     state.pickups = lvl.pickups.map((p, idx) => ({ id: `p-${idx}`, ...p, w: 24, h: 24, vy: 0, bob: rand(0, Math.PI * 2) }));
 
     if (!keepPlayer || !state.player) {
@@ -1726,6 +1736,8 @@
     if (DEBUG_SCENARIO === "muzzle-check") window.__nuclear_commando_debug.setupMuzzleCheck();
     if (DEBUG_SCENARIO === "blood-check") window.__nuclear_commando_debug.setupBloodCheck();
     if (DEBUG_SCENARIO === "audio-duck-check") window.__nuclear_commando_debug.setupAudioDuckCheck();
+    if (DEBUG_SCENARIO === "smart-bomb-check") window.__nuclear_commando_debug.setupSmartBombCheck(2.15);
+    if (DEBUG_SCENARIO === "smart-bomb-fade-check") window.__nuclear_commando_debug.setupSmartBombCheck(4.45);
   }
 
   function runDebugScenarioWhenReady(tries = 120) {
@@ -1781,6 +1793,7 @@
     p.invuln = 1.4;
     state.bullets = [];
     state.enemyBullets = [];
+    state.smartBombs = [];
     say(`<strong>Life Lost</strong><br>${state.lives} lives remaining.`, 2);
   }
 
@@ -1867,6 +1880,31 @@
     return clamp(1 - (whiteT - hold) / Math.max(0.001, BOSS_WHITEOUT_DURATION - hold), 0, 1);
   }
 
+  function getSmartBombRadius(bomb) {
+    const growT = clamp((bomb?.t || 0) / Math.max(0.001, bomb?.growDuration || SMART_BOMB_GROW_DURATION), 0, 1);
+    return (bomb?.maxRadius || SMART_BOMB_MAX_RADIUS) * Math.pow(growT, 1.08);
+  }
+
+  function getSmartBombWhiteoutAlphaFor(bomb) {
+    if (!bomb) return 0;
+    const flashStart = bomb.growDuration || SMART_BOMB_GROW_DURATION;
+    const flashDuration = bomb.flashDuration || SMART_BOMB_FLASH_DURATION;
+    const flashEnd = flashStart + flashDuration;
+    const holdEnd = flashEnd + (bomb.whiteoutHold || SMART_BOMB_WHITEOUT_HOLD);
+    const fadeDuration = bomb.fadeDuration || SMART_BOMB_FADE_DURATION;
+    if (bomb.t <= 0) return 0;
+    if (bomb.t < flashStart) return 0;
+    if (bomb.t < flashEnd) return Math.pow(clamp((bomb.t - flashStart) / Math.max(0.001, flashDuration), 0, 1), 0.55);
+    if (bomb.t < holdEnd) return 1;
+    return Math.pow(clamp(1 - ((bomb.t - holdEnd) / Math.max(0.001, fadeDuration)), 0, 1), 0.68);
+  }
+
+  function getSmartBombWhiteoutAlpha() {
+    let alpha = 0;
+    for (const bomb of state.smartBombs) alpha = Math.max(alpha, getSmartBombWhiteoutAlphaFor(bomb));
+    return alpha;
+  }
+
   function spawnBossDeathBurst(boss, seq, intensity = 0) {
     if (!boss) return;
     const cx = boss.x + boss.w * 0.5;
@@ -1911,6 +1949,25 @@
     spawnBossDeathBurst(boss, state.bossDeath, 0.18);
     boom(boss.x + boss.w * 0.5, boss.y + boss.h * 0.5, 72, "#ffd37d");
     say(`<strong>${state.bossDeath.name}</strong><br>Critical overload. Clear the blast radius.`, BOSS_DEATH_TOTAL_DURATION);
+    return true;
+  }
+
+  function destroyObjective(o, source = "bullet") {
+    if (!o || o.destroyed) return false;
+    o.hp = 0;
+    o.destroyed = true;
+    state.score += 700;
+    playSfxEvent("objectiveDestroy", { volumeMul: 0.9, throttleMs: 110, duckAmount: 0.4, duckHold: 0.2, duckRelease: 4.6 });
+    const size = source === "smartBomb" ? 64 : 48;
+    boom(o.x + o.w * 0.5, o.y + o.h * 0.5, size, source === "smartBomb" ? "#fff1c7" : "#ff9f74");
+    if (source === "smartBomb") {
+      boom(o.x + o.w * 0.34, o.y + o.h * 0.42, 36, "#ff9b5b");
+      boom(o.x + o.w * 0.66, o.y + o.h * 0.56, 32, "#ffdf9b");
+    }
+    if (o.reward) {
+      state.pickups.push({ id: `o-${o.id}`, type: "weapon", weapon: o.reward, x: o.x + o.w * 0.5, y: o.y + o.h * 0.5, w: 24, h: 24, vy: -180, bob: rand(0, Math.PI * 2) });
+    }
+    say(`<strong>${o.label}</strong> disabled. Weak point: ${o.weak}.`, 1.7);
     return true;
   }
 
@@ -1976,6 +2033,62 @@
     };
     pushLimited(state.corpses, corpse, MAX_CORPSES);
     spawnBloodBurst(enemy.x + enemy.w * 0.44, enemy.y + enemy.h * 0.38, shotDir.x, shotDir.y - 0.25, 24, 255, 1.35);
+  }
+
+  function destroyEnemyWithSmartBomb(enemy, bomb) {
+    if (!enemy || enemy.hp <= 0 || enemy.dying) return false;
+    if (enemy.kind === "boss") return startBossDeathSequence(enemy);
+    state.score += enemy.kind === "mech" ? 320 : 120;
+    state.combo += 1;
+    state.comboTimer = 2.2;
+    enemy.hp = 0;
+    const cx = enemy.x + enemy.w * 0.5;
+    const cy = enemy.y + enemy.h * 0.48;
+    const dirX = cx - bomb.x;
+    const dirY = cy - bomb.y;
+    if (enemy.kind === "trooper") {
+      spawnTrooperCorpse(enemy, { vx: dirX || enemy.dir || 1, vy: dirY - 0.15 });
+      spawnBloodBurst(cx, cy, dirX || enemy.dir || 1, dirY - 0.22, 18, 220, 1.1);
+      boom(cx, cy, 28, "#ffe6aa");
+      boom(cx + rand(-8, 8), cy + rand(-8, 8), 18, "#ff8654");
+    } else if (enemy.kind === "mech") {
+      boom(cx, cy, 52, "#fff0b2");
+      boom(cx + rand(-16, 16), cy + rand(-12, 12), 38, "#ff8d5d");
+      boom(cx + rand(-20, 20), cy + rand(-16, 16), 28, "#ffd27a");
+    } else if (enemy.kind === "turret") {
+      boom(cx, cy, 34, "#ffe9ba");
+      boom(cx + rand(-10, 10), cy + rand(-6, 6), 24, "#ff8c58");
+    } else {
+      boom(cx, cy, 24, "#ffe2ad");
+      boom(cx + rand(-8, 8), cy + rand(-8, 8), 18, "#ff8d65");
+    }
+    spawnDrop(enemy);
+    return true;
+  }
+
+  function deploySmartBomb() {
+    const p = state.player;
+    if (!p || state.mode !== "playing" || p.smartBombs <= 0) return false;
+    p.smartBombs -= 1;
+    const originX = p.x + p.w * 0.5 + (p.face > 0 ? 10 : -10);
+    const originY = p.y + p.h * 0.42;
+    state.smartBombs.push({
+      x: originX,
+      y: originY,
+      t: 0,
+      duration: SMART_BOMB_DURATION,
+      growDuration: SMART_BOMB_GROW_DURATION,
+      flashDuration: SMART_BOMB_FLASH_DURATION,
+      whiteoutHold: SMART_BOMB_WHITEOUT_HOLD,
+      fadeDuration: SMART_BOMB_FADE_DURATION,
+      maxRadius: SMART_BOMB_MAX_RADIUS,
+      pulseT: 0,
+      flashed: false,
+    });
+    boom(originX, originY, 22, "#fff4b8");
+    playSfxEvent("bigExplosion", { volumeMul: 0.9, throttleMs: 100, duckAmount: 0.28, duckHold: 0.22, duckRelease: 3.8 });
+    say(`<strong>Smart Bomb</strong><br>${p.smartBombs} remaining.`, 1.1);
+    return true;
   }
 
   function spawnEnemy(spawn) {
@@ -2637,6 +2750,59 @@
     state.enemyBullets = state.enemyBullets.filter((b) => b.ttl > 0 && b.x > state.cameraX - 120 && b.x < state.cameraX + W + 220 && b.y > state.cameraY - 50 && b.y < state.cameraY + H + 50);
   }
 
+  function updateSmartBombs(dt) {
+    if (!state.smartBombs.length) return;
+    for (const bomb of state.smartBombs) {
+      bomb.t += dt;
+      bomb.pulseT += dt;
+      const radius = getSmartBombRadius(bomb);
+      const circle = { x: bomb.x, y: bomb.y, r: radius };
+      const growDone = bomb.t >= (bomb.growDuration || SMART_BOMB_GROW_DURATION);
+
+      for (const e of state.enemies) {
+        if (e.hp <= 0 || e.dying) continue;
+        if (!circleRect(circle, getEnemyCombatRect(e))) continue;
+        destroyEnemyWithSmartBomb(e, bomb);
+      }
+
+      for (const o of state.objectives) {
+        if (o.destroyed) continue;
+        if (!circleRect(circle, o)) continue;
+        destroyObjective(o, "smartBomb");
+      }
+
+      for (const bullet of state.enemyBullets) {
+        if (bullet.ttl <= 0) continue;
+        const dx = bullet.x - bomb.x;
+        const dy = bullet.y - bomb.y;
+        if (dx * dx + dy * dy > Math.pow(radius + bullet.r, 2)) continue;
+        bullet.ttl = 0;
+        boom(bullet.x, bullet.y, 12, "#fff3c4");
+      }
+
+      if (growDone && !bomb.flashed) {
+        bomb.flashed = true;
+        boom(bomb.x, bomb.y, 320, "#fffbe8");
+        boom(bomb.x + rand(-44, 44), bomb.y + rand(-32, 32), 180, "#ffd289");
+        boom(bomb.x + rand(-58, 58), bomb.y + rand(-42, 42), 132, "#ff9462");
+      }
+
+      if (!growDone && bomb.pulseT >= 0.11 && radius > 60) {
+        bomb.pulseT = 0;
+        const angle = rand(0, Math.PI * 2);
+        boom(
+          bomb.x + Math.cos(angle) * radius * rand(0.42, 0.9),
+          bomb.y + Math.sin(angle) * radius * rand(0.42, 0.9),
+          rand(14, 24),
+          Math.random() < 0.5 ? "#fff7da" : "#ffca7f",
+        );
+      }
+    }
+    state.enemyBullets = state.enemyBullets.filter((b) => b.ttl > 0);
+    state.enemies = state.enemies.filter((e) => e.dying || e.hp > 0);
+    state.smartBombs = state.smartBombs.filter((bomb) => bomb.t < bomb.duration);
+  }
+
   function resolveCombat() {
     const p = state.player;
     const playerCombatRect = getPlayerCombatRect(p);
@@ -2674,15 +2840,7 @@
         o.hp -= b.dmg * (b.weapon === o.weak ? 1.65 : 1);
         b.pierce -= 1;
         if (o.hp <= 0) {
-          o.hp = 0;
-          o.destroyed = true;
-          state.score += 700;
-          playSfxEvent("objectiveDestroy", { volumeMul: 0.9, throttleMs: 110, duckAmount: 0.4, duckHold: 0.2, duckRelease: 4.6 });
-          boom(o.x + o.w * 0.5, o.y + o.h * 0.5, 48, "#ff9f74");
-          if (o.reward) {
-            state.pickups.push({ id: `o-${o.id}`, type: "weapon", weapon: o.reward, x: o.x + o.w * 0.5, y: o.y + o.h * 0.5, w: 24, h: 24, vy: -180, bob: rand(0, Math.PI * 2) });
-          }
-          say(`<strong>${o.label}</strong> disabled. Weak point: ${o.weak}.`, 1.7);
+          destroyObjective(o, "bullet");
         }
         if (b.pierce <= 0) {
           b.ttl = 0;
@@ -2932,6 +3090,7 @@
     updatePlayer(dt);
     updateEnemies(dt);
     updateBullets(dt);
+    updateSmartBombs(dt);
     resolveCombat();
     if (state.mode === "bossDeath") {
       updateAftermath(dt);
@@ -2945,6 +3104,19 @@
     updateFlow(dt);
   }
 
+  function getStableSpriteBounds(key, img, bounds) {
+    if (!img) return bounds;
+    if (/^player_/.test(key)) {
+      return {
+        sx: Math.round((img.width || 1) * PLAYER_CANONICAL_BOUNDS.sx),
+        sy: Math.round((img.height || 1) * PLAYER_CANONICAL_BOUNDS.sy),
+        sw: Math.round((img.width || 1) * PLAYER_CANONICAL_BOUNDS.sw),
+        sh: Math.round((img.height || 1) * PLAYER_CANONICAL_BOUNDS.sh),
+      };
+    }
+    return bounds;
+  }
+
   function getSpriteDrawMetrics(key, x, y, w, h) {
     const hdKey = `${key}_hd`;
     const resolvedKey = sprites.has(hdKey) ? hdKey : (sprites.has(key) ? key : null);
@@ -2956,7 +3128,8 @@
       return { resolvedKey: null, px, py, pw, ph, drawX: 0, drawY: 0, drawW: pw, drawH: ph, x: px, y: py, w: pw, h: ph };
     }
     const img = sprites.get(resolvedKey);
-    const bounds = spriteBounds.get(resolvedKey) || { sx: 0, sy: 0, sw: img.width || 1, sh: img.height || 1 };
+    const measuredBounds = spriteBounds.get(resolvedKey) || { sx: 0, sy: 0, sw: img.width || 1, sh: img.height || 1 };
+    const bounds = getStableSpriteBounds(key, img, measuredBounds);
     const preserveAspect = /^(player_|enemy_)/.test(key);
     const srcAspect = Math.max(0.01, bounds.sw / Math.max(1, bounds.sh));
     const dstAspect = Math.max(0.01, pw / Math.max(1, ph));
@@ -3880,7 +4053,7 @@
     const recoilEnabled = p.muzzleFlashT > 0 && (render.key === "player_idle" || render.key === "player_run");
     const recoilStrength = recoilEnabled ? 3.2 : 0;
     const recoilX = -aim.x * recoilStrength * recoilT;
-    const recoilY = -aim.y * recoilStrength * recoilT;
+    const recoilY = 0;
     const sw = render.sw;
     const sh = render.sh;
     const sx = render.sx - state.cameraX + recoilX;
@@ -3942,6 +4115,25 @@
   }
 
   function drawEffects() {
+    for (const bomb of state.smartBombs) {
+      const radius = getSmartBombRadius(bomb);
+      const centerX = bomb.x - state.cameraX;
+      const centerY = bomb.y;
+      const growT = clamp(bomb.t / Math.max(0.001, bomb.growDuration || SMART_BOMB_GROW_DURATION), 0, 1);
+      const preFlash = bomb.t < (bomb.growDuration || SMART_BOMB_GROW_DURATION);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      drawGlowCircle(centerX, centerY, radius * (0.78 + growT * 0.28), "#fff6ce", preFlash ? (0.06 + growT * 0.06) : 0.18);
+      drawGlowCircle(centerX, centerY, radius * (0.4 + growT * 0.24), "#fffef3", preFlash ? (0.08 + growT * 0.05) : 0.24);
+      if (preFlash) {
+        ctx.strokeStyle = `rgba(255, 250, 222, ${lerp(0.18, 0.94, growT).toFixed(3)})`;
+        ctx.lineWidth = Math.max(3, 12 * (1 - growT) + 2);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, Math.max(12, radius - ctx.lineWidth * 0.5), 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
     for (const e of state.explosions) {
       const k = e.t / e.ttl;
       drawGlowCircle(e.x - state.cameraX, e.y, e.size * (1.1 + k), e.color, 0.14 * (1 - k));
@@ -4006,6 +4198,7 @@
     ctx.fillText(`Targets Left: ${left}`, 240, 52);
     ctx.fillText(`Weapon: ${WEAPONS[p.weapon].label} Mk-${slot.level}`, 470, 30);
     ctx.fillText(`Ammo: ${ammo}`, 470, 52);
+    ctx.fillText(`Bombs: ${p.smartBombs}`, 660, 52);
 
     const hp = clamp(p.hp / p.maxHp, 0, 1);
     ctx.fillStyle = "rgba(18,23,32,0.9)";
@@ -4072,10 +4265,11 @@
     for (let y = 0; y < H; y += 4) {
       ctx.fillRect(0, y, W, 1);
     }
+    const smartBombWhiteout = getSmartBombWhiteoutAlpha();
     if (state.bossDeath) {
       const p = clamp(state.bossDeath.t / Math.max(0.001, state.bossDeath.duration), 0, 1);
       const pulse = 0.5 + Math.sin(state.levelClock * 22) * 0.5;
-      const whiteout = getBossWhiteoutAlpha();
+      const whiteout = Math.max(getBossWhiteoutAlpha(), smartBombWhiteout);
       ctx.fillStyle = `rgba(255, 180, 112, ${(0.02 + Math.min(1, p * 1.4) * 0.05 + pulse * 0.03).toFixed(3)})`;
       ctx.fillRect(0, 0, W, H);
       if ((state.bossDeath.flashT || 0) > 0) {
@@ -4086,6 +4280,9 @@
         ctx.fillStyle = `rgba(255,255,255,${whiteout.toFixed(3)})`;
         ctx.fillRect(0, 0, W, H);
       }
+    } else if (smartBombWhiteout > 0) {
+      ctx.fillStyle = `rgba(255,255,255,${smartBombWhiteout.toFixed(3)})`;
+      ctx.fillRect(0, 0, W, H);
     }
   }
 
@@ -4113,13 +4310,14 @@
     ctx.fillText("Climb Grates: Hold Up/Down near a wall", 190, 346);
     ctx.fillText("Hang Bars: Jump, Up, or Fire into overhead bars", 190, 370);
     ctx.fillText("Drop From Bars: Hold Down", 190, 394);
-    ctx.fillText("Shoot: Z   Aim Lock: X   X + Down + Left/Right = Low Aim", 190, 418);
-    ctx.fillText("Cycle Weapons: A / B   Pause: P   Fullscreen: F   Mute: M", 190, 442);
-    ctx.fillText("Audio Lab: open audio-lab.html to preview and remap SFX", 190, 466);
+    ctx.fillText("Shoot: Z   Aim Lock: X   Smart Bomb: C", 190, 418);
+    ctx.fillText("Low Aim: X + Down + Left/Right   Cycle Weapons: A / B", 190, 442);
+    ctx.fillText("Pause: P   Fullscreen: F   Mute: M", 190, 466);
+    ctx.fillText("Audio Lab: open audio-lab.html to preview and remap SFX", 190, 490);
 
     ctx.fillStyle = "#ffd447";
     ctx.font = "bold 20px Trebuchet MS";
-    ctx.fillText("Press Enter or click Start Operation", 254, 496);
+    ctx.fillText("Press Enter or click Start Operation", 254, 514);
   }
 
   function drawLevelClearCard() {
@@ -4190,7 +4388,7 @@
 
   function onKeyDown(e) {
     keys[e.code] = true;
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyX", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyX", "KeyC", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
       e.preventDefault();
     }
 
@@ -4219,6 +4417,7 @@
       if (e.code === "KeyP") state.mode = state.mode === "playing" ? "paused" : "playing";
       if (!e.repeat && e.code === "KeyA") cycleWeapon(-1);
       if (!e.repeat && e.code === "KeyB") cycleWeapon(1);
+      if (!e.repeat && e.code === "KeyC" && state.mode === "playing") deploySmartBomb();
       return;
     }
 
@@ -4229,7 +4428,7 @@
 
   function onKeyUp(e) {
     keys[e.code] = false;
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyX", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyZ", "KeyX", "KeyC", "KeyR", "KeyA", "KeyB"].includes(e.code)) {
       e.preventDefault();
     }
   }
@@ -4263,11 +4462,13 @@
         support: p.supportType || null,
         aim: { x: Number((p.aimX || 0).toFixed(2)), y: Number((p.aimY || 0).toFixed(2)), mode: getPlayerAimMode(p) },
         activeWeapon: p.weapon,
+        smartBombs: p.smartBombs,
       },
       objectives: state.objectives.slice(0, 8).map((o) => ({ id: o.id, label: o.label, x: Math.round(o.x), y: Math.round(o.y), hp: Math.round(o.hp), maxHp: o.maxHp, destroyed: o.destroyed, weakness: o.weak })),
       enemies: state.enemies.slice(0, 16).map((e) => ({ kind: e.kind, variant: e.variant || null, x: Math.round(e.x), y: Math.round(e.y), hp: Math.round(e.hp) })),
       boss: boss ? { name: boss.bossName, hp: Math.round(boss.hp), maxHp: boss.maxHp, x: Math.round(boss.x), y: Math.round(boss.y), dying: !!boss.dying } : null,
       bossDeath: state.bossDeath ? { t: Number(state.bossDeath.t.toFixed(2)), duration: state.bossDeath.duration, name: state.bossDeath.name, whiteoutAlpha: Number(getBossWhiteoutAlpha().toFixed(2)), detonated: !!state.bossDeath.detonated } : null,
+      smartBombs: state.smartBombs.map((bomb) => ({ x: Math.round(bomb.x), y: Math.round(bomb.y), t: Number(bomb.t.toFixed(2)), radius: Math.round(getSmartBombRadius(bomb)), whiteoutAlpha: Number(getSmartBombWhiteoutAlphaFor(bomb).toFixed(2)) })),
       bullets: { player: state.bullets.length, enemy: state.enemyBullets.length },
       aftermath: { corpses: state.corpses.length, bloodParticles: state.bloodParticles.length },
       pickups: state.pickups.slice(0, 10).map((c) => ({ type: c.type, weapon: c.weapon || null, x: Math.round(c.x), y: Math.round(c.y) })),
@@ -4359,6 +4560,7 @@
     },
     setupMuzzleCheck() {
       clearSay();
+      debugHidePauseOverlay = true;
       state.mode = "playing";
       state.enemies = [];
       state.pending = [];
@@ -4419,6 +4621,45 @@
       render();
       return true;
     },
+    setupSmartBombCheck(progress = 0.52) {
+      clearSay();
+      debugHidePauseOverlay = true;
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.smartBombs = [];
+      state.player.x = 260;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.smartBombs = 2;
+      spawnEnemy({ t: "trooper", x: 352, surfaceY: terrainY(366), variant: "crimson" });
+      spawnEnemy({ t: "trooper", x: 448, surfaceY: terrainY(462), variant: "olive" });
+      spawnEnemy({ t: "mech", x: 548, surfaceY: terrainY(572), spriteStyle: "crawler", patrolMin: 520, patrolMax: 620 });
+      state.objectives.push({ id: "smart-bomb-core", label: "Dummy Reactor", x: 414, y: terrainY(432) - 84, w: 88, h: 84, hp: 140, maxHp: 140, weak: "LASER", destroyed: false, reward: null });
+      state.enemyBullets.push({ x: 330, y: state.player.y + 20, vx: 80, vy: -20, r: 2.5 * BULLET_RADIUS_SCALE, ttl: 2, dmg: 8, color: "#ff5969" });
+      deploySmartBomb();
+      let remaining = Math.max(0, progress);
+      while (remaining > 0) {
+        const slice = Math.min(DT, remaining);
+        step(slice);
+        remaining -= slice;
+      }
+      state.mode = "paused";
+      render();
+      return true;
+    },
     setupCrouchCheck() {
       clearSay();
       state.mode = "playing";
@@ -4448,6 +4689,7 @@
     },
     setupUpPoseCheck(face = 1, recoil = false) {
       clearSay();
+      debugHidePauseOverlay = true;
       state.mode = "playing";
       state.enemies = [];
       state.pending = [];
@@ -4475,6 +4717,7 @@
     },
     setupDiagPoseCheck(face = 1, recoil = false) {
       clearSay();
+      debugHidePauseOverlay = true;
       state.mode = "playing";
       state.enemies = [];
       state.pending = [];
@@ -5124,5 +5367,10 @@
   clearSay();
   initAudio();
   loadSprites();
+  if (DEBUG_SCENARIO) {
+    Promise.resolve().then(() => {
+      if (state.mode === "splash") startCampaign();
+    });
+  }
   requestAnimationFrame(loop);
 })();

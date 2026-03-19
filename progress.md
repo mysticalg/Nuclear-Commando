@@ -219,6 +219,80 @@
   - user cavern backgrounds are visible in level 1 / vertical sections
   - tile textures now read more clearly on catwalks and climbables
 
+## Smart Bomb Pass
+
+- Added a player smart bomb ability on `C`.
+- Smart bombs now:
+  - consume from a visible HUD inventory
+  - spawn from the player position
+  - expand as a bright circular kill field
+  - destroy enemies, enemy bullets, and objectives on contact
+  - trigger layered explosions on NPC kills
+  - fade the entire screen toward white with a boss-death-style blast wash
+- Added reusable helpers in `game.js` for:
+  - smart-bomb radius growth
+  - smart-bomb whiteout blending
+  - smart-bomb enemy destruction
+  - shared objective-destruction handling
+- Added debug scenarios:
+  - `?scenario=smart-bomb-check`
+  - `?scenario=smart-bomb-fade-check`
+- Debug scenario URLs now auto-start the mission so browser captures land on the actual paused validation scene instead of the splash gate.
+- Updated splash/control copy in:
+  - `game.js`
+  - `index.html`
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Bundled Playwright client rerun against local HTTP server with:
+  - `output/web-game-smart-bomb-v3`
+  - `output/web-game-smart-bomb-fade-v3`
+- Verified state:
+  - mid-blast: `smartBombs[0].radius: 317`, `whiteoutAlpha: 0.32`, `enemies: []`, `bullets.enemy: 0`
+  - fade phase: `smartBombs[0].radius: 520`, `whiteoutAlpha: 0.73`
+- Visual inspection confirms:
+  - expanding ring is visible
+  - kill aftermath persists with corpses/blood
+  - the screen whiteout ramps across the whole scene
+- Residual console capture still shows the older `ERR_CONNECTION_REFUSED` resource error in `errors-0.json`; no new smart-bomb runtime error was introduced.
+- General gameplay smoke rerun also produced valid artifacts in `output/web-game-smart-bomb-smoke-v1`; the client timed out at process exit, but the screenshot/state dump were written and showed normal gameplay with `Bombs: 2` intact.
+
+## Smart Bomb Timing Pass
+
+- Retimed the smart bomb to feel more apocalyptic:
+  - slower outward growth
+  - blast radius now overruns the full play window
+  - short post-growth flash
+  - full-screen white hold
+  - slower fade back down
+- Updated smart bomb constants in `game.js`:
+  - `SMART_BOMB_GROW_DURATION: 3.2`
+  - `SMART_BOMB_FLASH_DURATION: 0.22`
+  - `SMART_BOMB_WHITEOUT_HOLD: 0.72`
+  - `SMART_BOMB_FADE_DURATION: 1.45`
+  - `SMART_BOMB_MAX_RADIUS: 1360`
+- Growth curve was softened so the bomb feels like it expands outward over time instead of instantly washing the screen.
+- Added a one-time detonation burst when the growth phase completes, so the flash into the whiteout has a stronger impact.
+- Updated the smart-bomb debug scenarios to match the new pacing:
+  - `?scenario=smart-bomb-check` now samples the late-growth phase
+  - `?scenario=smart-bomb-fade-check` now samples the whiteout/fade phase
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- State verification:
+  - `output/web-game-smart-bomb-growth-v1/state-0.json`
+    - `radius: 885`
+    - `whiteoutAlpha: 0`
+  - `output/web-game-smart-bomb-growth-fade-v1/state-0.json`
+    - `radius: 1360`
+    - `whiteoutAlpha: 0.85`
+- Visual verification:
+  - later whiteout/fade capture now fills the whole screen as intended
+- Residual note:
+  - the bundled Playwright client still intermittently times out on exit and can produce odd paused-scene captures, but the state dumps and final whiteout screenshot were valid.
+
 ## Cave Variant Polish Pass
 
 - Pushed levels 2 and 3 further away from level 1 visually by expanding the cave preset system in `game.js`:
