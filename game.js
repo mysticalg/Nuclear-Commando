@@ -212,7 +212,8 @@
       trooper_fire: { frames: 6, fps: 12 },
       trooper_up: { frames: 6, fps: 12 },
       trooper_death: { frames: 7, fps: 16 },
-      drone: { frames: 4, fps: 12 },
+      drone: { frames: 5, fps: 10 },
+      drone_attack: { frames: 4, fps: 10 },
       turret: { frames: 3, fps: 5 },
       mech: { frames: 6, fps: 8 },
       boss: { frames: 6, fps: 8 },
@@ -223,7 +224,26 @@
       reactor: { frames: 3, fps: 5 },
       radar: { frames: 2, fps: 4 },
     },
+    prop: {
+      prop_cooling_plant: { frames: 2, fps: 2 },
+      prop_waste_barrel: { frames: 2, fps: 2 },
+      prop_cooling_pool: { frames: 2, fps: 2 },
+      prop_warning_sign: { frames: 2, fps: 2 },
+      prop_reactor_dome: { frames: 1, fps: 0 },
+      prop_centrifuge_stack: { frames: 1, fps: 0 },
+    },
     pickup: { frames: 3, fps: 6 },
+  };
+  const DETAIL_PROP_DEFS = {
+    coolingPlant: { baseKey: "prop_cooling_plant", frames: 2, fps: 2, w: 152, h: 116, shadow: 0.22, glow: "#b5e1ff", glowRadius: 34, glowAlpha: 0.06, glowY: 0.22 },
+    wasteBarrel: { baseKey: "prop_waste_barrel", frames: 2, fps: 2, w: 88, h: 102, shadow: 0.18, glow: "#72ff6c", glowRadius: 28, glowAlpha: 0.08, glowY: 0.74 },
+    coolingPool: { baseKey: "prop_cooling_pool", frames: 2, fps: 2, w: 156, h: 122, shadow: 0.2, glow: "#6de4ff", glowRadius: 42, glowAlpha: 0.08, glowY: 0.54 },
+    consoleBank: { baseKey: "objective_radar", frames: 2, fps: 4, w: 126, h: 92, shadow: 0.18, glow: "#ff8d46", glowRadius: 28, glowAlpha: 0.07, glowY: 0.42 },
+    missileCart: { baseKey: "objective_factory", frames: 2, fps: 3, w: 132, h: 84, shadow: 0.18, glow: "#ffd86c", glowRadius: 26, glowAlpha: 0.06, glowY: 0.52 },
+    centrifugeBank: { baseKey: "objective_centrifuge", frames: 2, fps: 4, w: 132, h: 108, shadow: 0.2, glow: "#7cff77", glowRadius: 32, glowAlpha: 0.08, glowY: 0.48 },
+    reactorDome: { baseKey: "prop_reactor_dome", frames: 1, fps: 0, w: 158, h: 118, shadow: 0.22, glow: "#ffe783", glowRadius: 34, glowAlpha: 0.05, glowY: 0.26 },
+    centrifugeStack: { baseKey: "prop_centrifuge_stack", frames: 1, fps: 0, w: 106, h: 118, shadow: 0.2 },
+    warningSign: { baseKey: "prop_warning_sign", frames: 2, fps: 2, w: 64, h: 64, shadow: 0.12, glow: "#ffd85c", glowRadius: 24, glowAlpha: 0.1, glowY: 0.52 },
   };
   const MECH_SPRITE_STYLES = {
     crawler: {
@@ -317,6 +337,13 @@
         { id: "forge", label: "Missile Forge", kind: "factory", x: 3980, y: 330, w: 142, h: 122, hp: 440, weak: "FLAME", reward: "LASER" },
         { id: "reactor", label: "Core Reactor", kind: "reactor", x: 6520, y: 286, w: 170, h: 168, hp: 620, weak: "LASER", reward: "FLAME" },
       ],
+      detailProps: [
+        { kind: "wasteBarrel", x: 1628, y: 454 },
+        { kind: "consoleBank", x: 2208, y: 452 },
+        { kind: "missileCart", x: 3912, y: 452 },
+        { kind: "coolingPlant", x: 6156, y: 452 },
+        { kind: "wasteBarrel", x: 6396, y: 454 },
+      ],
       platforms: [
         { id: "l1-shaft-1", x: 520, y: 386, w: 168, h: 12 },
         { id: "l1-shaft-2", x: 706, y: 252, w: 168, h: 12 },
@@ -392,6 +419,13 @@
         { id: "fuel", label: "Fuel Crucible", kind: "factory", x: 2790, y: 338, w: 130, h: 114, hp: 430, weak: "FLAME", reward: "FLAME" },
         { id: "vault", label: "Launch Vault", kind: "reactor", x: 4280, y: 302, w: 158, h: 150, hp: 540, weak: "LASER", reward: "LASER" },
       ],
+      detailProps: [
+        { kind: "coolingPlant", x: 1148, y: 452 },
+        { kind: "missileCart", x: 2626, y: 452 },
+        { kind: "wasteBarrel", x: 2868, y: 454 },
+        { kind: "consoleBank", x: 4052, y: 452 },
+        { kind: "coolingPlant", x: 4460, y: 452 },
+      ],
       platforms: [
         { id: "l2-bridge-1", x: 660, y: 366, w: 170, h: 12 },
         { id: "l2-bridge-2", x: 1160, y: 324, w: 168, h: 12 },
@@ -446,6 +480,13 @@
         { id: "sea", label: "Sea Centrifuge", kind: "centrifuge", x: 1440, y: 326, w: 136, h: 126, hp: 420, weak: "SPREAD", reward: "SPREAD" },
         { id: "assembly", label: "Assembly Cradle", kind: "factory", x: 3060, y: 336, w: 138, h: 118, hp: 520, weak: "FLAME", reward: "FLAME" },
         { id: "midnight", label: "Midnight Reactor", kind: "reactor", x: 4740, y: 286, w: 170, h: 166, hp: 720, weak: "LASER", reward: "LASER" },
+      ],
+      detailProps: [
+        { kind: "centrifugeBank", x: 1710, y: 452 },
+        { kind: "wasteBarrel", x: 2864, y: 454 },
+        { kind: "consoleBank", x: 3310, y: 452 },
+        { kind: "missileCart", x: 4474, y: 452 },
+        { kind: "coolingPlant", x: 5004, y: 452 },
       ],
       platforms: [
         { id: "l3-catwalk-1", x: 620, y: 358, w: 170, h: 12 },
@@ -1277,6 +1318,7 @@
 
   function getEnemyAttackWindow(e) {
     if (e.kind === "trooper") return 0.34;
+    if (e.kind === "drone") return 0.22;
     if (e.kind === "turret" || e.kind === "mech" || e.kind === "boss") return 0.24;
     return 0;
   }
@@ -1330,7 +1372,13 @@
       return { baseKey: "enemy_turret", frames: ANIM.enemy.turret.frames, fps: ANIM.enemy.turret.fps, anchor: { x: 0.18, y: 0.24 } };
     }
     if (e.kind === "drone") {
-      return { baseKey: "enemy_drone", frames: ANIM.enemy.drone.frames, fps: ANIM.enemy.drone.fps, anchor: { x: 0.22, y: 0.46 } };
+      const attacking = (e.attackT || 0) > 0.04 && hasSpriteKey("enemy_drone_attack_0");
+      return {
+        baseKey: attacking ? "enemy_drone_attack" : "enemy_drone",
+        frames: attacking ? ANIM.enemy.drone_attack.frames : ANIM.enemy.drone.frames,
+        fps: attacking ? ANIM.enemy.drone_attack.fps : ANIM.enemy.drone.fps,
+        anchor: attacking ? { x: 0.18, y: 0.5 } : { x: 0.18, y: 0.48 },
+      };
     }
     return { baseKey: `enemy_${e.kind}`, frames: ANIM.enemy[e.kind]?.frames || 1, fps: ANIM.enemy[e.kind]?.fps || 0, anchor: { x: 0.22, y: 0.46 } };
   }
@@ -1394,6 +1442,10 @@
 
   function levelScenery() {
     return state.level?.scenery || [];
+  }
+
+  function levelDetailProps() {
+    return state.level?.detailProps || [];
   }
 
   function levelHeight() {
@@ -1764,7 +1816,12 @@
     if (DEBUG_SCENARIO === "level1-extended-check") window.__nuclear_commando_debug.setupLevelSectionCheck(0, 4);
     if (DEBUG_SCENARIO === "level2-extended-check") window.__nuclear_commando_debug.setupLevelSectionCheck(1, 3);
     if (DEBUG_SCENARIO === "level3-extended-check") window.__nuclear_commando_debug.setupLevelSectionCheck(2, 3);
+    if (DEBUG_SCENARIO === "objective-prop-check") window.__nuclear_commando_debug.setupObjectivePropCheck(0, 0);
+    if (DEBUG_SCENARIO === "objective-prop-l2-check") window.__nuclear_commando_debug.setupObjectivePropCheck(1, 0);
+    if (DEBUG_SCENARIO === "objective-prop-l3-check") window.__nuclear_commando_debug.setupObjectivePropCheck(2, 0);
     if (DEBUG_SCENARIO === "enemy-recoil-check") window.__nuclear_commando_debug.setupEnemyRecoilCheck();
+    if (DEBUG_SCENARIO === "drone-check") window.__nuclear_commando_debug.setupDroneCheck(false);
+    if (DEBUG_SCENARIO === "drone-attack-check") window.__nuclear_commando_debug.setupDroneCheck(true);
     if (DEBUG_SCENARIO === "boss-style-check") window.__nuclear_commando_debug.setupBossStyleCheck("giantskull");
     if (DEBUG_SCENARIO === "boss-ironskull-check") window.__nuclear_commando_debug.setupBossStyleCheck("ironskull");
     if (DEBUG_SCENARIO === "boss-skulltank-check") window.__nuclear_commando_debug.setupBossStyleCheck("skulltank");
@@ -2188,7 +2245,7 @@
   }
 
   function fireEnemy(enemy) {
-    if (enemy.kind !== "drone") enemy.attackT = Math.max(enemy.attackT || 0, getEnemyAttackWindow(enemy));
+    enemy.attackT = Math.max(enemy.attackT || 0, getEnemyAttackWindow(enemy));
     const p = state.player;
     const muzzle = getEnemyMuzzlePoint(enemy);
     const sx = muzzle.x, sy = muzzle.y;
@@ -2213,7 +2270,16 @@
       return;
     }
     const speed = enemy.kind === "mech" ? 440 : enemy.kind === "turret" ? 390 : 340;
-    state.enemyBullets.push({ x: sx, y: sy, vx: (dx / d) * speed, vy: (dy / d) * speed, r: (enemy.kind === "mech" ? 5 : 4) * BULLET_RADIUS_SCALE, ttl: 2, dmg: enemy.kind === "mech" ? 18 : 10, color: enemy.kind === "turret" ? "#ff8f6a" : "#ff5969" });
+    state.enemyBullets.push({
+      x: sx,
+      y: sy,
+      vx: (dx / d) * speed,
+      vy: (dy / d) * speed,
+      r: (enemy.kind === "mech" ? 5 : 4) * BULLET_RADIUS_SCALE,
+      ttl: 2,
+      dmg: enemy.kind === "mech" ? 18 : 10,
+      color: enemy.kind === "drone" ? "#8dff45" : enemy.kind === "turret" ? "#ff8f6a" : "#ff5969",
+    });
   }
 
   function activateBossEncounter() {
@@ -3176,7 +3242,7 @@
       };
     }
     const bounds = measuredBounds;
-    const preserveAspect = /^(player_|enemy_)/.test(key);
+    const preserveAspect = /^(player_|enemy_|prop_)/.test(key);
     const srcAspect = Math.max(0.01, bounds.sw / Math.max(1, bounds.sh));
     const dstAspect = Math.max(0.01, pw / Math.max(1, ph));
     let drawX = 0;
@@ -3204,7 +3270,7 @@
       return;
     }
     const { resolvedKey, img, bounds, px, py, pw, drawX, drawY, drawW, drawH } = metrics;
-    const preserveAspect = /^(player_|enemy_)/.test(key);
+    const preserveAspect = /^(player_|enemy_|prop_)/.test(key);
     const scaleX = typeof flip === "number" ? flip : (flip ? -1 : 1);
     const facingSign = scaleX < 0 ? -1 : 1;
     const blendT = clamp((scaleX + 1) * 0.5, 0, 1);
@@ -3679,6 +3745,29 @@
     ctx.restore();
   }
 
+  function drawDetailProps() {
+    for (const prop of levelDetailProps()) {
+      const def = DETAIL_PROP_DEFS[prop.kind];
+      if (!def) continue;
+      const w = prop.w || def.w;
+      const h = prop.h || def.h;
+      const x = prop.x - state.cameraX - w * 0.5 + (prop.dx || 0);
+      const y = prop.y - h + (prop.dy || 0);
+      if (x < -w - 40 || x > W + 40) continue;
+      drawShadowBlob(x + w * 0.5, prop.y + 4, Math.max(16, w * 0.34), Math.max(6, h * 0.08), prop.shadow ?? def.shadow ?? 0.2);
+      if (def.glow) {
+        drawGlowCircle(x + w * 0.5, y + h * (def.glowY ?? 0.5), def.glowRadius ?? Math.max(w, h) * 0.28, def.glow, prop.glowAlpha ?? def.glowAlpha ?? 0.08);
+      }
+      ctx.save();
+      ctx.globalAlpha = prop.alpha ?? 0.96;
+      drawAnimSprite(def.baseKey, def.frames, def.fps, (prop.phase ?? 0) + prop.x * 0.0027, x, y, w, h, false, () => {
+        ctx.fillStyle = "rgba(90, 109, 128, 0.7)";
+        ctx.fillRect(x, y, w, h);
+      });
+      ctx.restore();
+    }
+  }
+
   function drawTraversal() {
     const p = state.level.palette;
     const steel = p.theme === "cave" ? "#6e8298" : "#7c90a4";
@@ -3687,6 +3776,8 @@
     for (const chunk of levelScenery()) {
       drawSceneryChunk(chunk);
     }
+
+    drawDetailProps();
 
     for (const hang of levelHangables()) {
       const x = hang.x - state.cameraX;
@@ -3997,14 +4088,14 @@
         ctx.font = "bold 14px Trebuchet MS";
         ctx.fillText(deathSeq ? `${e.bossName} MELTDOWN` : e.bossName, sx + 6, sy - 16);
       }
-      if (!deathSeq && (e.kind === "trooper" || e.kind === "turret" || e.kind === "mech" || e.kind === "boss") && (e.attackT || 0) > 0.18) {
+      if (!deathSeq && (e.kind === "trooper" || e.kind === "drone" || e.kind === "turret" || e.kind === "mech" || e.kind === "boss") && (e.attackT || 0) > 0.04) {
         const muzzle = getEnemyMuzzlePoint(e, recoil.x, recoil.y);
         const aim = getEnemyAimVector(e);
-        const flashLead = MUZZLE_FLASH_FORWARD_OFFSET + (e.kind === "boss" ? 1.5 : e.kind === "mech" ? 1 : 0);
-        drawMuzzleBloom(muzzle.x - state.cameraX + aim.x * flashLead, muzzle.y + aim.y * flashLead, aim.x, aim.y, e.kind === "boss" ? 24 : e.kind === "mech" ? 20 : 15, {
-          glow: e.kind === "turret" ? "#ffbb96" : "#ffdf8f",
+        const flashLead = MUZZLE_FLASH_FORWARD_OFFSET + (e.kind === "boss" ? 1.5 : e.kind === "mech" ? 1 : e.kind === "drone" ? 0.5 : 0);
+        drawMuzzleBloom(muzzle.x - state.cameraX + aim.x * flashLead, muzzle.y + aim.y * flashLead, aim.x, aim.y, e.kind === "boss" ? 24 : e.kind === "mech" ? 20 : e.kind === "drone" ? 13 : 15, {
+          glow: e.kind === "drone" ? "#98ff63" : e.kind === "turret" ? "#ffbb96" : "#ffdf8f",
           hot: "#fff6de",
-          ember: e.kind === "turret" ? "#ff8446" : "#ffaf4f",
+          ember: e.kind === "drone" ? "#54ff2c" : e.kind === "turret" ? "#ff8446" : "#ffaf4f",
         }, 0.92);
       }
     }
@@ -5126,6 +5217,36 @@
       render();
       return true;
     },
+    setupObjectivePropCheck(levelIndex = 0, objectiveIndex = 0) {
+      clearSay();
+      debugHidePauseOverlay = true;
+      resetLevel(levelIndex, false);
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      const objective = state.objectives[objectiveIndex] || state.objectives[0];
+      if (!objective) return false;
+      state.player.x = Math.max(72, objective.x - 240);
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.hp = state.player.maxHp;
+      state.player.invuln = 0;
+      state.cameraX = clamp(objective.x - W * 0.38, 0, Math.max(0, state.level.length - W));
+      state.cameraY = clamp(objective.y - H * 0.54, levelTop(), Math.max(levelTop(), levelHeight() - H));
+      state.mode = "paused";
+      render();
+      return true;
+    },
     setupVerticalScrollCheck() {
       clearSay();
       debugHidePauseOverlay = true;
@@ -5187,6 +5308,49 @@
         attackT: 0.34,
         shotAimX: 0.96,
         shotAimY: -0.22,
+      });
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupDroneCheck(attacking = false) {
+      clearSay();
+      debugHidePauseOverlay = true;
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 200;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.hp = state.player.maxHp;
+      state.player.invuln = 0;
+      state.enemies.push({
+        kind: "drone",
+        x: 430,
+        y: 228,
+        w: 34,
+        h: 24,
+        baseY: 228,
+        hp: 56,
+        maxHp: 56,
+        speed: 112,
+        wave: 0.2,
+        fireCd: 0.6,
+        attackT: attacking ? 0.22 : 0,
+        shotAimX: -0.96,
+        shotAimY: 0.08,
       });
       state.mode = "paused";
       render();

@@ -114,6 +114,13 @@
     {
       "base": "enemy_drone",
       "file": "enemy_drone_sheet.png",
+      "frames": 5,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "enemy_drone_attack",
+      "file": "enemy_drone_attack_sheet.png",
       "frames": 4,
       "frame_w": 160,
       "frame_h": 160
@@ -563,6 +570,48 @@
       "base": "player_run_up",
       "file": "player_run_up_sheet.png",
       "frames": 8,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "prop_centrifuge_stack",
+      "file": "prop_centrifuge_stack_sheet.png",
+      "frames": 1,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "prop_cooling_plant",
+      "file": "prop_cooling_plant_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "prop_cooling_pool",
+      "file": "prop_cooling_pool_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "prop_reactor_dome",
+      "file": "prop_reactor_dome_sheet.png",
+      "frames": 1,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "prop_warning_sign",
+      "file": "prop_warning_sign_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "prop_waste_barrel",
+      "file": "prop_waste_barrel_sheet.png",
+      "frames": 2,
       "frame_w": 160,
       "frame_h": 160
     }

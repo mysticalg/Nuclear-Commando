@@ -1751,3 +1751,68 @@
 - Browser smoke validation passed:
   - `output/web-game-enemy-normalize-v1/shot-0.png`
 - No `errors-0.json` file was produced for the browser rerun.
+
+## Bug Drone Sprite Pass
+
+- Implemented the imported flying bug sheet from:
+  - `assets/sprites/855b60f0-9e53-4bf5-ab91-4b394e564ab9.png`
+- Built two live strips from the source sheet:
+  - `enemy_drone` (5-frame fly cycle)
+  - `enemy_drone_attack` (4-frame firing cycle)
+- Imported the new bug drone frames into the active sprite manifest and updated `sheet_manifest.json` to include the new attack strip.
+- Updated drone runtime logic in `game.js` so drones now:
+  - use the bug fly strip while moving
+  - switch to the bug attack strip while firing
+  - get a real attack window / recoil window
+  - fire green projectiles and use a green muzzle bloom
+- Added debug scenario hooks:
+  - `?scenario=drone-check`
+  - `?scenario=drone-attack-check`
+
+### Validation (bug drone)
+
+- `node --check game.js` passed.
+- Generated strip previews:
+  - `output/bug-drone-sheets/enemy_drone_sheet.png`
+  - `output/bug-drone-sheets/enemy_drone_attack_sheet.png`
+- Gameplay smoke rerun reached a live drone spawn and rendered successfully:
+  - `output/web-game-drone-smoke-v2/shot-0.png`
+  - state confirms an on-screen `drone` enemy at roughly `x:695, y:262`
+- No `errors-0.json` file was produced for the long gameplay smoke rerun.
+
+## Nuclear Objective Prop Pass
+
+- Added `tools/build_nuclear_objective_props.py` to cut and repack the new reactor/centrifuge source sheets into live 160x160 sprite strips.
+- Replaced live objective art with new sheet-driven assets:
+  - `objective_centrifuge` <- green centrifuge bank
+  - `objective_factory` <- missile trolley
+  - `objective_radar` <- warning/control console
+  - `objective_reactor` <- glowing reactor core machine
+- Added ambient facility props into the level flow via `detailProps` in `game.js`.
+- Kept the strongest clean props live in the stages:
+  - cooling plant
+  - waste barrel
+  - console bank
+  - missile cart
+  - centrifuge bank
+- Also packed extra props from the second sheet into the sprite pipeline for future use, but left the weaker beige-background cuts out of live stage placement for now.
+
+### Validation (this pass)
+
+- `python -m py_compile tools/build_nuclear_objective_props.py` passed.
+- `python tools/build_nuclear_objective_props.py --overwrite` passed.
+- `python tools/import_png_sprite_sheets.py --overwrite` passed.
+- `node --check game.js` passed after runtime wiring.
+- Playwright objective/prop checks passed with no `errors-0.json` in:
+  - `output/objective-prop-check-v2`
+  - `output/objective-prop-l2-check-v4`
+  - `output/objective-prop-l3-check-v4`
+- Best screenshots for this pass:
+  - `output/objective-prop-check-v2/shot-0.png`
+  - `output/objective-prop-l2-check-v4/shot-0.png`
+  - `output/objective-prop-l3-check-v4/shot-0.png`
+- Preview strips written to `output/objective-prop-preview`.
+
+### Follow-up Note
+
+- `assets/sprites/21a08d28-c1c3-41fd-b7aa-13a75ac8d172.png` has a few useful props, but its pale background needs a more custom extraction pass before those items are good enough for broad live placement.
