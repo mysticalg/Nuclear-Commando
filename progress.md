@@ -293,6 +293,30 @@
 - Residual note:
   - the bundled Playwright client still intermittently times out on exit and can produce odd paused-scene captures, but the state dumps and final whiteout screenshot were valid.
 
+## Player Scale + Pose Alignment Pass
+
+- Reworked player rendering so the full sprite frame is scaled uniformly.
+- Instead of cropping each player pose independently, the renderer now maps the shared canonical player area into the world and draws the whole frame around it.
+  - This preserves the original sprite sheet’s relative sizing between standing / up / diagonal / run poses.
+  - It keeps the head and feet positions much more consistent without per-pose shrink/grow artifacts.
+- Set the player visual scale to `1.76` as the new uniform baseline.
+- Kept horizontal recoil only for the forward-fire stance.
+- Moved the pose debug helpers farther right so they no longer hide behind the level-start checkpoint prop during capture.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Forward-fire pose/state capture:
+  - `output/web-game-player-uniform-scale-forward-v1`
+- Up-pose/state capture:
+  - `output/web-game-player-uniform-scale-up-v1`
+- Gameplay smoke:
+  - `output/web-game-player-uniform-scale-smoke-v1`
+- Visual read:
+  - player/trooper scale is back closer to the intended on-screen size
+  - standing and up poses no longer use independent per-pose resize behavior
+  - head/feet alignment is more stable across pose swaps
+
 ## Cave Variant Polish Pass
 
 - Pushed levels 2 and 3 further away from level 1 visually by expanding the cave preset system in `game.js`:
@@ -1596,3 +1620,134 @@
   - confirms `audio.currentMusicKey:"stage1"`
   - confirms active ducking with `audio.duck:0.69`
 - The existing browser console `ERR_CONNECTION_REFUSED` resource error still appears in one capture run, but it predates the ducking logic and did not block audio state or rendering.
+
+## Player Scale + Pose Alignment Pass
+
+- Reworked player and trooper rendering to use uniform full-frame source scaling instead of the previous canonical crop scaling that was inflating the commando relative to the troopers.
+- Added fixed family anchors so the imported sprite sheets keep their original proportions while feet/head placement stays much steadier between pose swaps.
+- Preserved shot and combat alignment by expanding the older canonical muzzle/combat ratios into the new full-frame render space rather than hand-redrawing every pose offset.
+- New family scales:
+  - player source-frame scale: `0.55`
+  - trooper source-frame scale: derived from the original forward-pose visible-height ratio (`114 / 101`)
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Generated a clean side-by-side scale probe:
+  - `output/scale-probe-v2.png`
+- Browser validation rerun through the Playwright client:
+  - `output/web-game-scale-forward-check-v3/shot-0.png`
+  - `output/web-game-scale-forward-check-v3/state-0.json`
+  - `output/web-game-scale-smoke-v3/shot-0.png`
+- The scale-forward debug state lands in the intended paused comparison scene with the player and an olive trooper placed side by side.
+
+### Notes / TODO
+
+- The generic `ERR_CONNECTION_REFUSED` console noise still appears in the browser captures and predates this pass.
+- The dedicated `scale-up-check` browser scenario was flaky in the harness, but the raw source-frame scale probe confirms the up pose now shares the same family scale instead of using a smaller independent fit.
+
+### Up-Pose Follow-Up
+
+- Increased the up-aim pose family render scale by `1.22x` relative to the base player family so the up frame reads closer to the intended ~80px visible height instead of the mid-60px range.
+- Applied that follow-up to:
+  - `player_idle_up`
+  - `player_run_up`
+  - `player_air_up`
+  - `player_climb_up`
+  - `player_hang_up`
+- Kept the same full-frame baseline anchor so the feet still lock to the ground / ladder / bar correctly while the taller up pose grows upward.
+
+### Validation (up-pose follow-up)
+
+- `node --check game.js` passed.
+- Updated scale probe:
+  - `output/scale-probe-v3.png`
+- Forward comparison browser capture rerun:
+  - `output/web-game-scale-forward-check-v4/shot-0.png`
+  - `output/web-game-scale-forward-check-v4/state-0.json`
+- Gameplay smoke rerun:
+  - `output/web-game-scale-smoke-v4/shot-0.png`
+
+### Up-Pose Micro-Tune
+
+- Nudged `PLAYER_UP_POSE_SCALE_MULT` from `1.22` to `1.27` so the up pose reads a few pixels larger without changing the standing/trooper balance.
+
+### Validation (micro-tune)
+
+- `node --check game.js` passed.
+- Updated scale probe:
+  - `output/scale-probe-v4.png`
+- Visible-height readout now measures:
+  - forward: `63px`
+  - up: `84px`
+  - trooper: `63px`
+- Browser reruns passed cleanly:
+  - `output/web-game-scale-forward-check-v5/shot-0.png`
+  - `output/web-game-scale-smoke-v5/shot-0.png`
+- No `errors-0.json` file was produced for the forward comparison rerun.
+
+## Run Frame 5 Normalization
+
+- Normalized `assets/sprites/png16_frames/player_run_5_hd.png`, which was the only forward-run frame with a visibly shorter sprite body.
+- Resized only the visible sprite content uniformly and kept the foot line anchored to the same bottom row inside the `160x160` frame.
+- Mirrored that corrected frame back into `assets/sprites/sheets/png16/player_run_sheet.png` so the strip stays consistent with the live per-frame asset.
+
+### Validation (run frame 5)
+
+- `player_run_5_hd.png` visible bounds changed:
+  - before: `96x99`
+  - after: `111x114`
+- Regenerated the forward run contact sheet:
+  - `output/run-frame-sheets/player_run_sheet.png`
+- Browser smoke validation passed after the asset edit:
+  - `output/web-game-run-frame-fix-v1/shot-0.png`
+- No `errors-0.json` file was produced for the browser rerun.
+
+## Enemy Frame Inspection
+
+- Generated labeled contact sheets for the base trooper sets:
+  - `output/enemy-frame-sheets/enemy_trooper_sheet.png`
+  - `output/enemy-frame-sheets/enemy_trooper_fire_sheet.png`
+  - `output/enemy-frame-sheets/enemy_trooper_up_sheet.png`
+  - `output/enemy-frame-sheets/enemy_trooper_death_sheet.png`
+- Key geometry findings:
+  - walk frame `enemy_trooper_5_hd` is the obvious short outlier at `98x83`
+  - fire frames `enemy_trooper_fire_1` through `enemy_trooper_fire_5` also read compressed (`83-91px` tall)
+  - up-aim frames are consistently tall (`124-126px`) and appear internally consistent
+  - the palette variants (`olive`, `crimson`, `navy`) mirror the same geometry as the base trooper set, so one normalization pass can be propagated across all variants
+
+## Enemy Trooper Normalization
+
+- Normalized the requested trooper walk and fire frames to a consistent `99px` visible height:
+  - `enemy_trooper_0_hd`, `enemy_trooper_5_hd`
+  - `enemy_trooper_crimson_0_hd`, `enemy_trooper_crimson_5_hd`
+  - `enemy_trooper_navy_0_hd`, `enemy_trooper_navy_5_hd`
+  - `enemy_trooper_olive_0_hd`, `enemy_trooper_olive_5_hd`
+  - all base + palette `enemy_trooper*_fire_*_hd` frames
+- Used uniform scaling on the visible sprite content only and preserved the original foot line / frame bottom anchor.
+- Mirrored the corrected frames back into the matching strip sheets:
+  - `enemy_trooper_sheet.png`
+  - `enemy_trooper_crimson_sheet.png`
+  - `enemy_trooper_navy_sheet.png`
+  - `enemy_trooper_olive_sheet.png`
+  - `enemy_trooper_fire_sheet.png`
+  - `enemy_trooper_crimson_fire_sheet.png`
+  - `enemy_trooper_navy_fire_sheet.png`
+  - `enemy_trooper_olive_fire_sheet.png`
+
+### Validation (enemy normalization)
+
+- Verified updated visible bounds:
+  - `enemy_trooper_0_hd`: `97x99`
+  - `enemy_trooper_5_hd`: `117x99`
+  - `enemy_trooper_fire_0_hd`: `97x99`
+  - `enemy_trooper_fire_1_hd`: `119x99`
+  - `enemy_trooper_fire_5_hd`: `116x99`
+- Regenerated base inspection sheets:
+  - `output/enemy-frame-sheets/enemy_trooper_sheet.png`
+  - `output/enemy-frame-sheets/enemy_trooper_fire_sheet.png`
+  - `output/enemy-frame-sheets/enemy_trooper_up_sheet.png`
+  - `output/enemy-frame-sheets/enemy_trooper_death_sheet.png`
+- Browser smoke validation passed:
+  - `output/web-game-enemy-normalize-v1/shot-0.png`
+- No `errors-0.json` file was produced for the browser rerun.

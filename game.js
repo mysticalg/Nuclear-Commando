@@ -22,8 +22,12 @@
   const PLAYER_HANG_SPEED = 165;
   const PLAYER_DROP_THROUGH = 0.22;
   const PLAYER_HANG_RELEASE = 0.18;
-  const PLAYER_VISUAL_SCALE = 1.86;
-  const TROOPER_VISUAL_SCALE = PLAYER_VISUAL_SCALE * (48 / 44);
+  const SPRITE_FRAME_SIZE = 160;
+  const PLAYER_REFERENCE_VISIBLE_HEIGHT = 114;
+  const TROOPER_REFERENCE_VISIBLE_HEIGHT = 101;
+  const PLAYER_VISUAL_SCALE = 0.55;
+  const PLAYER_UP_POSE_SCALE_MULT = 1.27;
+  const TROOPER_VISUAL_SCALE = PLAYER_VISUAL_SCALE * (PLAYER_REFERENCE_VISIBLE_HEIGHT / TROOPER_REFERENCE_VISIBLE_HEIGHT);
   const CAMERA_LERP = 6.4;
   const CAMERA_LEAD_LERP = 8.2;
   const FACE_LERP = 10.5;
@@ -33,6 +37,9 @@
   const BULLET_RADIUS_SCALE = 0.5;
   const MUZZLE_FLASH_FORWARD_OFFSET = 2.5;
   const PLAYER_CANONICAL_BOUNDS = Object.freeze({ sx: 31 / 160, sy: 21 / 160, sw: 98 / 160, sh: 123 / 160 });
+  const TROOPER_CANONICAL_BOUNDS = Object.freeze({ sx: 21 / 160, sy: 18 / 160, sw: 118 / 160, sh: 126 / 160 });
+  const PLAYER_FRAME_ANCHOR = Object.freeze({ x: 80 / SPRITE_FRAME_SIZE, y: 142 / SPRITE_FRAME_SIZE });
+  const TROOPER_FRAME_ANCHOR = Object.freeze({ x: 79 / SPRITE_FRAME_SIZE, y: 142 / SPRITE_FRAME_SIZE });
   const SMART_BOMB_GROW_DURATION = 3.2;
   const SMART_BOMB_FLASH_DURATION = 0.22;
   const SMART_BOMB_WHITEOUT_HOLD = 0.72;
@@ -824,6 +831,10 @@
     const d = Math.hypot(x, y) || 1;
     return { x: x / d, y: y / d };
   };
+  const expandCanonicalAnchor = (anchor, canonicalBounds) => ({
+    x: canonicalBounds.sx + canonicalBounds.sw * anchor.x,
+    y: canonicalBounds.sy + canonicalBounds.sh * anchor.y,
+  });
 
   function readStoredJson(key, fallback) {
     try {
@@ -1152,17 +1163,29 @@
     };
   }
 
+  function getPlayerPoseVisualScale(key) {
+    return key === "player_idle_up"
+      || key === "player_run_up"
+      || key === "player_air_up"
+      || key === "player_climb_up"
+      || key === "player_hang_up"
+      ? PLAYER_VISUAL_SCALE * PLAYER_UP_POSE_SCALE_MULT
+      : PLAYER_VISUAL_SCALE;
+  }
+
   function getPlayerRenderState(p) {
-    const sw = p.w * PLAYER_VISUAL_SCALE;
-    const sh = p.h * PLAYER_VISUAL_SCALE;
+    const key = getPlayerPoseKey(p);
+    const scale = getPlayerPoseVisualScale(key);
+    const sw = SPRITE_FRAME_SIZE * scale;
+    const sh = SPRITE_FRAME_SIZE * scale;
     const aimMode = getPlayerAimMode(p);
     return {
-      scale: PLAYER_VISUAL_SCALE,
+      scale,
       sw,
       sh,
-      sx: p.x - (sw - p.w) * 0.5,
-      sy: p.y - (sh - p.h),
-      key: getPlayerPoseKey(p),
+      sx: p.x + p.w * 0.5 - sw * PLAYER_FRAME_ANCHOR.x,
+      sy: p.y + p.h - sh * PLAYER_FRAME_ANCHOR.y,
+      key,
       aimMode,
       flipScale: getPlayerFlipScale(p, aimMode),
     };
@@ -1200,8 +1223,9 @@
                     : pose === "player_climb" || pose === "player_hang"
                       ? { x: 0.56, y: 0.28 }
               : { x: 0.83, y: 0.39 };
+    const frameAnchor = expandCanonicalAnchor(anchor, PLAYER_CANONICAL_BOUNDS);
     const facingLeft = (typeof render.flipScale === "number" ? render.flipScale : p.face) < 0;
-    const mirroredX = facingLeft ? 1 - anchor.x : anchor.x;
+    const mirroredX = facingLeft ? 1 - frameAnchor.x : frameAnchor.x;
     const reach = pose === "player_jump"
       ? 14
       : (isClimbPose || isHangPose)
@@ -1212,7 +1236,7 @@
             ? 4.5
             : 3.5;
     const tipX = draw.x + draw.w * mirroredX + aim.x * reach;
-    const tipY = draw.y + draw.h * anchor.y + aim.y * reach;
+    const tipY = draw.y + draw.h * frameAnchor.y + aim.y * reach;
     return {
       x: tipX,
       y: tipY,
@@ -1226,6 +1250,18 @@
   }
 
   function getEnemyRenderState(e) {
+    if (e.kind === "trooper") {
+      const sw = SPRITE_FRAME_SIZE * TROOPER_VISUAL_SCALE;
+      const sh = SPRITE_FRAME_SIZE * TROOPER_VISUAL_SCALE;
+      return {
+        scale: TROOPER_VISUAL_SCALE,
+        sw,
+        sh,
+        sx: e.x + e.w * 0.5 - sw * TROOPER_FRAME_ANCHOR.x,
+        sy: e.y + e.h - sh * TROOPER_FRAME_ANCHOR.y,
+        flip: getEnemyFacingFlip(e),
+      };
+    }
     const scale = ENEMY_SCALE[e.kind] || 1.5;
     const sw = e.w * scale;
     const sh = e.h * scale;
@@ -1310,9 +1346,10 @@
     const draw = getSpriteDrawMetrics(spriteKey, render.sx + offsetX, render.sy + offsetY, render.sw, render.sh);
     const aim = getEnemyAimVector(e);
     const lead = e.kind === "trooper" ? 5 : (e.kind === "mech" || e.kind === "boss") ? 7 : 4;
-    const mirroredX = (e.kind === "boss" && getBossStyleName(e) === "demonspider") ? anchor.x : (facingRight ? 1 - anchor.x : anchor.x);
+    const frameAnchor = e.kind === "trooper" ? expandCanonicalAnchor(anchor, TROOPER_CANONICAL_BOUNDS) : anchor;
+    const mirroredX = (e.kind === "boss" && getBossStyleName(e) === "demonspider") ? frameAnchor.x : (facingRight ? 1 - frameAnchor.x : frameAnchor.x);
     const x = draw.x + draw.w * mirroredX + aim.x * lead;
-    const y = draw.y + draw.h * anchor.y + aim.y * lead;
+    const y = draw.y + draw.h * frameAnchor.y + aim.y * lead;
     return { x, y };
   }
 
@@ -1527,10 +1564,10 @@
     const render = getEnemyRenderState(e);
     if (e.kind === "trooper") {
       return {
-        x: render.sx + render.sw * 0.22,
-        y: render.sy + render.sh * 0.09,
-        w: render.sw * 0.5,
-        h: render.sh * 0.82,
+        x: render.sx + render.sw * (TROOPER_CANONICAL_BOUNDS.sx + TROOPER_CANONICAL_BOUNDS.sw * 0.22),
+        y: render.sy + render.sh * (TROOPER_CANONICAL_BOUNDS.sy + TROOPER_CANONICAL_BOUNDS.sh * 0.09),
+        w: render.sw * TROOPER_CANONICAL_BOUNDS.sw * 0.5,
+        h: render.sh * TROOPER_CANONICAL_BOUNDS.sh * 0.82,
       };
     }
     if (e.kind === "drone") {
@@ -1709,6 +1746,8 @@
     if (DEBUG_SCENARIO === "up-right-recoil-check") window.__nuclear_commando_debug.setupUpPoseCheck(1, true);
     if (DEBUG_SCENARIO === "up-left-recoil-check") window.__nuclear_commando_debug.setupUpPoseCheck(-1, true);
     if (DEBUG_SCENARIO === "diag-right-check") window.__nuclear_commando_debug.setupDiagPoseCheck(1, true);
+    if (DEBUG_SCENARIO === "scale-forward-check") window.__nuclear_commando_debug.setupScaleCheck("forward");
+    if (DEBUG_SCENARIO === "scale-up-check") window.__nuclear_commando_debug.setupScaleCheck("up");
     if (DEBUG_SCENARIO === "ground-aimlock-diag-check") window.__nuclear_commando_debug.setupGroundAimLockDiagCheck(1, false);
     if (DEBUG_SCENARIO === "ground-aimlock-diag-fire-check") window.__nuclear_commando_debug.setupGroundAimLockDiagCheck(1, true);
     if (DEBUG_SCENARIO === "turn-blend-check") window.__nuclear_commando_debug.setupTurnBlendCheck();
@@ -3104,19 +3143,6 @@
     updateFlow(dt);
   }
 
-  function getStableSpriteBounds(key, img, bounds) {
-    if (!img) return bounds;
-    if (/^player_/.test(key)) {
-      return {
-        sx: Math.round((img.width || 1) * PLAYER_CANONICAL_BOUNDS.sx),
-        sy: Math.round((img.height || 1) * PLAYER_CANONICAL_BOUNDS.sy),
-        sw: Math.round((img.width || 1) * PLAYER_CANONICAL_BOUNDS.sw),
-        sh: Math.round((img.height || 1) * PLAYER_CANONICAL_BOUNDS.sh),
-      };
-    }
-    return bounds;
-  }
-
   function getSpriteDrawMetrics(key, x, y, w, h) {
     const hdKey = `${key}_hd`;
     const resolvedKey = sprites.has(hdKey) ? hdKey : (sprites.has(key) ? key : null);
@@ -3129,7 +3155,27 @@
     }
     const img = sprites.get(resolvedKey);
     const measuredBounds = spriteBounds.get(resolvedKey) || { sx: 0, sy: 0, sw: img.width || 1, sh: img.height || 1 };
-    const bounds = getStableSpriteBounds(key, img, measuredBounds);
+    const useFullFrame = /^player_/.test(key) || /^enemy_trooper/.test(key);
+    if (useFullFrame && img) {
+      return {
+        resolvedKey,
+        px,
+        py,
+        pw,
+        ph,
+        drawX: 0,
+        drawY: 0,
+        drawW: pw,
+        drawH: ph,
+        x: px,
+        y: py,
+        w: pw,
+        h: ph,
+        img,
+        bounds: { sx: 0, sy: 0, sw: img.width || 1, sh: img.height || 1 },
+      };
+    }
+    const bounds = measuredBounds;
     const preserveAspect = /^(player_|enemy_)/.test(key);
     const srcAspect = Math.max(0.01, bounds.sw / Math.max(1, bounds.sh));
     const dstAspect = Math.max(0.01, pw / Math.max(1, ph));
@@ -4571,7 +4617,7 @@
       state.explosions = [];
       state.corpses = [];
       state.bloodParticles = [];
-      state.player.x = 220;
+      state.player.x = 460;
       state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
       state.player.vx = 0;
       state.player.vy = 0;
@@ -4603,7 +4649,7 @@
       state.explosions = [];
       state.corpses = [];
       state.bloodParticles = [];
-      state.player.x = 220;
+      state.player.x = 460;
       state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
       state.player.vx = 0;
       state.player.vy = 0;
@@ -4672,7 +4718,7 @@
       state.explosions = [];
       state.corpses = [];
       state.bloodParticles = [];
-      state.player.x = 220;
+      state.player.x = 460;
       state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
       state.player.vx = 0;
       state.player.vy = 0;
@@ -4700,7 +4746,7 @@
       state.explosions = [];
       state.corpses = [];
       state.bloodParticles = [];
-      state.player.x = 220;
+      state.player.x = 460;
       state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
       state.player.vx = 0;
       state.player.vy = 0;
@@ -4728,7 +4774,7 @@
       state.explosions = [];
       state.corpses = [];
       state.bloodParticles = [];
-      state.player.x = 220;
+      state.player.x = 320;
       state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
       state.player.vx = 32;
       state.player.vy = 0;
@@ -4739,6 +4785,41 @@
       state.player.aimX = face * 0.72;
       state.player.aimY = -0.72;
       state.player.muzzleFlashT = recoil ? 0.08 : 0;
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupScaleCheck(aimMode = "forward") {
+      clearSay();
+      debugHidePauseOverlay = true;
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 2720;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.crouching = false;
+      state.player.rollT = 0;
+      state.player.climbing = false;
+      state.player.hanging = false;
+      state.player.muzzleFlashT = 0;
+      state.player.aimX = aimMode === "up" ? 0 : 1;
+      state.player.aimY = aimMode === "up" ? -1 : 0;
+      spawnEnemy({ t: "trooper", x: 2840, surfaceY: terrainY(2854), variant: "olive" });
+      state.cameraX = clamp(state.player.x - 180, 0, Math.max(0, state.level.length - W));
+      state.cameraY = clamp(state.player.y - H * 0.45, levelTop(), Math.max(levelTop(), levelHeight() - H));
       state.mode = "paused";
       render();
       return true;
