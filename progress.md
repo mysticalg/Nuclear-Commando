@@ -1816,3 +1816,316 @@
 ### Follow-up Note
 
 - `assets/sprites/21a08d28-c1c3-41fd-b7aa-13a75ac8d172.png` has a few useful props, but its pale background needs a more custom extraction pass before those items are good enough for broad live placement.
+
+## Transparent Reactor Variant Pass
+
+- Added new transparent objective/prop cuts from `assets/sprites/73cc31e9-e773-45a7-a02c-b5b7414b01ad.png`.
+- Extended `tools/build_nuclear_objective_props.py` with alpha-threshold trimming so transparent sheets keep their black outlines instead of being background-removed.
+- Built new live strips:
+  - `objective_factory_silo`
+  - `objective_reactor_core_alt`
+  - `objective_reactor_arc_alt`
+  - `prop_reactor_gate`
+  - `prop_reactor_claw`
+  - `prop_pipe_cannon`
+  - `prop_plasma_turret`
+- Wired objective sprite overrides into `game.js` with `OBJECTIVE_SPRITE_STYLES`.
+- Current live objective mapping:
+  - `Missile Forge` -> missile silo
+  - `Launch Vault` -> arc reactor tower
+  - `Midnight Reactor` -> waste-core reactor
+- Added the red reactor gate as a room detail prop in multiple levels.
+- Claw / pipe cannon / plasma turret cuts are packed and ready, but not all are placed live yet.
+
+### Validation (this pass)
+
+- `python -m py_compile tools/build_nuclear_objective_props.py` passed.
+- `python tools/build_nuclear_objective_props.py --overwrite` passed.
+- `python tools/import_png_sprite_sheets.py --overwrite` passed.
+- `node --check game.js` passed.
+- Verified in-browser with direct objective shots:
+  - `output/objective-prop-newsheet-l1-factory-v1/shot-0.png`
+  - `output/objective-prop-newsheet-l2-reactor-v1/shot-0.png`
+  - `output/objective-prop-newsheet-l3-reactor-v1/shot-0.png`
+
+### Outline Preservation Fix
+
+- Confirmed the main objective source sheets (`bee...`, `21a...`, `73cc...`) already have real alpha backgrounds.
+- Updated `tools/build_nuclear_objective_props.py` so transparent crops now default to alpha trimming instead of dark-background flood fill.
+- Added small-component filtering during alpha trim so tiny neighbor scraps do not survive the crop, while black outline pixels stay intact.
+- Rebuilt and reimported the objective/prop sheets after the fix.
+- Verified in-browser that black outlines now remain visible on the rebuilt objective art.
+## Bomb Pickup / Refill Pass
+
+- Increased player smart bomb stock to `5`.
+- Bomb stock now fully replenishes whenever a new level starts.
+- Life-loss respawns do not refill bombs; only level starts do.
+- Added enemy bomb drops as a new pickup type.
+- Bomb drops are slightly more likely when the player is low on bombs.
+- Added a dedicated floating bomb pickup icon and collection handling.
+- Added debug scenarios:
+  - `?scenario=bomb-pickup-check`
+  - `?scenario=bomb-collect-check`
+  - `?scenario=bomb-refill-check`
+
+### Validation
+
+- `node --check game.js` passed.
+- Browser validation passed with fresh captures:
+  - `output/web-game-bomb-pickup-v2`
+  - `output/web-game-bomb-collect-v3`
+  - `output/web-game-bomb-refill-v3`
+  - `output/web-game-bomb-smoke-v2`
+- Verified states:
+  - bomb pickup scene shows `pickups[0].type: "bomb"` and `player.smartBombs: 2`
+  - bomb collect scene ends with `player.smartBombs: 3`
+  - bomb refill scene transitions into `level.index: 1` with `player.smartBombs: 5`
+  - gameplay smoke starts level 1 with `player.smartBombs: 5`
+## Foreground Opacity / Floor Anchor Pass
+
+- Made scenery room/shaft chunks render as solid foreground structures instead of translucent overlays.
+- Increased ladder and hanging-rail backing opacity so climbable wall sections read as true foreground geometry.
+- Added style-specific floor offsets for large reactor / centrifuge objective art.
+- Objective targets now anchor to terrain instead of snapping to incidental obstacles like pillars.
+- Detail props now use terrain grounding too, so large facility art sits on the floor more reliably.
+
+### Validation
+
+- `node --check game.js` passed.
+- Browser checks passed:
+  - `output/web-game-foreground-solid-v1`
+  - `output/web-game-objective-floor-factory-v2`
+  - `output/web-game-objective-floor-reactor-v2`
+- Verified visually:
+  - industrial ladder/room structures no longer render see-through
+  - launch-vault reactor no longer snaps to the nearby pillar support
+  - missile/reactor base art sits visibly lower against the floor line
+## Trooper Respawn / Corpse Stack Pass
+
+- Trooper enemies now queue a respawn 5 seconds after death.
+- Respawns use the trooper's original spawn spec, so patrol range / surface placement stay consistent.
+- Corpses are still preserved on the floor after the trooper returns.
+- Increased corpse retention cap from `40` to `120` so the level can accumulate much larger piles.
+- Landed corpses now act as support surfaces for later corpses.
+- New corpses overlap slightly and nudge sideways a bit when landing on another corpse, so the pile reads as stacked instead of fully flat.
+- Added debug scenarios:
+  - `?scenario=trooper-respawn-check`
+  - `?scenario=corpse-stack-check`
+
+### Validation
+
+- `node --check game.js` passed.
+- Browser checks passed:
+  - `output/web-game-trooper-respawn-v1`
+  - `output/web-game-corpse-stack-v2`
+  - `output/web-game-respawn-smoke-v1`
+- Verified state:
+  - respawn scene shows `aftermath.corpses: 1` and a live respawned trooper after `timer: 5.92`
+  - corpse stack scene shows `aftermath.corpses: 2` and `stackedCorpses: 1`
+
+## Industrial Tile Unwarp / Tiling Pass
+
+- Replaced the old stretched industrial-atlas environment slices with repeatable tile definitions in `game.js`.
+- `ENV_TILE_RECTS` now uses smaller sub-tiles from `deshfsw-418d0116-ef10-4106-871a-7154fdadafdf.png` for:
+  - `platformTop`
+  - `platformBeam`
+  - `supportFace`
+  - `wallFace`
+- Upgraded `drawEnvironmentCrop()` so it can repeat tiles horizontally, vertically, or both inside a clipped destination rect instead of always stretching.
+- This removes the squashed/warped look from:
+  - industrial wall shafts
+  - building faces
+  - catwalks / platforms
+  - support columns
+- Hang bars now use the beam tile instead of the old wall-room strip.
+- Increased live platform tile opacity so catwalks read as solid foreground metal rather than semi-transparent overlays.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Browser validation runs completed with no `errors-*.json` files in:
+  - `output/web-game-level2-tiling-v2`
+  - `output/web-game-level1-tiling-v2`
+  - `output/web-game-vertical-tiling-v1`
+- Visual checks confirm the industrial structures now tile cleanly and keep their native proportions instead of being stretched.
+
+## Structure Tile Split Pass
+
+- Added a dedicated early-level ruined masonry tile sheet:
+  - `assets/sprites/environment_ruin_tiles.png`
+- Split environment structure tiles by level palette via `structureTiles`:
+  - Level 1 uses `ruins`
+  - Levels 2 and 3 use `industrial`
+- Replaced the industrial wall-face tile from the pipe-pattern crop with a cleaner panel/conduit crop from the lower room strip.
+- Updated `drawEnvironmentCrop()` to choose tiles from the active structure tile set instead of a single global atlas mapping.
+- Kept climbables / hanging bars on the industrial set so traversal remains readable and metallic.
+- Made gameplay platforms/catwalks fully opaque (`alpha: 1`) so they no longer read as transparent overlays.
+- Increased solid scenery chunk tile opacity so foreground structures look planted.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Browser validation screenshots:
+  - `output/web-game-level1-ruins-v1/shot-0.png`
+  - `output/web-game-level2-industrial-v1/shot-0.png`
+  - `output/web-game-vertical-structure-v1/shot-0.png`
+- No `errors-*.json` files in the final validation folders.
+
+## Crouch Aim-Lock / No-Roll Pass
+
+- Removed the player roll control path from gameplay input and movement logic.
+- Removed roll-specific pose selection, hitbox handling, render afterimages, splash instructions, and debug/state output.
+- `Down + X` on the ground now acts as a planted crouch-lock stance:
+  - the player stays crouched
+  - horizontal movement is suppressed
+  - `Left/Right` changes facing without walking
+  - `Up` while crouched aims upward
+  - `Up + Left/Right` while crouched aims diagonal-up
+  - crouched forward fire remains available
+- Kept traversal controls unchanged for hanging/climbing.
+- Added debug scenarios for deterministic validation:
+  - `?scenario=crouch-aimlock-forward-check`
+  - `?scenario=crouch-aimlock-up-check`
+  - `?scenario=crouch-aimlock-up-fire-check`
+  - `?scenario=crouch-aimlock-diag-fire-check`
+- Adjusted crouch muzzle anchors so forward/up/diag crouch shots spawn from more appropriate positions.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- No remaining `roll` gameplay references in `game.js` or `index.html`.
+- Browser validation captures:
+  - `output/web-game-crouch-aimlock-forward-v1/shot-0.png`
+  - `output/web-game-crouch-aimlock-up-v1/shot-0.png`
+  - `output/web-game-crouch-aimlock-up-fire-v1/shot-0.png`
+  - `output/web-game-crouch-aimlock-diag-fire-v1/shot-0.png`
+- State validation confirms crouched planted aim states:
+  - forward: `crouching:true`, `aim.mode:"forward"`, `vx:0`
+  - up: `crouching:true`, `aim.mode:"up"`, `vx:0`
+  - diagonal fire: `crouching:true`, `aim.mode:"diag"`, `bullets.player:1`
+
+## Tall Building Ascent Pass
+
+- Reworked level 2 (`Arc Mountains`) into a taller vertical building section instead of a short bunker shaft.
+- Expanded the level bounds so the camera can travel several screens upward:
+  - `height: 1900`
+  - `top: -1100`
+  - `length: 9000`
+- Built a taller ascent sequence with many more alternating platforms:
+  - extra upper tower platforms (`l2-shaft-11` through `l2-shaft-16`)
+  - rooftop walk platforms across the summit (`l2-roof-17` through `l2-roof-20`)
+  - descending platforms back toward later ground combat (`l2-descent-21` through `l2-descent-24`)
+- Added extra ladders on platform edges all the way up the tower and into the descent path.
+- Added extra hang bars through the upper tower and roofline.
+- Rebuilt level 2 scenery chunks so the shaft/building face is much taller and reads as one large industrial tower.
+- Added tower-specific checkpoints:
+  - `Tower Base`
+  - `Mid Tower`
+  - `Roofline`
+  - `Drop Yard`
+- Shifted the level 2 boss farther right so the new ascent + rooftop run has room before the arena.
+- Added/updated debug scenarios:
+  - `?scenario=tower-ascent-check`
+  - `?scenario=tower-summit-check`
+  - `?scenario=tower-rooftop-check`
+  - `?scenario=vertical-scroll-check` now aliases the tower ascent view
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Browser validation captures:
+  - `output/web-game-tower-ascent-v1/shot-0.png`
+  - `output/web-game-tower-summit-v1/shot-0.png`
+  - `output/web-game-tower-rooftop-v1/shot-0.png`
+- State validation confirms the new bounds and camera framing:
+  - ascent: `cameraY:-624`
+  - summit: `cameraY:-1100`
+  - rooftop: `cameraY:-1100`
+- No `errors-*.json` files were produced in the new tower validation folders.
+
+## Objective Meltdown Pass
+
+- Added short post-destruction meltdown sequences for objectives.
+- Centrifuges and reactors now chain through multiple mini-explosions instead of disappearing with one boom.
+- Reactors use a slightly longer/heavier meltdown than other objectives, but still much faster than the boss.
+- Added a quick whole-screen white flash tied to active objective meltdowns.
+- Objective destruction still counts immediately for progression; gameplay is not paused and the game does not enter a special mode.
+- Once the short meltdown sequence finishes, the destroyed objective no longer renders.
+- Added debug scenarios:
+  - `?scenario=objective-death-check`
+  - `?scenario=objective-reactor-death-check`
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Browser validation captures:
+  - `output/web-game-objective-death-v1/shot-0.png`
+  - `output/web-game-objective-reactor-death-v1/shot-0.png`
+- State validation confirmed active objective death sequences with white-flash timing:
+  - centrifuge: `objectiveDeaths[0].t: 0.92`, `duration: 1.35`
+  - reactor: `objectiveDeaths[0].t: 1.12`, `duration: 1.55`
+- No `errors-*.json` files were produced in the new validation folders.
+
+## Destructible Crate Pass
+
+- Crate obstacles are now destructible while barriers and pillars remain structural.
+- Added crate HP at level-reset time so obstacle damage is per-run and does not leak across resets.
+- Crates now take player bullet damage and break at `200 HP` (about 10 base rifle hits).
+- Destroyed crates stop rendering and stop acting as collision solids.
+- Added small crate explosion bursts on break.
+- Added debug scenario:
+  - `?scenario=crate-destroy-check`
+- Extended `render_game_to_text()` with obstacle state so crate HP/destruction can be inspected during debugging.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Browser validation captures:
+  - `output/web-game-crate-destroy-v1/shot-0.png`
+  - `output/web-game-crate-smoke-v1/shot-0.png`
+- State validation confirmed the first crate reaches `hp:0` and `destroyed:true` after the scripted hit sequence.
+- No `errors-*.json` files were produced in the new validation folders.
+
+## Infinite Ammo / Laser Beam Pass
+
+- Switched `SPREAD`, `LASER`, and `FLAME` to unlimited ammo (`Infinity`), matching rifle.
+- Weapon pickups still unlock and upgrade weapons, but no longer act as ammo refills.
+- The HUD now shows `Ammo: INF` for all weapons.
+- Added a dedicated laser render branch so laser shots draw as a bright beam streak instead of the generic bullet orb.
+- Added debug scenario:
+  - `?scenario=laser-beam-check`
+- Extended `render_game_to_text()` with the current weapon ammo field for easier validation.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Browser validation capture:
+  - `output/web-game-laser-beam-v2/shot-0.png`
+- State validation confirmed:
+  - `player.activeWeapon: "LASER"`
+  - `player.ammo: "INF"`
+  - `bullets.player: 1`
+- No `errors-*.json` files were produced in the new validation folder.
+
+## Shield Pickup Pass
+
+- Added `shield` pickups with two fixed drops per level.
+- Each shield pickup grants `3` buffered hits, capped at `6` total shield hits.
+- Shield absorbs enemy bullets, enemy contact, and hazard damage before HP is lost.
+- Added HUD readout: `Shield: <hits>`.
+- Added player shield aura / flash feedback and pickup icon rendering.
+- Shield resets on level start and on player death.
+
+### Validation (Shield Pass)
+
+- `node --check game.js` passed.
+- Debug checks:
+  - `?scenario=shield-pickup-check`
+  - `?scenario=shield-absorb-check`
+- Artifacts:
+  - `output/web-game-shield-pickup-v1/shot-0.png`
+  - `output/web-game-shield-absorb-v1/shot-0.png`
+  - `output/web-game-shield-level-smoke-v1/shot-0.png`
+- Verified state:
+  - pickup check ends with `player.shieldHits: 3`
+  - absorb check ends with `player.hp: 220` and `player.shieldHits: 2`

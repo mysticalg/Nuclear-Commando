@@ -343,6 +343,13 @@
       "frame_h": 160
     },
     {
+      "base": "objective_factory_silo",
+      "file": "objective_factory_silo_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
       "base": "objective_radar",
       "file": "objective_radar_sheet.png",
       "frames": 2,
@@ -352,6 +359,20 @@
     {
       "base": "objective_reactor",
       "file": "objective_reactor_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_reactor_arc_alt",
+      "file": "objective_reactor_arc_alt_sheet.png",
+      "frames": 3,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "objective_reactor_core_alt",
+      "file": "objective_reactor_core_alt_sheet.png",
       "frames": 3,
       "frame_w": 160,
       "frame_h": 160
@@ -595,9 +616,37 @@
       "frame_h": 160
     },
     {
+      "base": "prop_pipe_cannon",
+      "file": "prop_pipe_cannon_sheet.png",
+      "frames": 1,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "prop_plasma_turret",
+      "file": "prop_plasma_turret_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "prop_reactor_claw",
+      "file": "prop_reactor_claw_sheet.png",
+      "frames": 2,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
       "base": "prop_reactor_dome",
       "file": "prop_reactor_dome_sheet.png",
       "frames": 1,
+      "frame_w": 160,
+      "frame_h": 160
+    },
+    {
+      "base": "prop_reactor_gate",
+      "file": "prop_reactor_gate_sheet.png",
+      "frames": 2,
       "frame_w": 160,
       "frame_h": 160
     },

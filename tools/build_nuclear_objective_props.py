@@ -4,7 +4,8 @@ Build objective and nuclear-facility prop sprite strips from imported art sheets
 
 This script:
 - cuts manual regions from the newly added source sheets
-- removes the dark backdrop with a border flood-fill
+- prefers alpha trimming whenever the source crop already has transparency
+- falls back to painted-backdrop cleanup only when transparency is absent
 - repacks the art into 160x160 strips used by the game
 - updates the PNG sheet manifest for the live sprite pipeline
 """
@@ -192,6 +193,118 @@ PACKS = [
             {"brightness": 1.04, "glow": 1.1},
         ],
     },
+    {
+        "base": "objective_factory_silo",
+        "file": "objective_factory_silo_sheet.png",
+        "image": "assets/sprites/73cc31e9-e773-45a7-a02c-b5b7414b01ad.png",
+        "region": (1090, 54, 1496, 476),
+        "trim_mode": "alpha",
+        "alpha_trim_threshold": 18,
+        "fit_w": 138,
+        "fit_h": 118,
+        "bottom": 150,
+        "glow_color": (120, 255, 116),
+        "variants": [
+            {"glow": 1.0},
+            {"glow": 1.18, "dy": -1},
+        ],
+    },
+    {
+        "base": "objective_reactor_core_alt",
+        "file": "objective_reactor_core_alt_sheet.png",
+        "image": "assets/sprites/73cc31e9-e773-45a7-a02c-b5b7414b01ad.png",
+        "region": (548, 480, 1080, 812),
+        "trim_mode": "alpha",
+        "alpha_trim_threshold": 18,
+        "fit_w": 144,
+        "fit_h": 116,
+        "bottom": 150,
+        "glow_color": (108, 255, 108),
+        "variants": [
+            {"glow": 1.0},
+            {"glow": 1.16, "dy": -1},
+            {"glow": 1.24},
+        ],
+    },
+    {
+        "base": "objective_reactor_arc_alt",
+        "file": "objective_reactor_arc_alt_sheet.png",
+        "image": "assets/sprites/73cc31e9-e773-45a7-a02c-b5b7414b01ad.png",
+        "region": (1030, 456, 1498, 856),
+        "trim_mode": "alpha",
+        "alpha_trim_threshold": 18,
+        "fit_w": 140,
+        "fit_h": 126,
+        "bottom": 150,
+        "glow_color": (104, 255, 134),
+        "variants": [
+            {"glow": 1.0},
+            {"glow": 1.18, "dy": -1},
+            {"glow": 1.28},
+        ],
+    },
+    {
+        "base": "prop_reactor_gate",
+        "file": "prop_reactor_gate_sheet.png",
+        "image": "assets/sprites/73cc31e9-e773-45a7-a02c-b5b7414b01ad.png",
+        "region": (44, 70, 620, 410),
+        "trim_mode": "alpha",
+        "alpha_trim_threshold": 16,
+        "fit_w": 148,
+        "fit_h": 104,
+        "bottom": 149,
+        "glow_color": (255, 114, 54),
+        "variants": [
+            {"glow": 1.0},
+            {"glow": 1.16},
+        ],
+    },
+    {
+        "base": "prop_reactor_claw",
+        "file": "prop_reactor_claw_sheet.png",
+        "image": "assets/sprites/73cc31e9-e773-45a7-a02c-b5b7414b01ad.png",
+        "region": (628, 18, 1066, 470),
+        "trim_mode": "alpha",
+        "alpha_trim_threshold": 18,
+        "fit_w": 138,
+        "fit_h": 120,
+        "bottom": 150,
+        "glow_color": (255, 214, 82),
+        "variants": [
+            {"glow": 1.0},
+            {"glow": 1.08, "dy": -2},
+        ],
+    },
+    {
+        "base": "prop_pipe_cannon",
+        "file": "prop_pipe_cannon_sheet.png",
+        "image": "assets/sprites/73cc31e9-e773-45a7-a02c-b5b7414b01ad.png",
+        "region": (90, 474, 604, 664),
+        "trim_mode": "alpha",
+        "alpha_trim_threshold": 18,
+        "fit_w": 146,
+        "fit_h": 72,
+        "bottom": 149,
+        "variants": [
+            {"glow": 1.0},
+        ],
+    },
+    {
+        "base": "prop_plasma_turret",
+        "file": "prop_plasma_turret_sheet.png",
+        "image": "assets/sprites/73cc31e9-e773-45a7-a02c-b5b7414b01ad.png",
+        "region": (32, 664, 600, 956),
+        "trim_mode": "alpha",
+        "alpha_trim_threshold": 18,
+        "fit_w": 146,
+        "fit_h": 114,
+        "bottom": 151,
+        "glow_color": (110, 255, 108),
+        "variants": [
+            {"glow": 1.0},
+            {"glow": 1.12},
+        ],
+    },
 ]
 
 
@@ -285,6 +398,108 @@ def remove_border_background(
     return rgba.crop(bbox)
 
 
+def trim_alpha_bounds(img: Image.Image, threshold: int = 8) -> Image.Image:
+    rgba = img.convert("RGBA")
+    alpha = rgba.getchannel("A")
+    mask = alpha.point(lambda a: 255 if a > threshold else 0)
+    w, h = rgba.size
+    px = mask.load()
+    visited = [[False] * h for _ in range(w)]
+    components: list[tuple[int, tuple[int, int, int, int], list[tuple[int, int]]]] = []
+
+    for y in range(h):
+        for x in range(w):
+            if visited[x][y]:
+                continue
+            visited[x][y] = True
+            if px[x, y] == 0:
+                continue
+            q: deque[tuple[int, int]] = deque([(x, y)])
+            points: list[tuple[int, int]] = []
+            minx = maxx = x
+            miny = maxy = y
+            while q:
+                cx, cy = q.popleft()
+                points.append((cx, cy))
+                if cx < minx:
+                    minx = cx
+                if cy < miny:
+                    miny = cy
+                if cx > maxx:
+                    maxx = cx
+                if cy > maxy:
+                    maxy = cy
+                for nx, ny in ((cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)):
+                    if nx < 0 or ny < 0 or nx >= w or ny >= h or visited[nx][ny]:
+                        continue
+                    visited[nx][ny] = True
+                    if px[nx, ny] != 0:
+                        q.append((nx, ny))
+            components.append((len(points), (minx, miny, maxx + 1, maxy + 1), points))
+
+    if not components:
+        return Image.new("RGBA", (1, 1), (0, 0, 0, 0))
+
+    largest = max(size for size, _, _ in components)
+    keep_threshold = max(48, int(largest * 0.012))
+    keep_components = [component for component in components if component[0] >= keep_threshold]
+    clean = Image.new("RGBA", rgba.size, (0, 0, 0, 0))
+    src = rgba.load()
+    dst = clean.load()
+    minx = w
+    miny = h
+    maxx = 0
+    maxy = 0
+    for _, bbox, points in keep_components:
+        bx0, by0, bx1, by1 = bbox
+        if bx0 < minx:
+            minx = bx0
+        if by0 < miny:
+            miny = by0
+        if bx1 > maxx:
+            maxx = bx1
+        if by1 > maxy:
+            maxy = by1
+        for px_x, px_y in points:
+            dst[px_x, px_y] = src[px_x, px_y]
+
+    if minx >= maxx or miny >= maxy:
+        return Image.new("RGBA", (1, 1), (0, 0, 0, 0))
+    return clean.crop((minx, miny, maxx, maxy))
+
+
+def has_meaningful_alpha(img: Image.Image, threshold: int = 8) -> bool:
+    rgba = img.convert("RGBA")
+    alpha = rgba.getchannel("A")
+    lo, hi = alpha.getextrema()
+    if lo >= threshold or hi <= threshold:
+        return False
+    w, h = rgba.size
+    border_points = [
+        (0, 0),
+        (w // 2, 0),
+        (w - 1, 0),
+        (0, h // 2),
+        (w - 1, h // 2),
+        (0, h - 1),
+        (w // 2, h - 1),
+        (w - 1, h - 1),
+    ]
+    border_transparent = sum(1 for point in border_points if alpha.getpixel(point) <= threshold)
+    if border_transparent >= 4:
+        return True
+    transparent = 0
+    sample_count = 0
+    step_x = max(1, w // 64)
+    step_y = max(1, h // 64)
+    for y in range(0, h, step_y):
+      for x in range(0, w, step_x):
+        sample_count += 1
+        if alpha.getpixel((x, y)) <= threshold:
+          transparent += 1
+    return sample_count > 0 and (transparent / sample_count) >= 0.08
+
+
 def apply_variant(img: Image.Image, variant: dict, pack: dict) -> Image.Image:
     result = img.convert("RGBA")
     brightness = variant.get("brightness", 1.0)
@@ -358,13 +573,18 @@ def update_manifest(packs: list[dict]) -> None:
 def build_pack(pack: dict, overwrite: bool = False) -> None:
     src = Image.open(pack["image"]).convert("RGBA")
     crop = src.crop(pack["region"])
-    trimmed = remove_border_background(
-        crop,
-        bg_distance=pack.get("bg_distance", 36),
-        dark_threshold=pack.get("dark_threshold", 88),
-        sat_threshold=pack.get("sat_threshold", 64),
-        extra_distance=pack.get("extra_distance"),
-    )
+    trim_mode = pack.get("trim_mode", "auto")
+    use_alpha_trim = trim_mode == "alpha" or (trim_mode == "auto" and has_meaningful_alpha(crop, threshold=pack.get("alpha_trim_threshold", 8)))
+    if use_alpha_trim:
+        trimmed = trim_alpha_bounds(crop, threshold=pack.get("alpha_trim_threshold", 8))
+    else:
+        trimmed = remove_border_background(
+            crop,
+            bg_distance=pack.get("bg_distance", 36),
+            dark_threshold=pack.get("dark_threshold", 88),
+            sat_threshold=pack.get("sat_threshold", 64),
+            extra_distance=pack.get("extra_distance"),
+        )
 
     frames = []
     for variant in pack["variants"]:
