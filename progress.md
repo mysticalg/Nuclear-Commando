@@ -3,6 +3,20 @@
 ## Progress Log
 
 - Initialized project from empty repo using plain HTML/CSS/JS canvas stack.
+- Fixed ladder combat direction mismatch:
+  - climb-shoot poses now use a different horizontal flip rule than the base climb loop
+  - this keeps the projectile vector aligned with the visible barrel on ladders
+  - verified with real laser-beam debug captures for left/up-diagonal and right/up-diagonal ladder shots
+- Added a dedicated player-death sequence:
+  - the commando now falls over, erupts through chained explosions, flashes white, then only after that loses a life / respawns
+  - sequence is shorter than a boss death, but uses the same visual language
+- Added white damage flashes on bosses and on reactor/centrifuge objectives when they take bullet damage
+- Softened enemy hit flashes across all enemy types so they brighten with a semi-opaque white impact flash instead of turning into solid white silhouettes
+- Added debug scenarios:
+  - `?scenario=player-death-fall-check`
+  - `?scenario=player-death-check`
+  - `?scenario=boss-damage-flash-check`
+  - `?scenario=objective-damage-flash-check`
 - Added splash screen, start button (`#start-btn`), controls, and HUD shell.
 - Implemented gameplay systems:
   - Side-scroll movement, jumping, shooting
@@ -2129,3 +2143,126 @@
 - Verified state:
   - pickup check ends with `player.shieldHits: 3`
   - absorb check ends with `player.hp: 220` and `player.shieldHits: 2`
+
+## Environment Tile Pass
+
+- Added a dedicated environment tile sheet: `assets/sprites/environment_structure_tiles.png`.
+- Swapped gameplay platforms to a dedicated catwalk tile instead of the older generic metal strips.
+- Swapped hanging rails to a separate yellow-black hazard bar tile.
+- Added a structural column tile for chunk supports.
+- Replaced the old brown terrain floor fill with a stone/rock tile pass.
+- Kept industrial wall faces for later levels while using the new catwalk pieces for traversal.
+
+### Validation (Environment Tile Pass)
+
+- `python -m py_compile tools/generate_environment_structure_tiles.py` passed.
+- `python tools/generate_environment_structure_tiles.py` regenerated the sheet.
+- `node --check game.js` passed.
+- Browser/debug artifacts:
+  - `output/tile-previews/ground-floor-pass.png`
+  - `output/tile-previews/tower-hangbar-pass.png`
+  - `assets/sprites/environment_structure_tiles.png`
+
+## Climb / Hang / Prone / Ground Scroll Pass
+
+- Rebuilt the Probotector player pack so the base traversal loops now split correctly:
+  - `player_climb` uses the upright ladder cycle (`62-64` loop)
+  - `player_hang` uses the overhead hanging cycle (`75-81` loop)
+- Added `player_prone` to the live player sheet manifest and runtime animation table.
+- Added a second-press `Down` toggle while grounded:
+  - crouch -> prone
+  - prone -> crouch
+- Prone now has its own pose selection, hurtbox, and muzzle anchor.
+- Climb and hang animations now freeze on their first frame when the player is not moving, instead of looping while idle.
+- Fixed terrain tiling so the floor fill is world-aligned and scrolls with the camera instead of sticking to the viewport.
+- Warmed the terrain tile colors so the ground reads closer to the rocky strip reference.
+- Added debug scenarios/helpers for targeted validation:
+  - `?scenario=climb-idle-check`
+  - `?scenario=climb-moving-check`
+  - `?scenario=hang-idle-check`
+  - `?scenario=hang-moving-check`
+  - `?scenario=prone-check`
+  - `?scenario=prone-fire-check`
+
+### Validation (this pass)
+
+- `python tools/build_superprobotector_player_pack.py --overwrite` passed.
+- `python tools/import_png_sprite_sheets.py --overwrite` passed.
+- `python tools/generate_environment_structure_tiles.py` passed.
+- `node --check game.js` passed after the runtime changes.
+- Ran the bundled Playwright client successfully:
+  - `output/web-game-climb-hang-pass-v1/shot-0.png`
+  - no `errors-*.json` files in that run
+- Captured targeted debug states:
+  - `output/web-game-climb-idle-v1/shot.png`
+  - `output/web-game-hang-idle-v1/shot.png`
+  - `output/web-game-prone-v2/shot.png`
+  - `output/web-game-ground-start-v2/shot.png`
+  - `output/web-game-ground-move-v2/shot.png`
+- Verified state dumps:
+  - climb idle: `pose:"player_climb"`, `climbMoving:false`
+  - hang idle: `pose:"player_hang"`, `hangMoving:false`
+  - prone: `pose:"player_prone"`, `prone:true`
+  - ground scroll: `cameraX` advanced from `0` to `110` between the start/move captures
+
+### Follow-up Note
+
+- Hang combat poses still reuse the current traversal-combat strip family; the big visual bug was the base loop, which is now fixed. If needed, a later pass can import a dedicated hanging-shoot set if a better source sheet is added.
+
+## Climb Shooting Animation Pass
+
+- Fixed ladder shooting so moving climb combat no longer collapses to a single static frame.
+- `getPlayerSpriteState()` now keeps `player_climb_*` combat poses animated when `climbMoving` is true.
+- Switched climb-combat animation phase to track `p.y` instead of `p.x`, so ladder movement actually advances the climb-shoot strip.
+- Added debug scenario:
+  - `?scenario=climb-forward-fire-moving-check`
+- Also hid the pause overlay in `setupClimbAimCheck()` so climb-combat validation screenshots stay readable.
+
+### Validation (this pass)
+
+- `node --check game.js` passed.
+- Captured moving ladder-fire validation:
+  - `output/web-game-climb-forward-fire-moving-v2/shot.png`
+- Verified state:
+  - `pose:"player_climb_forward"`
+  - `climbMoving:true`
+  - `climbing:true`
+
+## Climb Combat Remap Pass
+
+- Corrected the climb-combat source row mapping after confirming the earlier ladder-fire pass was using the wrong family.
+- Climb combat now uses the row the user pointed out from `superprobotectorsheet1.png`:
+  - `player_climb_down_diag` -> `52-53`
+  - `player_climb_forward` -> `54-55`
+  - `player_climb_diag` -> `56-57`
+  - `player_climb_up` -> `58-59`
+  - added `player_climb_forward_right` -> `60-61`
+- Runtime now swaps to `player_climb_forward_right` for right-facing ladder fire instead of faking it with the older hanging-style combat row.
+
+### Validation (this pass)
+
+- `python tools/build_superprobotector_player_pack.py --overwrite` passed.
+- `python tools/import_png_sprite_sheets.py --overwrite` passed.
+- `node --check game.js` passed.
+- Updated runtime captures:
+  - `output/web-game-climb-forward-fire-moving-v3/shot.png`
+  - `output/web-game-climb-diag-v5/shot.png`
+- Verified state:
+  - forward ladder shot: `pose:"player_climb_forward"`, `climbMoving:true`
+  - diagonal ladder shot: `pose:"player_climb_diag"`
+
+- Fixed ladder combat pose routing to use the actual climb-shoot row (52-61), keep the commando facing right on ladders, and freeze vertical ladder motion while firing.
+- Added climb combat debug scenarios for forward/back, up, down-diagonal, and right-facing forward checks.
+- Validated ladder combat captures on local server port 4191; paused state shows climbing:true, vy:0, climbMoving:false, and correct player_climb_* pose keys while firing.
+
+
+- Added ladder-side-aware climb combat: ladders tagged side:left use the outward right-facing climb-shoot row, side:right ladders use the outward left-facing row.
+- Climb shooting now locks vertical ladder movement while firing and keeps the player attached with vy:0 until shooting stops.
+- Added explicit right-side climb sheets (up/diag/forward/down-diag/down) from source frames 65-74 and remapped left-side climb down to frames 60-61.
+- Improved hang-bar visibility in traversal rendering by drawing bars after catwalks with a brighter top highlight and dark outline; verified in the Arc Mountains tower ascent capture.
+
+
+- Simplified climb combat routing: right-side ladders now use the left climb-combat row via horizontal flip instead of the separate 65-74 ladder row.
+- Removed invalid climb shots from runtime: straight-down is blocked entirely, and left-facing down-diagonal is blocked; invalid inputs keep the player in the base climb pose with no muzzle flash or bullets.
+- Verified local captures: left/right ladder forward and right-diagonal use the climb sheets correctly, while invalid down checks show pose:player_climb, muzzleFlash:false, bullets.player:0.
+

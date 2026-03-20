@@ -17,6 +17,7 @@
   const PLAYER_SPEED = 295;
   const PLAYER_CLIMB_SPEED = 185;
   const PLAYER_HANG_SPEED = 165;
+  const PLAYER_HANG_ATTACH_OFFSET = 2;
   const PLAYER_DROP_THROUGH = 0.22;
   const PLAYER_HANG_RELEASE = 0.18;
   const SPRITE_FRAME_SIZE = 160;
@@ -52,6 +53,9 @@
   const OBJECTIVE_DEATH_DURATION = 1.15;
   const OBJECTIVE_CENTRIFUGE_DEATH_DURATION = 1.35;
   const OBJECTIVE_REACTOR_DEATH_DURATION = 1.55;
+  const PLAYER_DEATH_FALL_DURATION = 0.42;
+  const PLAYER_DEATH_EXPLODE_DURATION = 1.58;
+  const PLAYER_DEATH_TOTAL_DURATION = PLAYER_DEATH_FALL_DURATION + PLAYER_DEATH_EXPLODE_DURATION;
   const BOSS_DEATH_DURATION = 5;
   const BOSS_WHITEOUT_DURATION = 5;
   const BOSS_DEATH_TOTAL_DURATION = BOSS_DEATH_DURATION + BOSS_WHITEOUT_DURATION;
@@ -97,18 +101,27 @@
     caveEmerald: "aHR0cHM6Ly9iLnN0YWJsZWNvZy5jb20vODc5ZmE3MDUtYTQ5Ny00OTE1LTgyMjUtZjM3YzdjNjMyZjc3LmpwZWc.webp",
     industrialZone: "Free-Industrial-Zone-Tileset-Pixel-Art5-720x480.webp",
     industrialAtlas: "deshfsw-418d0116-ef10-4106-871a-7154fdadafdf.png",
+    structureTiles: "environment_structure_tiles.png",
     ruinTiles: "environment_ruin_tiles.png",
   };
   const ENV_TILE_SETS = {
     ruins: {
-      platformTop: { art: "ruinTiles", sx: 64, sy: 0, sw: 64, sh: 24, mode: "repeat-x", fit: "height" },
-      platformBeam: { art: "ruinTiles", sx: 64, sy: 24, sw: 64, sh: 40, mode: "repeat-x", fit: "height" },
+      platformTop: { art: "structureTiles", sx: 0, sy: 0, sw: 96, sh: 28, mode: "repeat-x", fit: "height" },
+      platformBeam: { art: "structureTiles", sx: 0, sy: 32, sw: 96, sh: 44, mode: "repeat-x", fit: "height" },
+      hangBar: { art: "structureTiles", sx: 0, sy: 80, sw: 64, sh: 8, mode: "repeat-x", fit: "height" },
+      columnFace: { art: "structureTiles", sx: 96, sy: 0, sw: 32, sh: 96, mode: "repeat-y", fit: "width" },
+      terrainTop: { art: "structureTiles", sx: 128, sy: 0, sw: 64, sh: 24, mode: "repeat-x", fit: "height" },
+      terrainFill: { art: "structureTiles", sx: 128, sy: 24, sw: 64, sh: 64, mode: "repeat-xy", scale: 1 },
       supportFace: { art: "ruinTiles", sx: 0, sy: 64, sw: 48, sh: 96, mode: "repeat-y", fit: "width" },
       wallFace: { art: "ruinTiles", sx: 0, sy: 0, sw: 64, sh: 64, mode: "repeat-xy", scale: 1 },
     },
     industrial: {
-      platformTop: { art: "industrialAtlas", sx: 0, sy: 1120, sw: 80, sh: 24, mode: "repeat-x", fit: "height" },
-      platformBeam: { art: "industrialAtlas", sx: 0, sy: 1160, sw: 80, sh: 40, mode: "repeat-x", fit: "height" },
+      platformTop: { art: "structureTiles", sx: 0, sy: 0, sw: 96, sh: 28, mode: "repeat-x", fit: "height" },
+      platformBeam: { art: "structureTiles", sx: 0, sy: 32, sw: 96, sh: 44, mode: "repeat-x", fit: "height" },
+      hangBar: { art: "structureTiles", sx: 0, sy: 80, sw: 64, sh: 8, mode: "repeat-x", fit: "height" },
+      columnFace: { art: "structureTiles", sx: 96, sy: 0, sw: 32, sh: 96, mode: "repeat-y", fit: "width" },
+      terrainTop: { art: "structureTiles", sx: 128, sy: 0, sw: 64, sh: 24, mode: "repeat-x", fit: "height" },
+      terrainFill: { art: "structureTiles", sx: 128, sy: 24, sw: 64, sh: 64, mode: "repeat-xy", scale: 1 },
       supportFace: { art: "industrialAtlas", sx: 384, sy: 1076, sw: 64, sh: 64, mode: "repeat-y", fit: "width" },
       wallFace: { art: "industrialAtlas", sx: 512, sy: 1076, sw: 64, sh: 64, mode: "repeat-xy", scale: 1 },
     },
@@ -208,10 +221,16 @@
       player_air_diag: { frames: 4, fps: 10 },
       player_air_down_diag: { frames: 4, fps: 10 },
       player_crouch: { frames: 2, fps: 5 },
+      player_prone: { frames: 2, fps: 0 },
       player_climb: { frames: 8, fps: 10 },
       player_climb_up: { frames: 4, fps: 8 },
       player_climb_diag: { frames: 4, fps: 8 },
       player_climb_forward: { frames: 4, fps: 8 },
+    player_climb_forward_right: { frames: 4, fps: 8 },
+    player_climb_up_right: { frames: 4, fps: 8 },
+    player_climb_diag_right: { frames: 4, fps: 8 },
+    player_climb_down_diag_right: { frames: 4, fps: 8 },
+    player_climb_down_right: { frames: 4, fps: 8 },
       player_climb_down_diag: { frames: 4, fps: 8 },
       player_climb_down: { frames: 4, fps: 8 },
       player_hang: { frames: 8, fps: 10 },
@@ -466,10 +485,10 @@
         { id: "l2-bridge-6", x: 4090, y: 302, w: 176, h: 12 },
       ],
       climbables: [
-        { id: "l2-ladder-1", x: 736, y: 298, w: 24, h: 162 },
-        { id: "l2-ladder-2", x: 1236, y: 250, w: 24, h: 200 },
-        { id: "l2-ladder-3", x: 2648, y: 238, w: 24, h: 214 },
-        { id: "l2-ladder-4", x: 3420, y: 256, w: 24, h: 188 },
+        { id: "l2-ladder-1", x: 736, y: 298, w: 24, h: 162, side: "left" },
+        { id: "l2-ladder-2", x: 1236, y: 250, w: 24, h: 200, side: "right" },
+        { id: "l2-ladder-3", x: 2648, y: 238, w: 24, h: 214, side: "left" },
+        { id: "l2-ladder-4", x: 3420, y: 256, w: 24, h: 188, side: "right" },
       ],
       hangables: [
         { id: "l2-bar-1", x: 944, y: 214, w: 152, h: 10 },
@@ -529,10 +548,10 @@
         { id: "l3-catwalk-6", x: 4540, y: 300, w: 180, h: 12 },
       ],
       climbables: [
-        { id: "l3-chain-1", x: 698, y: 286, w: 24, h: 172 },
-        { id: "l3-chain-2", x: 1400, y: 250, w: 24, h: 214 },
-        { id: "l3-chain-3", x: 3000, y: 228, w: 24, h: 226 },
-        { id: "l3-chain-4", x: 4624, y: 220, w: 24, h: 232 },
+        { id: "l3-chain-1", x: 698, y: 286, w: 24, h: 172, side: "left" },
+        { id: "l3-chain-2", x: 1400, y: 250, w: 24, h: 214, side: "right" },
+        { id: "l3-chain-3", x: 3000, y: 228, w: 24, h: 226, side: "left" },
+        { id: "l3-chain-4", x: 4624, y: 220, w: 24, h: 232, side: "right" },
       ],
       hangables: [
         { id: "l3-bar-1", x: 890, y: 206, w: 150, h: 10 },
@@ -699,10 +718,10 @@
       { id: "l2-shaft-14", x: 5600, y: -576, w: 168, h: 12 },
       { id: "l2-shaft-15", x: 5360, y: -712, w: 168, h: 12 },
       { id: "l2-shaft-16", x: 5600, y: -848, w: 168, h: 12 },
-      { id: "l2-roof-17", x: 5860, y: -848, w: 288, h: 12 },
-      { id: "l2-roof-18", x: 6180, y: -848, w: 332, h: 12 },
-      { id: "l2-roof-19", x: 6540, y: -848, w: 332, h: 12 },
-      { id: "l2-roof-20", x: 6900, y: -826, w: 302, h: 12 },
+      { id: "l2-roof-17", x: 5860, y: -848, w: 320, h: 12 },
+      { id: "l2-roof-18", x: 6180, y: -848, w: 360, h: 12 },
+      { id: "l2-roof-19", x: 6540, y: -848, w: 360, h: 12 },
+      { id: "l2-roof-20", x: 6900, y: -848, w: 320, h: 12 },
       { id: "l2-descent-21", x: 7240, y: -700, w: 200, h: 12 },
       { id: "l2-descent-22", x: 7480, y: -548, w: 192, h: 12 },
       { id: "l2-descent-23", x: 7720, y: -388, w: 192, h: 12 },
@@ -898,6 +917,7 @@
     msg: "",
     msgT: 0,
     transitionT: 0,
+    playerDeath: null,
     bossDeath: null,
     player: null,
     enemies: [],
@@ -957,6 +977,7 @@
     y: canonicalBounds.sy + canonicalBounds.sh * anchor.y,
   });
   const getStructureTileSetKey = (override = null) => override || state.level?.palette?.structureTiles || "industrial";
+  const getEnvironmentTileSet = (override = null) => ENV_TILE_SETS[getStructureTileSetKey(override)] || ENV_TILE_SETS.industrial;
 
   function readStoredJson(key, fallback) {
     try {
@@ -1219,9 +1240,23 @@
     return normalizeVec(rawX, rawY);
   }
 
-  function getTraversePoseKey(kind, combat, aimMode) {
+  function getHangAttachY(hang) {
+    return hang.y + hang.h + PLAYER_HANG_ATTACH_OFFSET;
+  }
+
+  function getClimbFacingSign(climb) {
+    return climb?.side === "right" ? -1 : 1;
+  }
+
+  function getTraversePoseKey(kind, combat, aimMode, face = 1) {
     const base = kind === "hang" ? "player_hang" : "player_climb";
     if (!combat) return base;
+    if (kind === "climb") {
+      if (aimMode === "up") return hasSpriteKey(`${base}_up_0`) ? `${base}_up` : base;
+      if (aimMode === "diag") return hasSpriteKey(`${base}_diag_0`) ? `${base}_diag` : base;
+      if (aimMode === "downDiag") return hasSpriteKey(`${base}_down_diag_0`) ? `${base}_down_diag` : base;
+      return hasSpriteKey(`${base}_forward_0`) ? `${base}_forward` : base;
+    }
     if (aimMode === "up") return hasSpriteKey(`${base}_up_0`) ? `${base}_up` : base;
     if (aimMode === "diag") return hasSpriteKey(`${base}_diag_0`) ? `${base}_diag` : base;
     if (aimMode === "downDiag") return hasSpriteKey(`${base}_down_diag_0`) ? `${base}_down_diag` : base;
@@ -1233,37 +1268,45 @@
     const aimMode = getPlayerAimMode(p);
     const hasGroundDownDiag = hasSpriteKey("player_idle_down_diag_0");
     return p.hanging
-      ? getTraversePoseKey("hang", p.hangCombat, p.hangAimMode || aimMode)
+      ? getTraversePoseKey("hang", p.hangCombat, p.hangAimMode || aimMode, p.face)
       : p.climbing
-      ? getTraversePoseKey("climb", p.climbCombat, p.climbAimMode || aimMode)
+      ? getTraversePoseKey("climb", p.climbCombat, p.climbAimMode || aimMode, p.face)
+      : (p.prone && p.onGround
+        ? "player_prone"
       : (p.crouching && p.onGround
         ? "player_crouch"
         : (!p.onGround
           ? "player_jump"
           : (Math.abs(p.vx) > 20
             ? (aimMode === "up" ? "player_run_up" : aimMode === "diag" ? "player_run_diag" : aimMode === "downDiag" ? (hasGroundDownDiag ? "player_run_down_diag" : "player_run_diag") : "player_run")
-            : (aimMode === "up" ? "player_idle_up" : aimMode === "diag" ? "player_idle_diag" : (aimMode === "down" || aimMode === "downDiag") ? (hasGroundDownDiag ? "player_idle_down_diag" : "player_idle_diag") : "player_idle"))));
+            : (aimMode === "up" ? "player_idle_up" : aimMode === "diag" ? "player_idle_diag" : (aimMode === "down" || aimMode === "downDiag") ? (hasGroundDownDiag ? "player_idle_down_diag" : "player_idle_diag") : "player_idle")))));
   }
 
-  function getPlayerFlipScale(p, aimMode) {
-    const crispFacing = p.climbing || p.hanging || p.crouching || p.muzzleFlashT > 0.01 || aimMode !== "forward";
+  function getPlayerFlipScale(p, aimMode, poseKey = "") {
+    // The base ladder-climb loop and the climb-shoot rows have opposite native directions
+    // in the imported sheet, so combat climb poses need the inverse flip to keep the shot
+    // vector aligned with the barrel.
+    if (poseKey.startsWith("player_climb_")) return -p.face;
+    if (poseKey === "player_climb") return p.face;
+    const crispFacing = p.climbing || p.hanging || p.crouching || p.prone || p.muzzleFlashT > 0.01 || aimMode !== "forward";
     return crispFacing ? p.face : (typeof p.visualFace === "number" ? p.visualFace : p.face);
   }
 
   function getPlayerSpriteState(p, render) {
     const key = render.key;
     const firing = p.muzzleFlashT > 0.01;
+    const animatedClimbCombat = p.climbing && p.climbMoving && key.startsWith("player_climb_");
     const staticVariants = {
       player_idle: firing ? "player_idle_1" : "player_idle_0",
       player_idle_up: "player_idle_up_0",
       player_idle_diag: "player_idle_diag_0",
       player_idle_down_diag: "player_idle_down_diag_0",
       player_crouch: firing ? "player_crouch_1" : "player_crouch_0",
+      player_prone: firing ? "player_prone_1" : "player_prone_0",
       player_climb_up: firing ? "player_climb_up_1" : "player_climb_up_0",
       player_climb_diag: firing ? "player_climb_diag_1" : "player_climb_diag_0",
       player_climb_forward: firing ? "player_climb_forward_1" : "player_climb_forward_0",
       player_climb_down_diag: firing ? "player_climb_down_diag_1" : "player_climb_down_diag_0",
-      player_climb_down: firing ? "player_climb_down_1" : "player_climb_down_0",
       player_hang_up: firing ? "player_hang_up_1" : "player_hang_up_0",
       player_hang_diag: firing ? "player_hang_diag_1" : "player_hang_diag_0",
       player_hang_forward: firing ? "player_hang_forward_1" : "player_hang_forward_0",
@@ -1271,14 +1314,25 @@
       player_hang_down: firing ? "player_hang_down_1" : "player_hang_down_0",
     };
     const staticKey = staticVariants[key];
-    if (staticKey && hasSpriteKey(staticKey)) {
+    if (staticKey && !animatedClimbCombat && hasSpriteKey(staticKey)) {
       return { key: staticKey, frames: 1, fps: 0, phase: 0 };
     }
+    if (key === "player_climb" && !p.climbMoving && hasSpriteKey("player_climb_0")) {
+      return { key: "player_climb_0", frames: 1, fps: 0, phase: 0 };
+    }
+    if (key === "player_hang" && !p.hangMoving && hasSpriteKey("player_hang_0")) {
+      return { key: "player_hang_0", frames: 1, fps: 0, phase: 0 };
+    }
+    const phase = key.startsWith("player_climb")
+      ? p.y * 0.02
+      : key.startsWith("player_hang")
+        ? p.x * 0.02
+        : p.x * 0.013;
     return {
       key,
       frames: ANIM.player[key]?.frames || 1,
       fps: ANIM.player[key]?.fps || 0,
-      phase: p.x * 0.013,
+      phase,
     };
   }
 
@@ -1306,7 +1360,7 @@
       sy: p.y + p.h - sh * PLAYER_FRAME_ANCHOR.y,
       key,
       aimMode,
-      flipScale: getPlayerFlipScale(p, aimMode),
+      flipScale: getPlayerFlipScale(p, aimMode, key),
     };
   }
 
@@ -1329,23 +1383,33 @@
             : render.aimMode === "down"
               ? { x: 0.68, y: 0.69 }
               : { x: 0.79, y: 0.51 })
+      : pose === "player_prone"
+        ? { x: 0.84, y: 0.56 }
       : pose === "player_jump"
         ? { x: 0.6, y: 0.47 }
+      : pose === "player_climb_up"
+        ? { x: 0.56, y: 0.1 }
+      : pose === "player_climb_diag"
+        ? { x: 0.23, y: 0.2 }
+      : pose === "player_climb_forward"
+        ? { x: 0.18, y: 0.36 }
+      : pose === "player_climb_down_diag"
+        ? { x: 0.22, y: 0.58 }
       : pose === "player_idle_up" || pose === "player_run_up"
         ? { x: 0.6, y: 0.1 }
       : pose === "player_idle_diag" || pose === "player_run_diag"
         ? { x: 0.77, y: 0.18 }
         : pose === "player_idle_down_diag" || pose === "player_run_down_diag"
           ? { x: 0.74, y: 0.58 }
-          : pose === "player_climb_up" || pose === "player_hang_up"
+          : pose === "player_hang_up"
             ? { x: 0.56, y: 0.1 }
-            : pose === "player_climb_diag" || pose === "player_hang_diag"
+            : pose === "player_hang_diag"
               ? { x: 0.7, y: 0.2 }
-              : pose === "player_climb_forward" || pose === "player_hang_forward"
+              : pose === "player_hang_forward"
                 ? { x: 0.78, y: 0.36 }
-                : pose === "player_climb_down_diag" || pose === "player_hang_down_diag"
+                : pose === "player_hang_down_diag"
                   ? { x: 0.7, y: 0.58 }
-                  : pose === "player_climb_down" || pose === "player_hang_down"
+                  : pose === "player_hang_down"
                     ? { x: 0.58, y: 0.72 }
                     : pose === "player_climb" || pose === "player_hang"
                       ? { x: 0.56, y: 0.28 }
@@ -1699,6 +1763,7 @@
 
   function getPlayerCombatRect(p) {
     const base = { x: p.x, y: p.y, w: p.w, h: p.h };
+    if (p.prone && p.onGround) return insetRect(base, 3, 24, 3, 8);
     if (p.crouching && p.onGround) return insetRect(base, 5, 18, 5, 2);
     if (p.climbing) return insetRect(base, 8, 5, 8, 3);
     return insetRect(base, 4, 4, 4, 2);
@@ -1785,16 +1850,20 @@
       invuln: 0,
       fireCd: 0,
       crouching: false,
+      prone: false,
       muzzleFlashT: 0,
       climbing: false,
       climbId: null,
-      climbAimMode: "forward",
+    climbAimMode: "forward",
       climbCombat: false,
+      climbMoving: false,
       hanging: false,
       hangId: null,
       hangAimMode: "forward",
       hangCombat: false,
+      hangMoving: false,
       dropTimer: 0,
+      downLatch: false,
       aimX: prev ? prev.aimX : 1,
       aimY: prev ? prev.aimY : 0,
       visualFace: prev ? (prev.visualFace ?? prev.face) : 1,
@@ -1829,6 +1898,7 @@
     state.extractionReady = false;
     state.bossActive = false;
     state.bossDefeated = false;
+    state.playerDeath = null;
     state.bossDeath = null;
     state.combo = 0;
     state.comboTimer = 0;
@@ -1839,7 +1909,7 @@
       const objectiveStyle = OBJECTIVE_SPRITE_STYLES[o.spriteStyle || o.kind] || OBJECTIVE_SPRITE_STYLES[o.kind] || null;
       const floorOffset = objectiveStyle?.floorOffset ?? 0;
       const topY = terrainY(o.x + o.w * 0.5) - o.h + floorOffset;
-      return { ...o, y: topY, maxHp: o.hp, destroyed: false };
+      return { ...o, y: topY, maxHp: o.hp, destroyed: false, damageFlashT: 0 };
     });
     state.objectiveDeaths = [];
     state.bullets = [];
@@ -1900,6 +1970,11 @@
     }
     if (DEBUG_SCENARIO === "boss-death-check") window.__nuclear_commando_debug.setupBossDeathCheck(0.58);
     if (DEBUG_SCENARIO === "boss-death-finish-check") window.__nuclear_commando_debug.setupBossDeathCheck(BOSS_DEATH_DURATION + 0.8);
+    if (DEBUG_SCENARIO === "player-death-fall-check") window.__nuclear_commando_debug.setupPlayerDeathCheck(0.18);
+    if (DEBUG_SCENARIO === "player-death-check") window.__nuclear_commando_debug.setupPlayerDeathCheck(0.56);
+    if (DEBUG_SCENARIO === "boss-damage-flash-check") window.__nuclear_commando_debug.setupBossDamageFlashCheck();
+    if (DEBUG_SCENARIO === "enemy-damage-flash-check") window.__nuclear_commando_debug.setupEnemyDamageFlashCheck();
+    if (DEBUG_SCENARIO === "objective-damage-flash-check") window.__nuclear_commando_debug.setupObjectiveDamageFlashCheck(0, 2);
     if (DEBUG_SCENARIO === "aim-lock-check") window.__nuclear_commando_debug.setupAimLockCheck();
     if (DEBUG_SCENARIO === "crouch-check") window.__nuclear_commando_debug.setupCrouchCheck();
     if (DEBUG_SCENARIO === "crouch-aimlock-forward-check") window.__nuclear_commando_debug.setupCrouchAimLockCheck("forward", 1, false);
@@ -1920,10 +1995,25 @@
     if (DEBUG_SCENARIO === "down-left-check") window.__nuclear_commando_debug.setupDownPoseCheck(-1, false, false);
     if (DEBUG_SCENARIO === "air-down-right-check") window.__nuclear_commando_debug.setupDownPoseCheck(1, true, false);
     if (DEBUG_SCENARIO === "jump-aim-check") window.__nuclear_commando_debug.setupJumpAimCheck(1, "diag", true);
-    if (DEBUG_SCENARIO === "climb-diag-check") window.__nuclear_commando_debug.setupClimbAimCheck("diag");
+    if (DEBUG_SCENARIO === "climb-left-diag-check") window.__nuclear_commando_debug.setupClimbAimCheck("diag", -1, true);
+    if (DEBUG_SCENARIO === "climb-left-forward-check") window.__nuclear_commando_debug.setupClimbAimCheck("forward", -1, true);
+    if (DEBUG_SCENARIO === "climb-left-up-check") window.__nuclear_commando_debug.setupClimbAimCheck("up", -1, true);
+    if (DEBUG_SCENARIO === "climb-left-down-check") window.__nuclear_commando_debug.setupClimbAimCheck("down", -1, true);
+    if (DEBUG_SCENARIO === "climb-left-downdiag-check") window.__nuclear_commando_debug.setupClimbAimCheck("downDiag", -1, true);
+    if (DEBUG_SCENARIO === "climb-right-diag-check") window.__nuclear_commando_debug.setupClimbAimCheck("diag", 1, true);
+    if (DEBUG_SCENARIO === "climb-right-forward-check") window.__nuclear_commando_debug.setupClimbAimCheck("forward", 1, true);
+    if (DEBUG_SCENARIO === "climb-right-up-check") window.__nuclear_commando_debug.setupClimbAimCheck("up", 1, true);
+    if (DEBUG_SCENARIO === "climb-right-down-check") window.__nuclear_commando_debug.setupClimbAimCheck("down", 1, true);
+    if (DEBUG_SCENARIO === "climb-right-downdiag-check") window.__nuclear_commando_debug.setupClimbAimCheck("downDiag", 1, true);
+    if (DEBUG_SCENARIO === "climb-idle-check") window.__nuclear_commando_debug.setupClimbMotionCheck(false);
+    if (DEBUG_SCENARIO === "climb-moving-check") window.__nuclear_commando_debug.setupClimbMotionCheck(true);
     if (DEBUG_SCENARIO === "hang-aimlock-diag-check") window.__nuclear_commando_debug.setupHangAimCheck("diag", true);
     if (DEBUG_SCENARIO === "hang-forward-check") window.__nuclear_commando_debug.setupHangAimCheck("forward", false);
+    if (DEBUG_SCENARIO === "hang-idle-check") window.__nuclear_commando_debug.setupHangMotionCheck(false);
+    if (DEBUG_SCENARIO === "hang-moving-check") window.__nuclear_commando_debug.setupHangMotionCheck(true);
     if (DEBUG_SCENARIO === "hang-drop-check") window.__nuclear_commando_debug.setupHangDropCheck();
+    if (DEBUG_SCENARIO === "prone-check") window.__nuclear_commando_debug.setupProneCheck(false);
+    if (DEBUG_SCENARIO === "prone-fire-check") window.__nuclear_commando_debug.setupProneCheck(true);
     if (DEBUG_SCENARIO === "checkpoint-check") window.__nuclear_commando_debug.setupCheckpointCheck(0);
     if (DEBUG_SCENARIO === "vertical-scroll-check") window.__nuclear_commando_debug.setupTowerAscentCheck("mid");
     if (DEBUG_SCENARIO === "tower-ascent-check") window.__nuclear_commando_debug.setupTowerAscentCheck("mid");
@@ -1989,8 +2079,8 @@
   }
 
   function loseLife() {
+    state.playerDeath = null;
     state.lives -= 1;
-    playSfxEvent("playerDeath", { volumeMul: 0.92, throttleMs: 120, duckAmount: 0.38, duckHold: 0.28, duckRelease: 4.8 });
     if (state.lives <= 0) {
       state.mode = "gameOver";
       playMusic(audioState.map.gameOver, { restart: true, loop: false });
@@ -2011,11 +2101,20 @@
     }
     p.vx = 0;
     p.vy = 0;
+    p.crouching = false;
+    p.prone = false;
     p.climbing = false;
     p.climbId = null;
+    p.climbCombat = false;
+    p.climbAimMode = "forward";
+    p.climbMoving = false;
     p.hanging = false;
     p.hangId = null;
+    p.hangCombat = false;
+    p.hangAimMode = "forward";
+    p.hangMoving = false;
     p.dropTimer = 0;
+    p.downLatch = false;
     p.hp = p.maxHp;
     p.invuln = 1.4;
     p.shieldHits = 0;
@@ -2023,6 +2122,7 @@
     state.bullets = [];
     state.enemyBullets = [];
     state.smartBombs = [];
+    state.mode = "playing";
     say(`<strong>Life Lost</strong><br>${state.lives} lives remaining.`, 2);
   }
 
@@ -2099,6 +2199,84 @@
       say("<strong>Shield Down</strong>", 0.85);
     }
     return true;
+  }
+
+  function flashEnemyDamage(enemy, amount = 0.18) {
+    if (!enemy || enemy.dying) return;
+    enemy.damageFlashT = Math.max(enemy.damageFlashT || 0, amount);
+  }
+
+  function flashObjectiveDamage(objective, amount = 0.24) {
+    if (!objective || objective.destroyed) return;
+    if (objective.kind !== "reactor" && objective.kind !== "centrifuge") return;
+    objective.damageFlashT = Math.max(objective.damageFlashT || 0, amount);
+  }
+
+  function startPlayerDeathSequence() {
+    const p = state.player;
+    if (!p || state.playerDeath || state.mode !== "playing") return false;
+    const render = getPlayerRenderState(p);
+    const sprite = getPlayerSpriteState(p, render);
+    const spriteKey = sprite.frames > 1 ? pickAnimKey(sprite.key, sprite.frames, sprite.fps, sprite.phase) : sprite.key;
+    const hitDir = normalizeVec(p.vx || p.face, p.vy - 0.18);
+    state.mode = "playerDeath";
+    state.bullets = [];
+    state.enemyBullets = [];
+    state.smartBombs = [];
+    p.hp = 0;
+    p.invuln = 99;
+    p.fireCd = 99;
+    p.muzzleFlashT = 0;
+    p.crouching = false;
+    p.prone = false;
+    p.climbing = false;
+    p.climbId = null;
+    p.climbCombat = false;
+    p.climbAimMode = "forward";
+    p.climbMoving = false;
+    p.hanging = false;
+    p.hangId = null;
+    p.hangCombat = false;
+    p.hangAimMode = "forward";
+    p.hangMoving = false;
+    p.dropTimer = 0;
+    p.shieldHits = 0;
+    p.shieldFlashT = 0;
+    state.playerDeath = {
+      t: 0,
+      duration: PLAYER_DEATH_TOTAL_DURATION,
+      fallDuration: PLAYER_DEATH_FALL_DURATION,
+      burstTimer: 0.08,
+      flashT: 0.18,
+      detonated: false,
+      hidden: false,
+      bodyX: p.x,
+      bodyY: p.y,
+      bodyW: p.w,
+      bodyH: p.h,
+      renderOffsetX: render.sx - p.x,
+      renderOffsetY: render.sy - p.y,
+      renderW: render.sw,
+      renderH: render.sh,
+      spriteKey,
+      flipScale: render.flipScale,
+      vx: (p.vx || hitDir.x * 120) * 0.35,
+      vy: Math.min(-180, p.vy - 160),
+      rot: 0,
+      vr: (p.face || 1) * 4.8,
+      face: p.face || 1,
+    };
+    playSfxEvent("playerDeath", { volumeMul: 0.92, throttleMs: 120, duckAmount: 0.34, duckHold: 0.24, duckRelease: 4.8 });
+    spawnBloodBurst(p.x + p.w * 0.52, p.y + p.h * 0.4, hitDir.x, hitDir.y - 0.2, 14, 210, 1.15);
+    boom(p.x + p.w * 0.5, p.y + p.h * 0.45, 18, "#ffb7b7");
+    say("<strong>Nuclear Commando Down</strong><br>Critical suit breach.", PLAYER_DEATH_TOTAL_DURATION);
+    return true;
+  }
+
+  function getPlayerDeathWhiteoutAlpha() {
+    const seq = state.playerDeath;
+    if (!seq) return 0;
+    return clamp((seq.flashT || 0) * 0.72, 0, seq.detonated ? 0.85 : 0.36);
   }
 
   function boom(x, y, size, color) {
@@ -2308,6 +2486,57 @@
     state.objectiveDeaths = remaining;
   }
 
+  function updatePlayerDeathSequence(dt) {
+    const seq = state.playerDeath;
+    if (!seq) return;
+    seq.t += dt;
+    seq.flashT = Math.max(0, (seq.flashT || 0) - dt);
+    const fallT = clamp(seq.t / Math.max(0.001, seq.fallDuration), 0, 1);
+    if (seq.t < seq.fallDuration) {
+      seq.vy += BLOOD_GRAVITY * 0.88 * dt;
+      seq.bodyX += seq.vx * dt;
+      seq.bodyY += seq.vy * dt;
+      seq.rot = lerp(0, seq.face > 0 ? 1.18 : -1.18, fallT);
+      seq.vr *= Math.exp(-3.2 * dt);
+      const supportY = supportYForBody({ x: seq.bodyX, y: seq.bodyY, w: seq.bodyW, h: seq.bodyH }, true);
+      if (seq.bodyY >= supportY) {
+        seq.bodyY = supportY;
+        seq.vx *= 0.18;
+        seq.vy = 0;
+      }
+    } else if (!seq.detonated) {
+      seq.vx *= Math.exp(-5.2 * dt);
+      seq.burstTimer -= dt;
+      const progress = clamp((seq.t - seq.fallDuration) / Math.max(0.001, PLAYER_DEATH_EXPLODE_DURATION), 0, 1);
+      const burstInterval = lerp(0.16, 0.05, progress);
+      while (seq.burstTimer <= 0) {
+        seq.burstTimer += burstInterval;
+        const cx = seq.bodyX + seq.bodyW * (0.5 + rand(-0.18, 0.18));
+        const cy = seq.bodyY + seq.bodyH * (0.44 + rand(-0.14, 0.18));
+        boom(cx, cy, lerp(16, 42, progress) * rand(0.82, 1.1), Math.random() < 0.4 ? "#fff0bf" : "#ff9368");
+        if (Math.random() < 0.68) boom(cx + rand(-14, 14), cy + rand(-10, 10), lerp(10, 22, progress), "#ff684e");
+        seq.flashT = Math.max(seq.flashT, 0.12 + progress * 0.18);
+      }
+      if (progress >= 0.88) {
+        seq.detonated = true;
+        seq.hidden = true;
+        seq.flashT = Math.max(seq.flashT, 1.05);
+        boom(seq.bodyX + seq.bodyW * 0.5, seq.bodyY + seq.bodyH * 0.46, 120, "#fff8d6");
+        boom(seq.bodyX + seq.bodyW * 0.42, seq.bodyY + seq.bodyH * 0.58, 82, "#ffb26a");
+        boom(seq.bodyX + seq.bodyW * 0.56, seq.bodyY + seq.bodyH * 0.32, 68, "#ff714a");
+      }
+    }
+    if (seq.t >= seq.duration) {
+      loseLife();
+    }
+  }
+
+  function updateDamageFlashes(dt) {
+    for (const objective of state.objectives) {
+      if (typeof objective.damageFlashT === "number") objective.damageFlashT = Math.max(0, objective.damageFlashT - dt);
+    }
+  }
+
   function destroyLevelObstacle(obstacle, source = "bullet") {
     if (!obstacle || obstacle.destroyed || obstacle.kind !== "crate") return false;
     obstacle.hp = 0;
@@ -2506,7 +2735,7 @@
   }
 
   function spawnEnemy(spawn) {
-    const base = { x: spawn.x, y: spawn.y || 0, vx: 0, vy: 0, fireCd: rand(0.5, 1.3), wave: rand(0, Math.PI * 2), drop: 0.18 };
+    const base = { x: spawn.x, y: spawn.y || 0, vx: 0, vy: 0, fireCd: rand(0.5, 1.3), wave: rand(0, Math.PI * 2), drop: 0.18, damageFlashT: 0 };
     const surfaceY = typeof spawn.surfaceY === "number" ? spawn.surfaceY : null;
     const patrolMin = typeof spawn.patrolMin === "number" ? spawn.patrolMin : null;
     const patrolMax = typeof spawn.patrolMax === "number" ? spawn.patrolMax : null;
@@ -2708,6 +2937,7 @@
     const right = !!keys.ArrowRight;
     const upHeld = !!keys.ArrowUp;
     const downHeld = !!keys.ArrowDown;
+    const downPressed = downHeld && !p.downLatch;
     const jumpHeld = !!keys.Space;
     const shootHeld = !!keys.KeyZ;
     const aimLockHeld = isAimLockActive(p);
@@ -2719,11 +2949,13 @@
     let desiredFace = p.face;
     if (!p.climbing) {
       p.climbCombat = false;
-      p.climbAimMode = "forward";
+    p.climbAimMode = "forward";
+      p.climbMoving = false;
     }
     if (!p.hanging) {
       p.hangCombat = false;
       p.hangAimMode = "forward";
+      p.hangMoving = false;
     }
 
     if (wantsDrop) {
@@ -2732,18 +2964,23 @@
       p.dropTimer = PLAYER_DROP_THROUGH;
       p.vy = Math.max(p.vy, 120);
       p.crouching = false;
+      p.prone = false;
     }
 
     if (!p.climbing && climbTouch && !wantsDrop && (upHeld || (downHeld && !p.onGround))) {
+      const climbFacing = getClimbFacingSign(climbTouch);
       p.climbing = true;
       p.climbId = climbTouch.id;
       p.hanging = false;
       p.hangId = null;
       p.crouching = false;
+      p.prone = false;
       p.onGround = false;
       p.supportType = "climb";
       p.vx = 0;
       p.vy = 0;
+      p.face = climbFacing;
+      p.visualFace = climbFacing;
       p.x = clamp(climbTouch.x + climbTouch.w * 0.5 - p.w * 0.5, 0, state.level.length - p.w);
     }
 
@@ -2756,7 +2993,7 @@
       p.supportType = "hang";
       p.vx = 0;
       p.vy = 0;
-      p.y = hangTouch.y + hangTouch.h - 8;
+      p.y = getHangAttachY(hangTouch);
       p.x = clamp(p.x, hangTouch.x - p.w * 0.3, hangTouch.x + hangTouch.w - p.w * 0.7);
     }
 
@@ -2786,9 +3023,10 @@
         playSfxEvent("playerJump", { volumeMul: 0.72, throttleMs: 90, duckAmount: 0.86, duckHold: 0.05, duckRelease: 8.8 });
       } else {
         const hangMove = aimLockHeld ? 0 : ((right ? 1 : 0) - (left ? 1 : 0));
+        p.hangMoving = Math.abs(hangMove) > 0.01;
         if (hangMove) p.face = hangMove > 0 ? 1 : -1;
         p.x = clamp(p.x + hangMove * PLAYER_HANG_SPEED * dt, hang.x - p.w * 0.3, hang.x + hang.w - p.w * 0.7);
-        p.y = hang.y + hang.h - 8;
+        p.y = getHangAttachY(hang);
         p.vx = 0;
         p.vy = 0;
         p.onGround = false;
@@ -2835,6 +3073,7 @@
       p.muzzleFlashT = Math.max(0, p.muzzleFlashT - dt);
       p.visualFace = damp(typeof p.visualFace === "number" ? p.visualFace : p.face, p.face, FACE_LERP, dt);
       p.jumpLatch = jumpHeld;
+      p.downLatch = downHeld;
       if (shootHeld && p.fireCd <= 0) spawnPlayerBullets();
       return;
     }
@@ -2845,11 +3084,13 @@
         p.climbing = false;
         p.climbId = null;
       } else {
-        if (left !== right) desiredFace = right ? 1 : -1;
-        p.face = desiredFace;
+        const climbFacing = getClimbFacingSign(climb);
+        const forwardHeld = climbFacing > 0 ? right : left;
+        p.face = climbFacing;
+        p.visualFace = climbFacing;
 
         if (jumpHeld && !p.jumpLatch) {
-          const launchDir = left === right ? p.face : (right ? 1 : -1);
+          const launchDir = left !== right ? (right ? 1 : -1) : climbFacing;
           p.climbing = false;
           p.climbId = null;
           p.vx = launchDir * 240;
@@ -2858,7 +3099,10 @@
           p.supportType = null;
           playSfxEvent("playerJump", { volumeMul: 0.72, throttleMs: 90, duckAmount: 0.86, duckHold: 0.05, duckRelease: 8.8 });
         } else {
-          const climbDir = (downHeld ? 1 : 0) - (upHeld ? 1 : 0);
+          const climbDirInput = (downHeld ? 1 : 0) - (upHeld ? 1 : 0);
+          const lockClimbMotion = shootHeld;
+          const climbDir = lockClimbMotion ? 0 : climbDirInput;
+          p.climbMoving = Math.abs(climbDir) > 0.01;
           p.vx = 0;
           p.vy = climbDir * PLAYER_CLIMB_SPEED;
           p.x = clamp(climb.x + climb.w * 0.5 - p.w * 0.5, 0, state.level.length - p.w);
@@ -2874,46 +3118,33 @@
           p.onGround = false;
           p.supportType = "climb";
           p.airT = 0;
-          p.climbCombat = shootHeld || left !== right || (Math.abs(climbDir) < 0.01 && (upHeld || downHeld));
-          if (upHeld && left !== right) {
+          let canClimbShoot = false;
+          if (shootHeld && upHeld && forwardHeld) {
             p.climbAimMode = "diag";
-            p.aimX = p.face * 0.72;
+            p.aimX = climbFacing * 0.72;
             p.aimY = -0.72;
-          } else if (upHeld) {
+            canClimbShoot = true;
+          } else if (shootHeld && upHeld) {
             p.climbAimMode = "up";
             p.aimX = 0;
             p.aimY = -1;
-          } else if (downHeld && left !== right) {
+            canClimbShoot = true;
+          } else if (shootHeld && downHeld && forwardHeld && climbFacing > 0) {
             p.climbAimMode = "downDiag";
-            p.aimX = p.face * 0.72;
+            p.aimX = climbFacing * 0.72;
             p.aimY = 0.72;
-          } else if (downHeld && shootHeld) {
-            p.climbAimMode = "down";
-            p.aimX = 0;
-            p.aimY = 1;
-          } else if (left !== right) {
+            canClimbShoot = true;
+          } else if (shootHeld && !downHeld) {
             p.climbAimMode = "forward";
-            p.aimX = p.face;
+            p.aimX = climbFacing;
             p.aimY = 0;
+            canClimbShoot = true;
           } else {
-            p.climbAimMode = p.climbAimMode || "forward";
-            if (p.climbAimMode === "up") {
-              p.aimX = 0;
-              p.aimY = -1;
-            } else if (p.climbAimMode === "diag") {
-              p.aimX = p.face * 0.72;
-              p.aimY = -0.72;
-            } else if (p.climbAimMode === "downDiag") {
-              p.aimX = p.face * 0.72;
-              p.aimY = 0.72;
-            } else if (p.climbAimMode === "down") {
-              p.aimX = 0;
-              p.aimY = 1;
-            } else {
-              p.aimX = p.face;
-              p.aimY = 0;
-            }
+            p.climbAimMode = "forward";
+            p.aimX = climbFacing;
+            p.aimY = 0;
           }
+          p.climbCombat = canClimbShoot;
         }
       }
     }
@@ -2925,11 +3156,29 @@
       p.muzzleFlashT = Math.max(0, p.muzzleFlashT - dt);
       p.visualFace = damp(typeof p.visualFace === "number" ? p.visualFace : p.face, p.face, FACE_LERP, dt);
       p.jumpLatch = jumpHeld;
-      if (shootHeld && p.fireCd <= 0) spawnPlayerBullets();
+      p.downLatch = downHeld;
+      if (shootHeld && p.climbCombat && p.fireCd <= 0) spawnPlayerBullets();
       return;
     }
 
-    if (aimLockHeld && p.onGround) {
+    if (p.onGround && !wantsDrop && downPressed) {
+      if (p.prone) {
+        p.prone = false;
+        p.crouching = true;
+      } else if (p.crouching) {
+        p.prone = true;
+        p.crouching = false;
+      }
+    }
+
+    if (p.prone && p.onGround) {
+      p.vx = 0;
+      if (left !== right) desiredFace = right ? 1 : -1;
+      if (upHeld) {
+        p.prone = false;
+        p.crouching = true;
+      }
+    } else if (aimLockHeld && p.onGround) {
       p.crouching = downHeld && !wantsDrop;
       p.vx = 0;
       if (left !== right) desiredFace = right ? 1 : -1;
@@ -2948,7 +3197,7 @@
       }
     }
 
-    if (jumpHeld && !p.jumpLatch && p.onGround && !p.crouching && !wantsDrop) {
+    if (jumpHeld && !p.jumpLatch && p.onGround && !p.crouching && !p.prone && !wantsDrop) {
       p.vy = -860;
       p.onGround = false;
       p.supportType = null;
@@ -2961,7 +3210,10 @@
     if (left !== right) p.face = desiredFace;
     if (aimLockHeld && p.onGround) {
       if (left !== right) p.face = desiredFace;
-      if (p.crouching) {
+      if (p.prone) {
+        p.aimX = p.face;
+        p.aimY = 0;
+      } else if (p.crouching) {
         if (upHeld) {
           if (left !== right) {
             p.aimX = p.face * 0.72;
@@ -3039,6 +3291,7 @@
       p.onGround = false;
       p.supportType = null;
       p.crouching = false;
+      p.prone = false;
       p.airT += dt;
     }
     p.y = nextYRect.y;
@@ -3049,6 +3302,7 @@
     p.muzzleFlashT = Math.max(0, p.muzzleFlashT - dt);
     p.visualFace = damp(typeof p.visualFace === "number" ? p.visualFace : p.face, p.face, FACE_LERP, dt);
     if (Math.abs(p.visualFace) < 0.08) p.visualFace = p.face * 0.08;
+    p.downLatch = downHeld;
     if (shootHeld && p.fireCd <= 0) spawnPlayerBullets();
   }
 
@@ -3086,6 +3340,7 @@
       }
       e.fireCd -= dt;
       if (typeof e.attackT === "number") e.attackT = Math.max(0, e.attackT - dt);
+      if (typeof e.damageFlashT === "number") e.damageFlashT = Math.max(0, e.damageFlashT - dt);
       if (e.kind === "trooper") {
         const dir = p.x >= e.x ? 1 : -1;
         if (typeof e.patrolMin === "number" && typeof e.patrolMax === "number") {
@@ -3249,6 +3504,7 @@
         if (e.kind === "trooper") {
           spawnBloodBurst(b.x, b.y, b.vx, b.vy, e.hp - b.dmg <= 0 ? 6 : 4, 145, 0.95);
         }
+        flashEnemyDamage(e, 0.24);
         e.hp -= b.dmg;
         b.pierce -= 1;
         if (e.hp <= 0) {
@@ -3275,6 +3531,7 @@
       for (const o of state.objectives) {
         if (o.destroyed) continue;
         if (!circleRect({ x: b.x, y: b.y, r: b.r }, o)) continue;
+        flashObjectiveDamage(o, b.weapon === o.weak ? 0.32 : 0.22);
         o.hp -= b.dmg * (b.weapon === o.weak ? 1.65 : 1);
         b.pierce -= 1;
         if (o.hp <= 0) {
@@ -3319,6 +3576,7 @@
       spawnBloodBurst(p.x + p.w * 0.5, p.y + p.h * 0.42, e.x - p.x, -0.3, 9, 210, 1.25);
       boom(p.x + p.w * 0.5, p.y + p.h * 0.5, 14, "#ffced1");
     }
+    if (p.hp <= 0) startPlayerDeathSequence();
   }
 
   function updatePickups(dt) {
@@ -3367,7 +3625,7 @@
       p.vx = p.x + p.w * 0.5 < hazard.x + hazard.w * 0.5 ? -220 : 220;
       boom(p.x + p.w * 0.5, p.y + p.h * 0.55, 18, hazard.kind === "acid" ? "#67ffd4" : "#ffb56c");
     }
-    if (p.hp <= 0) loseLife();
+    if (p.hp <= 0) startPlayerDeathSequence();
   }
 
   function updateExplosions(dt) {
@@ -3538,10 +3796,19 @@
       return;
     }
     if (state.mode === "bossDeath") {
+      updateDamageFlashes(dt);
       updateExplosions(dt);
       updateAftermath(dt);
       updateObjectiveDeathSequences(dt);
       updateBossDeathSequence(dt);
+      return;
+    }
+    if (state.mode === "playerDeath") {
+      updateDamageFlashes(dt);
+      updateExplosions(dt);
+      updateAftermath(dt);
+      updateObjectiveDeathSequences(dt);
+      updatePlayerDeathSequence(dt);
       return;
     }
     if (state.mode === "transition") {
@@ -3558,6 +3825,7 @@
     state.comboTimer = Math.max(0, state.comboTimer - dt);
     if (state.comboTimer === 0) state.combo = 0;
 
+    updateDamageFlashes(dt);
     updateSpawns();
     updateRespawns();
     updatePlayer(dt);
@@ -3570,9 +3838,20 @@
       updateExplosions(dt);
       return;
     }
+    if (state.mode === "playerDeath") {
+      updateAftermath(dt);
+      updateExplosions(dt);
+      updateObjectiveDeathSequences(dt);
+      return;
+    }
     updateAftermath(dt);
     updatePickups(dt);
     updateHazards();
+    if (state.mode === "playerDeath") {
+      updateExplosions(dt);
+      updateObjectiveDeathSequences(dt);
+      return;
+    }
     updateExplosions(dt);
     updateObjectiveDeathSequences(dt);
     updateFlow(dt);
@@ -3701,7 +3980,7 @@
   }
 
   function drawEnvironmentCrop(tileKey, dx, dy, dw, dh, alpha = 1, tileSetOverride = null) {
-    const tileSet = ENV_TILE_SETS[getStructureTileSetKey(tileSetOverride)] || ENV_TILE_SETS.industrial;
+    const tileSet = getEnvironmentTileSet(tileSetOverride);
     const crop = tileSet[tileKey];
     if (!crop) return false;
     const img = environmentImages.get(crop.art);
@@ -3826,6 +4105,58 @@
     }
   }
 
+  function traceTerrainPath(camY = 0) {
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    const start = Math.floor(state.cameraX / 28) * 28 - 28;
+    for (let x = start; x <= state.cameraX + W + 28; x += 28) {
+      ctx.lineTo(x - state.cameraX, terrainY(x) - camY);
+    }
+    ctx.lineTo(W, H);
+    ctx.closePath();
+  }
+
+  function drawTerrainTiles(tileSetOverride = null, camY = 0) {
+    const tileSet = getEnvironmentTileSet(tileSetOverride);
+    if (!tileSet.terrainFill && !tileSet.terrainTop) return;
+
+    ctx.save();
+    traceTerrainPath(camY);
+    ctx.clip();
+    if (tileSet.terrainFill) {
+      const crop = tileSet.terrainFill;
+      const img = environmentImages.get(crop.art);
+      if (img) {
+        const scale = crop.scale ?? 1;
+        const tw = Math.max(1, Math.round(crop.sw * scale));
+        const th = Math.max(1, Math.round(crop.sh * scale));
+        const startWX = Math.floor(state.cameraX / tw) * tw - tw;
+        const startWY = Math.floor(camY / th) * th - th;
+        for (let wx = startWX; wx <= state.cameraX + W + tw; wx += tw) {
+          for (let wy = startWY; wy <= camY + H + th; wy += th) {
+            ctx.drawImage(
+              img,
+              crop.sx, crop.sy, crop.sw, crop.sh,
+              Math.round(wx - state.cameraX),
+              Math.round(wy - camY),
+              tw,
+              th,
+            );
+          }
+        }
+      }
+    }
+    if (tileSet.terrainTop) {
+      const step = Math.max(36, tileSet.terrainTop.sw - 8);
+      for (let wx = Math.floor(state.cameraX / step) * step - step; wx <= state.cameraX + W + step; wx += step) {
+        const screenX = wx - state.cameraX;
+        const screenY = terrainY(wx + step * 0.5) - camY - 18;
+        drawEnvironmentCrop("terrainTop", screenX, screenY, tileSet.terrainTop.sw, tileSet.terrainTop.sh, 1, tileSetOverride);
+      }
+    }
+    ctx.restore();
+  }
+
   function drawSurfaceBackground(p) {
     const g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, p.sky1); g.addColorStop(0.5, p.sky2); g.addColorStop(1, p.sky3);
@@ -3855,17 +4186,12 @@
       ctx.beginPath(); ctx.moveTo(x, 410); ctx.lineTo(x + 70, 310); ctx.lineTo(x + 160, 410); ctx.closePath(); ctx.fill();
     }
 
-    ctx.beginPath();
-    ctx.moveTo(0, H);
-    const start = Math.floor(state.cameraX / 28) * 28 - 28;
-    for (let x = start; x <= state.cameraX + W + 28; x += 28) {
-      ctx.lineTo(x - state.cameraX, terrainY(x));
-    }
-    ctx.lineTo(W, H); ctx.closePath();
+    traceTerrainPath(0);
     const gg = ctx.createLinearGradient(0, 360, 0, H);
     gg.addColorStop(0, p.g1); gg.addColorStop(1, p.g2);
     ctx.fillStyle = gg;
     ctx.fill();
+    drawTerrainTiles(p.structureTiles);
 
     ctx.fillStyle = "rgba(137, 176, 210, 0.1)";
     for (let i = -1; i < 9; i++) {
@@ -4038,19 +4364,13 @@
     }
     ctx.lineWidth = 1;
 
-    ctx.beginPath();
-    ctx.moveTo(0, H);
-    const start = Math.floor(state.cameraX / 28) * 28 - 28;
-    for (let x = start; x <= state.cameraX + W + 28; x += 28) {
-      ctx.lineTo(x - state.cameraX, terrainY(x) - camY);
-    }
-    ctx.lineTo(W, H);
-    ctx.closePath();
+    traceTerrainPath(camY);
     const gg = ctx.createLinearGradient(0, sy(360), 0, H);
     gg.addColorStop(0, p.g1);
     gg.addColorStop(1, p.g2);
     ctx.fillStyle = gg;
     ctx.fill();
+    drawTerrainTiles(p.structureTiles, camY);
 
     ctx.fillStyle = "rgba(140, 182, 211, 0.09)";
     for (let i = -1; i < 8; i++) {
@@ -4091,6 +4411,7 @@
     const x = chunk.x - state.cameraX;
     if (x < -chunk.w - 80 || x > W + 80) return;
     const y = chunk.y;
+    const tileSet = getEnvironmentTileSet(chunk.tileSetOverride ?? null);
     const alpha = chunk.solid === false ? (chunk.alpha ?? 0.28) : Math.max(chunk.alpha ?? 0.28, 0.97);
     const colW = chunk.colW ?? Math.max(24, Math.min(38, Math.round(chunk.w * 0.12)));
     const capH = chunk.capH ?? 18;
@@ -4109,8 +4430,9 @@
       drawEnvironmentCrop("platformBeam", x, y + chunk.h - lipH, chunk.w, lipH + 4, Math.min(1, alpha + 0.04));
     }
     if (chunk.columns !== false) {
-      drawEnvironmentCrop("supportFace", x, y, colW, chunk.h, Math.min(1, alpha + 0.08));
-      drawEnvironmentCrop("supportFace", x + chunk.w - colW, y, colW, chunk.h, Math.min(1, alpha + 0.08));
+      const columnKey = tileSet.columnFace ? "columnFace" : "supportFace";
+      drawEnvironmentCrop(columnKey, x, y, colW, chunk.h, Math.min(1, alpha + 0.08), chunk.tileSetOverride ?? null);
+      drawEnvironmentCrop(columnKey, x + chunk.w - colW, y, colW, chunk.h, Math.min(1, alpha + 0.08), chunk.tileSetOverride ?? null);
     }
     ctx.strokeStyle = line;
     ctx.lineWidth = 1;
@@ -4190,23 +4512,6 @@
 
     drawDetailProps();
 
-    for (const hang of levelHangables()) {
-      const x = hang.x - state.cameraX;
-      if (x < -hang.w - 40 || x > W + 40) continue;
-      ctx.fillStyle = "rgba(18, 24, 34, 0.88)";
-      ctx.fillRect(x - 4, hang.y - 4, hang.w + 8, hang.h + 10);
-      ctx.fillStyle = steelDark;
-      ctx.fillRect(x, hang.y, hang.w, hang.h + 2);
-      ctx.fillStyle = steel;
-      ctx.fillRect(x + 6, hang.y + 2, hang.w - 12, 3);
-      ctx.fillStyle = "#b4cadb";
-      ctx.fillRect(x + 10, hang.y + 5, hang.w - 20, 2);
-      ctx.fillStyle = steelDark;
-      ctx.fillRect(x + 8, hang.y + hang.h + 2, 4, 18);
-      ctx.fillRect(x + hang.w - 12, hang.y + hang.h + 2, 4, 18);
-      drawEnvironmentCrop("platformBeam", x - 2, hang.y - 1, hang.w + 4, hang.h + 6, 1, "industrial");
-    }
-
     for (const climb of levelClimbables()) {
       const x = climb.x - state.cameraX;
       if (x < -60 || x > W + 40) continue;
@@ -4227,18 +4532,24 @@
       const x = platform.x - state.cameraX;
       if (x < -platform.w - 30 || x > W + 30) continue;
       drawShadowBlob(x + platform.w * 0.5, platform.y + 6, platform.w * 0.42, 10, 0.18);
-      ctx.fillStyle = steelDark;
-      ctx.fillRect(x, platform.y, platform.w, platform.h);
-      ctx.fillStyle = steel;
-      ctx.fillRect(x + 4, platform.y + 2, platform.w - 8, 4);
-      ctx.fillStyle = "#b4cadb";
-      ctx.fillRect(x + 8, platform.y + 6, platform.w - 16, 2);
-      ctx.fillStyle = "#223140";
-      for (let px = x + 10; px < x + platform.w - 10; px += 26) {
-        ctx.fillRect(px, platform.y + 8, 4, 4);
-      }
-      drawEnvironmentCrop("platformTop", x, platform.y - 3, platform.w, 16, 1);
-      drawEnvironmentCrop("platformBeam", x, platform.y, platform.w, platform.h + 10, 1);
+      drawEnvironmentCrop("platformTop", x, platform.y - 8, platform.w, 24, 1);
+      drawEnvironmentCrop("platformBeam", x, platform.y + 6, platform.w, platform.h + 28, 1);
+    }
+
+    for (const hang of levelHangables()) {
+      const x = hang.x - state.cameraX;
+      if (x < -hang.w - 40 || x > W + 40) continue;
+      const y = hang.y;
+      const h = Math.max(8, hang.h + 4);
+      drawShadowBlob(x + hang.w * 0.5, y + h * 0.7, hang.w * 0.28, 4, 0.12);
+      ctx.save();
+      drawEnvironmentCrop("hangBar", x, y, hang.w, h, 1);
+      ctx.fillStyle = "rgba(255, 231, 124, 0.18)";
+      ctx.fillRect(x + 2, y + 1, Math.max(0, hang.w - 4), 2);
+      ctx.strokeStyle = "rgba(12, 16, 24, 0.85)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, Math.max(1, hang.w - 1), Math.max(3, h - 1));
+      ctx.restore();
     }
 
     for (const checkpoint of levelCheckpoints()) {
@@ -4349,6 +4660,14 @@
         ctx.fillStyle = o.destroyed && !deathSeq ? "#4e5058" : "#bbc9e0";
         ctx.fillRect(sx + 8, sy + 8, sw - 16, sh - 16);
       });
+      const hitFlash = Math.max(0, o.damageFlashT || 0);
+      if (hitFlash > 0 && !deathSeq) {
+        ctx.save();
+        ctx.globalAlpha = Math.min(0.86, hitFlash * 2.8);
+        ctx.filter = "brightness(0) saturate(0) invert(1)";
+        drawAnimSprite(objectiveStyle.baseKey, objectiveStyle.frames, objectiveStyle.fps, o.x * 0.01, sx, sy, sw, sh, false, () => {});
+        ctx.restore();
+      }
       if (deathSeq) {
         const hotGlow = o.kind === "reactor" ? "#9dff88" : o.kind === "centrifuge" ? "#a6f4ff" : "#ffbc72";
         drawGlowCircle(sx + sw * 0.5, sy + sh * 0.48, sw * (0.34 + meltdownPulse * 0.18), hotGlow, 0.1 + meltdownPulse * 0.06);
@@ -4496,6 +4815,17 @@
         else { ctx.fillStyle = "#ff9169"; ctx.fillRect(sx, sy, sw, sh); ctx.fillStyle = "#352133"; ctx.fillRect(sx + 8, sy + 10, sw - 16, 20); }
       });
       ctx.restore();
+      const hitFlash = Math.max(0, e.damageFlashT || 0);
+      if (hitFlash > 0 && !deathSeq) {
+        ctx.save();
+        const maxAlpha = e.kind === "boss" ? 0.34 : e.kind === "mech" ? 0.28 : 0.22;
+        const gain = e.kind === "boss" ? 1.55 : e.kind === "mech" ? 1.42 : 1.28;
+        ctx.globalAlpha = Math.min(maxAlpha, hitFlash * gain);
+        ctx.globalCompositeOperation = "screen";
+        ctx.filter = "grayscale(1) brightness(3.1) contrast(1.05)";
+        drawAnimSprite(baseKey, anim.frames, anim.fps, phase, sx, sy, sw, sh, flip, () => {});
+        ctx.restore();
+      }
       if (deathSeq) {
         drawGlowCircle(sx + sw * 0.5, sy + sh * 0.44, sw * (0.54 + deathProgress * 0.2), "#ff9c61", 0.16 + deathProgress * 0.08);
         drawGlowCircle(sx + sw * 0.52, sy + sh * 0.46, sw * (0.34 + deathProgress * 0.14), "#fff0b2", 0.12 + deathProgress * 0.06);
@@ -4711,6 +5041,29 @@
 
   function drawPlayer() {
     const p = state.player;
+    const death = state.playerDeath;
+    if (death) {
+      const sx = death.bodyX + death.renderOffsetX - state.cameraX;
+      const sy = death.bodyY + death.renderOffsetY;
+      if (!death.hidden) {
+        drawEntityShadow(sx, sy, death.renderW, death.renderH, 0.22);
+        ctx.save();
+        ctx.translate(sx + death.renderW * 0.5, sy + death.renderH * 0.68);
+        ctx.rotate(death.rot);
+        ctx.translate(-(sx + death.renderW * 0.5), -(sy + death.renderH * 0.68));
+        drawSprite(death.spriteKey, sx, sy, death.renderW, death.renderH, death.flipScale, () => {
+          ctx.fillStyle = "#f1f8ff";
+          ctx.fillRect(sx, sy, death.renderW, death.renderH);
+        });
+        if ((death.flashT || 0) > 0.02) {
+          ctx.globalAlpha = Math.min(0.9, (death.flashT || 0) * 0.9);
+          ctx.filter = "brightness(0) saturate(0) invert(1)";
+          drawSprite(death.spriteKey, sx, sy, death.renderW, death.renderH, death.flipScale, () => {});
+        }
+        ctx.restore();
+      }
+      return;
+    }
     const render = getPlayerRenderState(p);
     const sprite = getPlayerSpriteState(p, render);
     const aim = getPlayerAimVector(p);
@@ -4936,6 +5289,7 @@
     }
     const smartBombWhiteout = getSmartBombWhiteoutAlpha();
     const objectiveWhiteout = getObjectiveWhiteoutAlpha();
+    const playerDeathWhiteout = getPlayerDeathWhiteoutAlpha();
     if (state.bossDeath) {
       const p = clamp(state.bossDeath.t / Math.max(0.001, state.bossDeath.duration), 0, 1);
       const pulse = 0.5 + Math.sin(state.levelClock * 22) * 0.5;
@@ -4950,8 +5304,8 @@
         ctx.fillStyle = `rgba(255,255,255,${whiteout.toFixed(3)})`;
         ctx.fillRect(0, 0, W, H);
       }
-    } else if (smartBombWhiteout > 0 || objectiveWhiteout > 0) {
-      ctx.fillStyle = `rgba(255,255,255,${Math.max(smartBombWhiteout, objectiveWhiteout).toFixed(3)})`;
+    } else if (smartBombWhiteout > 0 || objectiveWhiteout > 0 || playerDeathWhiteout > 0) {
+      ctx.fillStyle = `rgba(255,255,255,${Math.max(smartBombWhiteout, objectiveWhiteout, playerDeathWhiteout).toFixed(3)})`;
       ctx.fillRect(0, 0, W, H);
     }
   }
@@ -5126,7 +5480,7 @@
       },
       player: {
         x: Math.round(p.x), y: Math.round(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy),
-        hp: Math.round(p.hp), maxHp: p.maxHp, onGround: p.onGround, crouching: p.crouching, climbing: p.climbing, hanging: p.hanging,
+        hp: Math.round(p.hp), maxHp: p.maxHp, onGround: p.onGround, crouching: p.crouching, prone: p.prone, climbing: p.climbing, hanging: p.hanging,
         muzzleFlash: p.muzzleFlashT > 0, aimLock: isAimLockActive(p), facing: p.face, visualFacing: Number((typeof p.visualFace === "number" ? p.visualFace : p.face).toFixed(2)),
         pose: getPlayerPoseKey(p),
         support: p.supportType || null,
@@ -5135,13 +5489,16 @@
         ammo: Number.isFinite(p.bag?.[p.weapon]?.ammo) ? Math.floor(p.bag[p.weapon].ammo) : "INF",
         shieldHits: p.shieldHits || 0,
         smartBombs: p.smartBombs,
+        climbMoving: !!p.climbMoving,
+        hangMoving: !!p.hangMoving,
       },
-      objectives: state.objectives.slice(0, 8).map((o) => ({ id: o.id, label: o.label, x: Math.round(o.x), y: Math.round(o.y), hp: Math.round(o.hp), maxHp: o.maxHp, destroyed: o.destroyed, weakness: o.weak })),
+      objectives: state.objectives.slice(0, 8).map((o) => ({ id: o.id, label: o.label, x: Math.round(o.x), y: Math.round(o.y), hp: Math.round(o.hp), maxHp: o.maxHp, destroyed: o.destroyed, weakness: o.weak, damageFlashT: Number((o.damageFlashT || 0).toFixed(2)) })),
       objectiveDeaths: state.objectiveDeaths.slice(0, 8).map((seq) => ({ id: seq.id, kind: seq.kind, t: Number(seq.t.toFixed(2)), duration: seq.duration, flashT: Number((seq.flashT || 0).toFixed(2)) })),
       obstacles: (state.level?.obstacles || []).slice(0, 12).map((o) => ({ id: o.id, kind: o.kind, hp: o.maxHp ? Math.round(o.hp) : null, maxHp: o.maxHp || null, destroyed: !!o.destroyed })),
-      enemies: state.enemies.slice(0, 16).map((e) => ({ kind: e.kind, variant: e.variant || null, x: Math.round(e.x), y: Math.round(e.y), hp: Math.round(e.hp) })),
+      enemies: state.enemies.slice(0, 16).map((e) => ({ kind: e.kind, variant: e.variant || null, x: Math.round(e.x), y: Math.round(e.y), hp: Math.round(e.hp), damageFlashT: Number((e.damageFlashT || 0).toFixed(2)) })),
       boss: boss ? { name: boss.bossName, hp: Math.round(boss.hp), maxHp: boss.maxHp, x: Math.round(boss.x), y: Math.round(boss.y), dying: !!boss.dying } : null,
       bossDeath: state.bossDeath ? { t: Number(state.bossDeath.t.toFixed(2)), duration: state.bossDeath.duration, name: state.bossDeath.name, whiteoutAlpha: Number(getBossWhiteoutAlpha().toFixed(2)), detonated: !!state.bossDeath.detonated } : null,
+      playerDeath: state.playerDeath ? { t: Number(state.playerDeath.t.toFixed(2)), duration: state.playerDeath.duration, detonated: !!state.playerDeath.detonated, hidden: !!state.playerDeath.hidden, whiteoutAlpha: Number(getPlayerDeathWhiteoutAlpha().toFixed(2)) } : null,
       smartBombs: state.smartBombs.map((bomb) => ({ x: Math.round(bomb.x), y: Math.round(bomb.y), t: Number(bomb.t.toFixed(2)), radius: Math.round(getSmartBombRadius(bomb)), whiteoutAlpha: Number(getSmartBombWhiteoutAlphaFor(bomb).toFixed(2)) })),
       respawns: state.respawnQueue.slice(0, 8).map((ticket) => ({ id: ticket.id, dueIn: Number(Math.max(0, ticket.due - state.levelClock).toFixed(2)), x: Math.round(ticket.spawn?.x ?? 0) })),
       bullets: { player: state.bullets.length, enemy: state.enemyBullets.length },
@@ -5231,6 +5588,138 @@
       const seconds = progress <= 1 ? Math.max(0, progress) * BOSS_DEATH_DURATION : Math.max(0, progress);
       this.advanceBossDeath(seconds);
       if (state.mode === "bossDeath") state.mode = "paused";
+      render();
+      return true;
+    },
+    setupPlayerDeathCheck(progress = 0.56) {
+      clearSay();
+      debugHidePauseOverlay = true;
+      resetLevel(0, false);
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 420;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 90;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.hp = 0;
+      state.player.invuln = 0;
+      startPlayerDeathSequence();
+      let remaining = PLAYER_DEATH_TOTAL_DURATION * clamp(progress, 0, 1);
+      while (remaining > 0 && state.mode === "playerDeath") {
+        const slice = Math.min(DT, remaining);
+        step(slice);
+        remaining -= slice;
+      }
+      if (state.mode === "playerDeath") state.mode = "paused";
+      render();
+      return true;
+    },
+    setupBossDamageFlashCheck() {
+      clearSay();
+      debugHidePauseOverlay = true;
+      resetLevel(0, false);
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      const bossSpec = state.level?.boss;
+      if (!bossSpec) return false;
+      spawnEnemy({ t: "boss", ...bossSpec });
+      const boss = getActiveBoss();
+      if (!boss) return false;
+      state.bossActive = true;
+      state.player.x = Math.max(72, boss.x - 220);
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      flashEnemyDamage(boss, 0.28);
+      state.cameraX = clamp(boss.x - W * 0.32, 0, Math.max(0, state.level.length - W));
+      state.cameraY = clamp(boss.y - H * 0.4, levelTop(), Math.max(levelTop(), levelHeight() - H));
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupEnemyDamageFlashCheck() {
+      clearSay();
+      debugHidePauseOverlay = true;
+      resetLevel(0, false);
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 320;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      spawnEnemy({ t: "trooper", x: 480, surfaceY: terrainY(480), variant: "crimson" });
+      spawnEnemy({ t: "drone", x: 610, y: 280 });
+      spawnEnemy({ t: "turret", x: 760, surfaceY: terrainY(760) });
+      spawnEnemy({ t: "mech", x: 900, surfaceY: terrainY(900), spriteStyle: "crawler", patrolMin: 860, patrolMax: 980 });
+      for (const enemy of state.enemies) flashEnemyDamage(enemy, enemy.kind === "mech" ? 0.24 : 0.2);
+      state.cameraX = clamp(360 - W * 0.08, 0, Math.max(0, state.level.length - W));
+      state.cameraY = clamp(state.player.y - H * 0.45, levelTop(), Math.max(levelTop(), levelHeight() - H));
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupObjectiveDamageFlashCheck(levelIndex = 0, objectiveIndex = 0) {
+      clearSay();
+      debugHidePauseOverlay = true;
+      resetLevel(levelIndex, false);
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      const objective = state.objectives[objectiveIndex] || state.objectives.find((item) => item.kind === "reactor" || item.kind === "centrifuge") || state.objectives[0];
+      if (!objective) return false;
+      state.player.x = Math.max(72, objective.x - 240);
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      flashObjectiveDamage(objective, 0.3);
+      state.cameraX = clamp(objective.x - W * 0.38, 0, Math.max(0, state.level.length - W));
+      state.cameraY = clamp(objective.y - H * 0.54, levelTop(), Math.max(levelTop(), levelHeight() - H));
+      state.mode = "paused";
       render();
       return true;
     },
@@ -5759,8 +6248,8 @@
         state.player.aimX = face * 0.72;
         state.player.aimY = 0.72;
       } else if (aimMode === "down") {
-        state.player.aimX = 0;
-        state.player.aimY = 1;
+      state.player.aimX = -0.72;
+      state.player.aimY = 0.72;
       } else {
         state.player.aimX = face * 0.72;
         state.player.aimY = -0.72;
@@ -5799,8 +6288,72 @@
       render();
       return true;
     },
-    setupClimbAimCheck(mode = "diag") {
+    setupClimbAimCheck(mode = "diag", facing = 1, firing = false) {
       clearSay();
+      debugHidePauseOverlay = true;
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      const desiredSide = facing > 0 ? "left" : "right";
+      const climb = levelClimbables().find((item) => (item.side || "left") === desiredSide) || levelClimbables()[0];
+      state.player.x = climb.x + climb.w * 0.5 - state.player.w * 0.5;
+      state.player.y = climb.y + 56;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = false;
+      state.player.supportType = "climb";
+      state.player.climbing = true;
+      state.player.climbId = climb.id;
+      const validMode = mode === "up" || mode === "diag" || mode === "forward" || (mode === "downDiag" && facing > 0);
+      state.player.climbCombat = firing && validMode;
+      state.player.climbMoving = false;
+      state.player.hp = state.player.maxHp;
+      state.player.invuln = 0;
+      state.player.weapon = "LASER";
+      state.player.bag.LASER.unlocked = true;
+      state.player.bag.LASER.level = 2;
+      state.player.bag.LASER.ammo = Infinity;
+      state.player.face = facing;
+      state.player.visualFace = facing;
+      state.player.climbAimMode = validMode ? mode : "forward";
+      if (mode === "up") {
+        state.player.aimX = 0;
+        state.player.aimY = -1;
+      } else if (mode === "downDiag") {
+        state.player.aimX = facing * 0.72;
+        state.player.aimY = 0.72;
+      } else if (mode === "forward") {
+        state.player.aimX = facing;
+        state.player.aimY = 0;
+      } else {
+        state.player.aimX = facing * 0.72;
+        state.player.aimY = -0.72;
+      }
+      if (!validMode) {
+        state.player.aimX = facing;
+        state.player.aimY = 0;
+      }
+      state.player.muzzleFlashT = firing && validMode ? 0.1 : 0;
+      state.player.fireCd = 0;
+      if (firing && validMode) {
+        spawnPlayerBullets();
+      }
+      state.cameraX = clamp(state.player.x - W * 0.34, 0, Math.max(0, state.level.length - W));
+      state.cameraY = clamp(state.player.y - H * 0.48, levelTop(), Math.max(levelTop(), levelHeight() - H));
+      state.mode = "paused";
+      render();
+      return true;
+    },
+    setupClimbMotionCheck(moving = false) {
+      clearSay();
+      debugHidePauseOverlay = true;
       state.mode = "playing";
       state.enemies = [];
       state.pending = [];
@@ -5813,35 +6366,31 @@
       state.bloodParticles = [];
       const climb = levelClimbables()[0];
       state.player.x = climb.x + climb.w * 0.5 - state.player.w * 0.5;
-      state.player.y = climb.y + 56;
+      state.player.y = climb.y + 68;
       state.player.vx = 0;
       state.player.vy = 0;
       state.player.onGround = false;
       state.player.supportType = "climb";
       state.player.climbing = true;
       state.player.climbId = climb.id;
-      state.player.climbCombat = true;
+      state.player.climbCombat = false;
+      state.player.climbAimMode = "forward";
+      state.player.climbMoving = moving;
+      state.player.hanging = false;
+      state.player.hangId = null;
+      state.player.hangCombat = false;
+      state.player.hangMoving = false;
+      state.player.crouching = false;
+      state.player.prone = false;
+      state.player.debugAimLock = false;
       state.player.hp = state.player.maxHp;
       state.player.invuln = 0;
+      state.player.face = getClimbFacingSign(climb);
+      state.player.visualFace = state.player.face;
       state.player.face = 1;
       state.player.visualFace = 1;
-      state.player.climbAimMode = mode;
-      if (mode === "up") {
-        state.player.aimX = 0;
-        state.player.aimY = -1;
-      } else if (mode === "downDiag") {
-        state.player.aimX = 0.72;
-        state.player.aimY = 0.72;
-      } else if (mode === "down") {
-        state.player.aimX = 0;
-        state.player.aimY = 1;
-      } else if (mode === "forward") {
-        state.player.aimX = 1;
-        state.player.aimY = 0;
-      } else {
-        state.player.aimX = 0.72;
-        state.player.aimY = -0.72;
-      }
+      state.player.aimX = 1;
+      state.player.aimY = 0;
       state.cameraX = clamp(state.player.x - W * 0.34, 0, Math.max(0, state.level.length - W));
       state.cameraY = clamp(state.player.y - H * 0.48, levelTop(), Math.max(levelTop(), levelHeight() - H));
       state.mode = "paused";
@@ -5862,7 +6411,7 @@
       state.bloodParticles = [];
       const hang = levelHangables()[0];
       state.player.x = hang.x + hang.w * 0.35 - state.player.w * 0.5;
-      state.player.y = hang.y + hang.h - 8;
+      state.player.y = getHangAttachY(hang);
       state.player.vx = 0;
       state.player.vy = 0;
       state.player.onGround = false;
@@ -5898,10 +6447,98 @@
       render();
       return true;
     },
+    setupHangMotionCheck(moving = false) {
+      clearSay();
+      debugHidePauseOverlay = true;
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      const hang = levelHangables()[0];
+      state.player.x = hang.x + hang.w * 0.32 - state.player.w * 0.5;
+      state.player.y = getHangAttachY(hang);
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = false;
+      state.player.supportType = "hang";
+      state.player.hanging = true;
+      state.player.hangId = hang.id;
+      state.player.hangCombat = false;
+      state.player.hangAimMode = "forward";
+      state.player.hangMoving = moving;
+      state.player.climbing = false;
+      state.player.climbId = null;
+      state.player.climbCombat = false;
+      state.player.climbMoving = false;
+      state.player.crouching = false;
+      state.player.prone = false;
+      state.player.debugAimLock = false;
+      state.player.hp = state.player.maxHp;
+      state.player.invuln = 0;
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.aimX = 1;
+      state.player.aimY = 0;
+      state.cameraX = clamp(state.player.x - W * 0.34, 0, Math.max(0, state.level.length - W));
+      state.cameraY = clamp(state.player.y - H * 0.48, levelTop(), Math.max(levelTop(), levelHeight() - H));
+      state.mode = "paused";
+      render();
+      return true;
+    },
     setupHangDropCheck() {
       this.setupHangAimCheck("forward", false);
       debugHidePauseOverlay = true;
       state.mode = "playing";
+      render();
+      return true;
+    },
+    setupProneCheck(firing = false) {
+      clearSay();
+      debugHidePauseOverlay = true;
+      state.mode = "playing";
+      state.enemies = [];
+      state.pending = [];
+      state.objectives = [];
+      state.pickups = [];
+      state.bullets = [];
+      state.enemyBullets = [];
+      state.explosions = [];
+      state.corpses = [];
+      state.bloodParticles = [];
+      state.player.x = 180;
+      state.player.y = terrainY(state.player.x + state.player.w * 0.5) - state.player.h;
+      state.player.vx = 0;
+      state.player.vy = 0;
+      state.player.onGround = true;
+      state.player.supportType = "terrain";
+      state.player.crouching = false;
+      state.player.prone = true;
+      state.player.climbing = false;
+      state.player.climbId = null;
+      state.player.climbCombat = false;
+      state.player.climbMoving = false;
+      state.player.hanging = false;
+      state.player.hangId = null;
+      state.player.hangCombat = false;
+      state.player.hangMoving = false;
+      state.player.debugAimLock = false;
+      state.player.hp = state.player.maxHp;
+      state.player.invuln = 0;
+      state.player.face = 1;
+      state.player.visualFace = 1;
+      state.player.aimX = 1;
+      state.player.aimY = 0;
+      state.player.muzzleFlashT = firing ? 0.1 : 0;
+      state.player.fireCd = 0;
+      state.cameraX = clamp(state.player.x - W * 0.34, 0, Math.max(0, state.level.length - W));
+      state.cameraY = clamp(state.player.y - H * 0.48, levelTop(), Math.max(levelTop(), levelHeight() - H));
+      state.mode = "paused";
       render();
       return true;
     },
